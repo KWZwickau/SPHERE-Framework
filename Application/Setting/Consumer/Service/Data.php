@@ -208,81 +208,77 @@ class Data extends AbstractData
             Schuljahr [Standard: 10]', true);
 
         // Schüler-Eltern-Zugang
-        $this->createSetting('ParentStudentAccess', 'Person', 'ContactDetails', 'OnlineContactDetailsAllowedForSchoolTypes', TblSetting::TYPE_STRING, '',
-            'Eltern/Schüler-Zugang', 'Online Kontaktdaten Anzeige und Änderungswünsche durch Eltern ist für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS) möglich. 
-            Mehrere Schularten sind mit Komma zu trennen. [Standard: ]', true, 1);
         if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Absence', 'OnlineAbsenceAllowedForSchoolTypes', TblSetting::TYPE_STRING, '',
             'Fehlzeiten', 'Online Fehlzeiten von Eltern/Schüler ist für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS) möglich. Mehrere Schularten sind mit
-             Komma zu trennen. [Standard: ]', true, 2))
+             Komma zu trennen. [Standard: ]', true, 1))
         ){
-            $this->updateSettingSortOrderAndCategory($tblSetting, 2, 'Eltern/Schüler-Zugang');
+            $this->updateSettingSortOrder($tblSetting, 1);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Competence', 'OnlineCompetenceAllowedForSchoolTypes', TblSetting::TYPE_STRING, '',
+            'Eltern/Schüler-Zugang', 'Online Kompetenzen Anzeige Kompetenzübersicht für Eltern/Schüler nach Schulart(en) für die folgenden Schularten (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS) möglich. 
+            Mehrere Schularten sind mit Komma zu trennen. (Nur wenn Extra-Modul Kompetenzzeugnisse erworben.) [Standard: ]', true, 2))
+        ) {
+            $this->updateSettingSortOrder($tblSetting, 2);
+        }
+        if (($tblSetting = $this->createSetting('ParentStudentAccess', 'Person', 'ContactDetails', 'OnlineContactDetailsAllowedForSchoolTypes', TblSetting::TYPE_STRING, '',
+            'Eltern/Schüler-Zugang', 'Online Kontaktdaten Anzeige und Änderungswünsche durch Eltern ist für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS) möglich. 
+            Mehrere Schularten sind mit Komma zu trennen. [Standard: ]', true, 3))
+        ) {
+            $this->updateSettingSortOrder($tblSetting, 3);
         }
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType', TblSetting::TYPE_STRING, '',
             'Eltern/Schüler-Zugang', 'Eingrenzung Anzeige Notenübersicht für Eltern/Schüler nach Schulart(en). Festlegung mittels Kürzel der Schulart.
-            (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS) Mehrere Schularten sind mit Komma zu trennen. [Standard: ]', true, 3))
+            (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS) Mehrere Schularten sind mit Komma zu trennen. [Standard: ]', true, 4))
         ) {
             $this->updateSettingDescription($tblSetting, 'Eltern/Schüler-Zugang',
                 'Eingrenzung Anzeige Notenübersicht für Eltern/Schüler nach Schulart(en). Festlegung mittels Kürzel der Schulart. (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS)
                 Mehrere Schularten sind mit Komma zu trennen. [Standard: ]', $tblSetting->isPublic()
             );
-            $this->updateSettingSortOrder($tblSetting, 3);
+            $this->updateSettingSortOrder($tblSetting, 4);
         }
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'YearOfUserView', TblSetting::TYPE_STRING, '', 'Eltern/Schüler-Zugang',
             'Anzeige der Noten in der Notenübersicht für Eltern/Schüler ab folgenden Schuljahr (z.B. 2019/20). Wenn leer werden
-            Noten aller Schuljahre angezeigt [Standard: ]', true, 4))
+            Noten aller Schuljahre angezeigt [Standard: ]', true, 5))
         ) {
             $this->updateSettingDescription($tblSetting, 'Eltern/Schüler-Zugang',
                 'Anzeige der Noten in der Notenübersicht für Eltern/Schüler ab folgenden Schuljahr (z.B. 2019/20). Wenn leer werden
                 Noten aller Schuljahre angezeigt [Standard: ]', $tblSetting->isPublic()
             );
-            $this->updateSettingSortOrderAndCategory($tblSetting, 4, 'Eltern/Schüler-Zugang');
+            $this->updateSettingSortOrder($tblSetting, 5);
         }
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownAverageInStudentOverview',
             TblSetting::TYPE_BOOLEAN, false, 'Eltern/Schüler-Zugang', 'Anzeige des Notendurchschnitts in der
-            Notenübersicht für Eltern/Schüler [Standard: Nein]', true, 5))
+            Notenübersicht für Eltern/Schüler [Standard: Nein]', true, 6))
         ) {
-            $this->updateSettingDescription($tblSetting, 'Eltern/Schüler-Zugang',
-                'Anzeige des Notendurchschnitts in der Notenübersicht für Eltern/Schüler [Standard: Nein]', $tblSetting->isPublic()
-            );
-            $this->updateSettingSortOrderAndCategory($tblSetting, 5, 'Eltern/Schüler-Zugang');
+            $this->updateSettingSortOrder($tblSetting, 6);
         }
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownDivisionSubjectScoreInStudentOverview',
             TblSetting::TYPE_BOOLEAN, false, 'Eltern/Schüler-Zugang',
-            'Anzeige des Fach-Klassen-Durchschnitts in der Notenübersicht für Eltern/Schüler. [Standard: Nein]', true, 6))
+            'Anzeige des Fach-Klassen-Durchschnitts in der Notenübersicht für Eltern/Schüler. [Standard: Nein]', true, 7))
         ) {
-            $this->updateSettingDescription($tblSetting, 'Eltern/Schüler-Zugang',
-                'Anzeige des Fach-Klassen-Durchschnitts in der Notenübersicht für Eltern/Schüler. [Standard: Nein]', $tblSetting->isPublic()
-            );
-            $this->updateSettingSortOrderAndCategory($tblSetting, 6, 'Eltern/Schüler-Zugang');
+            $this->updateSettingSortOrder($tblSetting, 7);
         }
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownGradeMirrorInStudentOverview',
             TblSetting::TYPE_BOOLEAN, false, 'Eltern/Schüler-Zugang',
-            'Anzeige des Notenspiegels in der Notenübersicht für Eltern/Schüler. [Standard: Nein]', true, 7))
+            'Anzeige des Notenspiegels in der Notenübersicht für Eltern/Schüler. [Standard: Nein]', true, 8))
         ) {
-            $this->updateSettingDescription($tblSetting, 'Eltern/Schüler-Zugang',
-                'Anzeige des Notenspiegels in der Notenübersicht für Eltern/Schüler. [Standard: Nein]', $tblSetting->isPublic()
-            );
-            $this->updateSettingSortOrderAndCategory($tblSetting, 7, 'Eltern/Schüler-Zugang');
+            $this->updateSettingSortOrder($tblSetting, 8);
         }
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'ShowHighlightedTestsInGradeOverview',
             TblSetting::TYPE_BOOLEAN, '1', 'Eltern/Schüler-Zugang', 'Anzeige der geplanten Großen Noten (fettmarkiert, z.B.
-             Klassenarbeiten) in der Notenübersicht für Eltern/Schüler und in der Schülerübersicht [Standard: Ja]', true, 8))
-        ) {
-            $this->updateSettingDescription($tblSetting, 'Eltern/Schüler-Zugang',
-                'Anzeige der geplanten Großen Noten (fettmarkiert, z.B.
-                Klassenarbeiten) in der Notenübersicht für Eltern/Schüler und in der Schülerübersicht [Standard: Ja]', $tblSetting->isPublic()
-            );
-            $this->updateSettingSortOrderAndCategory($tblSetting, 8, 'Eltern/Schüler-Zugang');
-        }
-        if (($tblSetting = $this->createSetting('ParentStudentAccess', 'OnlineGradebook', 'OnlineGradebook' , 'IsScoreRuleShown', TblSetting::TYPE_BOOLEAN, '0', 'Eltern/Schüler-Zugang',
-            'Anzeige der Berechnungsvorschrift in der Notenübersicht für Eltern/Schüler. [Standard: Nein]', true, 9))
+             Klassenarbeiten) in der Notenübersicht für Eltern/Schüler und in der Schülerübersicht [Standard: Ja]', true, 9))
         ) {
             $this->updateSettingSortOrder($tblSetting, 9);
         }
-        if (($tblSetting = $this->createSetting('ParentStudentAccess', 'Person', 'ContactDetails', 'PasswordRecoveryCost', TblSetting::TYPE_STRING, '5',
-            'Eltern/Schüler-Zugang', 'Kostenstellung für Vergabe eines neuen Passwortes. [Standard: 5]', true, 10))
+        if (($tblSetting = $this->createSetting('ParentStudentAccess', 'OnlineGradebook', 'OnlineGradebook' , 'IsScoreRuleShown', TblSetting::TYPE_BOOLEAN, '0', 'Eltern/Schüler-Zugang',
+            'Anzeige der Berechnungsvorschrift in der Notenübersicht für Eltern/Schüler. [Standard: Nein]', true, 10))
         ) {
             $this->updateSettingSortOrder($tblSetting, 10);
+        }
+        if (($tblSetting = $this->createSetting('ParentStudentAccess', 'Person', 'ContactDetails', 'PasswordRecoveryCost', TblSetting::TYPE_STRING, '5',
+            'Eltern/Schüler-Zugang', 'Kostenstellung für Vergabe eines neuen Passwortes. [Standard: 5]', true, 11))
+        ) {
+            $this->updateSettingSortOrder($tblSetting, 11);
         }
 
         // Adresslisten für Serienbriefe public

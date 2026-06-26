@@ -41,11 +41,12 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableScoreType(Schema &$schema): Table
+    private function setTableScoreType(Schema $schema): Table
     {
         $table = $this->createTable($schema, 'tblCompetenceScoreType');
         $this->createColumn($table, 'Name');
         $this->createColumn($table, 'Description');
+        $this->createColumn($table, 'SortOrder', self::FIELD_TYPE_STRING, false, 'asc');
 
         return $table;
     }
@@ -56,14 +57,14 @@ class Setup extends AbstractSetup
      *
      * @return void
      */
-    private function setTableScoreTypeItem(Schema &$schema, Table $tblScoreType): void
+    private function setTableScoreTypeItem(Schema $schema, Table $tblScoreType): void
     {
         $table = $this->createTable($schema, 'tblCompetenceScoreTypeItem');
         $this->createColumn($table, 'Value');
         $this->createColumn($table, 'Name');
         $this->createColumn($table, 'Description', self::FIELD_TYPE_TEXT, true);
 
-        $this->createForeignKey($table, $tblScoreType);
+        $this->createForeignKey($table, $tblScoreType, true);
     }
 
     /**
@@ -72,7 +73,7 @@ class Setup extends AbstractSetup
      *
      * @return void
      */
-    private function setTableScoreTypeConversion(Schema &$schema, Table $tblScoreType): void
+    private function setTableScoreTypeConversion(Schema $schema, Table $tblScoreType): void
     {
         $table = $this->createTable($schema, 'tblCompetenceScoreTypeConversion');
         $this->createColumn($table, 'Grade');

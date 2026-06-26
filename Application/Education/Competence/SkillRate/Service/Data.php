@@ -189,6 +189,20 @@ class Data extends AbstractData
 
     /**
      * @param TblStudentSkill $tblStudentSkill
+     *
+     * @return TblStudentSkillRate[]
+     */
+    public function getStudentSkillRateListByStudentSkill(TblStudentSkill $tblStudentSkill): array
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblStudentSkillRate',
+            [
+                TblStudentSkillRate::TBL_STUDENT_SKILL => $tblStudentSkill->getId(),
+            ],
+            [TblStudentSkillRate::ATTR_DATE => self::ORDER_ASC]) ?: [];
+    }
+
+    /**
+     * @param TblStudentSkill $tblStudentSkill
      * @param TblPerson|null $tblPersonTeacher
      * @param DateTime $dateTime
      * @param string|null $comment

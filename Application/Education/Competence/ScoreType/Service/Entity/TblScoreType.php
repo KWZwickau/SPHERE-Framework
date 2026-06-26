@@ -24,6 +24,10 @@ class TblScoreType extends Element
      * @Column(type="string")
      */
     protected ?string $Description = null;
+    /**
+     * @Column(type="string")
+     */
+    protected string $SortOrder = '';
 
     /**
      * @return string
@@ -65,7 +69,7 @@ class TblScoreType extends Element
      */
     public function getScoreTypeItems(): array
     {
-        return ScoreType::useService()->getScoreTypeItemsByScoreType($this);
+        return ScoreType::useService()->getScoreTypeItemsByScoreType($this->getId() < 0 ? null : $this);
     }
 
     /**
@@ -87,5 +91,23 @@ class TblScoreType extends Element
         }
 
         return implode(', ', $names);
+    }
+
+    /**
+     * @return string
+     */
+    public function getSortOrder(): string
+    {
+        return $this->SortOrder;
+    }
+
+    /**
+     * @param string $SortOrder
+     *
+     * @return void
+     */
+    public function setSortOrder(string $SortOrder): void
+    {
+        $this->SortOrder = $SortOrder;
     }
 }

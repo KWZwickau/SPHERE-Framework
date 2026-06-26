@@ -171,6 +171,17 @@ class FrontendStudent extends FrontendDivisionCourse
         $role = SkillRate::useService()->getRole();
         $isEdit = Grade::useService()->getIsEdit($DivisionCourseId, $SubjectId, $role);
 
+        $buttonStudenOverview = '';
+        // nur für SL, KL oder Alle-Readonly
+        if (SkillRate::useService()->hasStudentOverview($role, $tblDivisionCourse)) {
+            $buttonStudenOverview = new PullRight(
+                new Standard('Schülerübersicht', '/Education/Competence/SkillRate/Student/Overview', null,
+                    ['DivisionCourseId' => $DivisionCourseId, 'SubjectId' => $SubjectId, 'PersonId' => $PersonId,
+                        'BackRoute' => '/Education/Competence/SkillRate/Student', 'SelectedYearId' => $SelectedYearId]
+                )
+            );
+        }
+
         $content = '';
         foreach (SkillRate::useService()->getStudentEducationList($tblPerson, $tblYear, $IsOldYears) as $tblStudentEducationTemp) {
             if (($tblYearTemp = $tblStudentEducationTemp->getServiceTblYear())
@@ -235,6 +246,7 @@ class FrontendStudent extends FrontendDivisionCourse
                     ['DivisionCourseId' => $DivisionCourseId, 'SubjectId' => $SubjectId, 'SelectedYearId' => $SelectedYearId], 'Zurück zur Kursansicht')
                 . "&nbsp;&nbsp;&nbsp;Kompetenzbewertung"
                 . new Muted(new Small(" Schüleransicht "))
+                . $buttonStudenOverview
             )
             . new PullClear($buttons
             . new PullRight(
@@ -246,7 +258,7 @@ class FrontendStudent extends FrontendDivisionCourse
                         ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewStudentContent(
                             $DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $IsOldYears ? 'false' : 'true', $IsInterdisciplinary))
             ))
-            . new Container('&nbsp;')
+            . (new Container('&nbsp;'))->setStyle(['height: 8px;'])
             . $this->getStudentHead($tblPerson, $tblDivisionCourse, $tblSubject)
             . $content;
     }
@@ -289,7 +301,7 @@ class FrontendStudent extends FrontendDivisionCourse
             $displayLast = '';
             if ($tblStudentSkill) {
                 $tblSubjectForSkillRate = $tblSubject ? null : (Subject::useService()->getSubjectById($SubjectId) ?: null);
-                if (($displayLast = SkillRate::useService()->getDisplayStudentSkillRateLastOrAverage(
+                if (($displayLast = SkillRate::useService()->getToolTipStudentSkillRateLastOrAverage(
                     $tblStudentSkill, $tblSubjectForSkillRate, "Verlauf anzeigen"
                 ))) {
                     $dataList[$skillAreaIdentifier]['isBold'] = true;
@@ -416,7 +428,7 @@ class FrontendStudent extends FrontendDivisionCourse
                 (new Primary('Speichern', ApiSkillRate::getEndpoint(), new Save()))
                     ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveEditStudentSkillRate(
                         $tblDivisionCourse->getId(), $tblPerson->getId(), $SubjectId, $SelectedYearId, $tblSubject ? 'false' : 'true')),
-                (new Standard('Abbrechen', '/Education/Competence/SkillRate', new Disable()))
+                (new Standard('Abbrechen', ApiSkillRate::getEndpoint(), new Disable()))
                     ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewStudentContent(
                         $tblDivisionCourse->getId(), $tblPerson->getId(), $SubjectId, $SelectedYearId, 'false', $tblSubject ? 'false' : 'true')),
             ))
@@ -506,8 +518,12 @@ class FrontendStudent extends FrontendDivisionCourse
             $isBold = false;
             $displayLast = '';
             if ($tblStudentSkill) {
-                $tblSubjectForSkillRate = Subject::useService()->getSubjectById($SubjectId) ?: null;
-                if (($displayLast = SkillRate::useService()->getDisplayStudentSkillRateLastOrAverage($tblStudentSkill, $tblSubjectForSkillRate))) {
+                $tblSubjectForSkillRate = null;
+                if (!$tblStudentSkill->getServiceTblSubject()) {
+                    // ist fächerübergreifend → Fach wird mit an der Bewertung gespeichert
+                    $tblSubjectForSkillRate = Subject::useService()->getSubjectById($SubjectId) ?: null;
+                }
+                if (($displayLast = SkillRate::useService()->getToolTipStudentSkillRateLastOrAverage($tblStudentSkill, $tblSubjectForSkillRate))) {
                     $dataList[$skillAreaIdentifier]['isBold'] = true;
                     $isBold = true;
                 }
@@ -552,7 +568,7 @@ class FrontendStudent extends FrontendDivisionCourse
             $panelList[] = "Niveau: {$tblStudentSkill->getSkillLevel()}";
         }
         $panelList[] = new Bold("Kompetenz: {$tblStudentSkill->getSkill()}"
-            . new PullRight(SkillRate::useService()->getDisplayStudentSkillRateLastOrAverage(
+            . new PullRight(SkillRate::useService()->getToolTipStudentSkillRateLastOrAverage(
                 $tblStudentSkill, Subject::useService()->getSubjectById($SubjectId) ?: null)));
 
         return new Panel('Kompetenz', $panelList, Panel::PANEL_TYPE_INFO)

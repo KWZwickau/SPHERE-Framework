@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Competence\SkillRate\Service\Entity\TblStudentS
 use SPHERE\Application\Education\Competence\SkillRate\Service\Setup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -193,16 +194,33 @@ class Service extends AbstractService
      *
      * @return string
      */
-    public function getDisplayStudentSkillRateLastOrAverage(
+    public function getToolTipStudentSkillRateLastOrAverage(
         TblStudentSkill $tblStudentSkill, ?TblSubject $tblSubjectForSkillRate = null, string $extraToolTip = ""
     ): string {
+        return $this->getStudentSkillRateLastOrAverageValue($tblStudentSkill, $tblSubjectForSkillRate, $extraToolTip)['Display'];
+    }
+
+    /**
+     * bei $extraToolTip !== null wird bei Display ein ToolTip zurückgegeben
+     *
+     * @param TblStudentSkill $tblStudentSkill
+     * @param TblSubject|null $tblSubjectForSkillRate
+     * @param string|null $extraToolTip
+     *
+     * @return array
+     */
+    public function getStudentSkillRateLastOrAverageValue(TblStudentSkill $tblStudentSkill, ?TblSubject $tblSubjectForSkillRate = null,
+        ?string $extraToolTip = ""): array
+    {
         $display = '';
+        $value = floatval(0);
         if ($tblStudentSkill->getIsAverage()) {
             if (($average = $this->getCalcAverageStudentSkillRate($tblStudentSkill, $tblSubjectForSkillRate)) !== null) {
                 // in deutsches Zahlformat umwandeln
                 $formatter = new NumberFormatter('de_DE', NumberFormatter::DECIMAL);
                 $formatter->setAttribute(NumberFormatter::FRACTION_DIGITS, 2);
 
+                $value = $average;
                 $display = '&#216; ' . $formatter->format($average) . (!$tblStudentSkill->getServiceTblScoreType() ? '%' : '');
                 if ($extraToolTip) {
                     $display = new ToolTip($display, $extraToolTip);
@@ -211,20 +229,68 @@ class Service extends AbstractService
         } else {
             if (($tblStudentSkillRate = $this->getLastStudentSkillRateBy($tblStudentSkill, $tblSubjectForSkillRate))) {
                 $toolTip = "";
-                if ($extraToolTip) {
-                    $toolTip .= $extraToolTip . "<br /><br />";
+                if ($extraToolTip !== null) {
+                    if ($extraToolTip) {
+                        $toolTip .= $extraToolTip . "<br /><br />";
+                    }
+                    $toolTip .= "Letzte Bewertung am {$tblStudentSkillRate->getDateString()} durch {$tblStudentSkillRate->getDisplayTeacher()}";
                 }
-                $toolTip .= "Letzte Bewertung am {$tblStudentSkillRate->getDateString()} durch {$tblStudentSkillRate->getDisplayTeacher()}";
 
                 if (($tblScoreTypeItem = $tblStudentSkillRate->getServiceTblScoreTypeItem())) {
-                    $display = (new ToolTip($tblScoreTypeItem->getName(), $toolTip))->enableHtml();
+                    $value = $tblScoreTypeItem->getRateFloatValue();
+                    $display = $tblScoreTypeItem->getName();
                 } else {
-                    $display = (new ToolTip($tblStudentSkillRate->getRate() . '%', $toolTip))->enableHtml();
+                    $value = $tblStudentSkillRate->getRateFloatValue();
+                    $display = $value . '%';
+                }
+
+                if ($toolTip) {
+                    $display = (new ToolTip($display, $toolTip))->enableHtml();
                 }
             }
         }
 
-        return $display;
+        return [
+            'Display' => $display,
+            'Value' => $value
+        ];
+    }
+
+    /**
+     * @param TblStudentSkill $tblStudentSkill
+     *
+     * @return array
+     */
+    public function getStudentSkillRateLastOrAverageValueForInterdisciplinaryOverAllSubjects(TblStudentSkill $tblStudentSkill): array
+    {
+        $tblSubjetList = [];
+        $sum = floatval(0);
+        $count = 0;
+        if (($tblStudentSkillRateList = (new Data($this->getBinding()))->getStudentSkillRateListByStudentSkill($tblStudentSkill))) {
+            foreach ($tblStudentSkillRateList as $tblStudentSkillRate) {
+
+                if (($tblSubject = $tblStudentSkillRate->getServiceTblSubject())
+                    && !isset($tblSubjetList[$tblSubject->getId()])
+                ) {
+                    $tblSubjetList[$tblSubject->getId()] = $tblSubject;
+                    $sum += $this->getStudentSkillRateLastOrAverageValue($tblStudentSkill, $tblSubject, null)['Value'];
+                    $count++;
+                }
+            }
+        }
+
+        if ($count > 0) {
+            $value = round($sum / $count, 2);
+            $display = '&#216; ' . $value . (!$tblStudentSkill->getServiceTblScoreType() ? '%' : '');
+        } else {
+            $value = floatval(0);
+            $display = '';
+        }
+
+        return [
+            'Display' => $display,
+            'Value' => $value
+        ];
     }
 
     /**
@@ -433,6 +499,21 @@ class Service extends AbstractService
         }
 
         return "Teacher";
+    }
+
+    /**
+     * @param string $role
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return bool
+     */
+    public function hasStudentOverview(string $role, TblDivisionCourse $tblDivisionCourse): bool
+    {
+        // nur für SL, KL oder Alle-Readonly
+        return $role !== 'Teacher'
+            || (($tblDivisionCourseMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
+                && ($tblPersonLogin = Account::useService()->getPersonByLogin())
+                && DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblDivisionCourseMemberType, $tblPersonLogin));
     }
 
     /**
