@@ -8,6 +8,7 @@ use SPHERE\Application\Education\Lesson\Course\Course;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -19,6 +20,8 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
@@ -27,6 +30,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -111,6 +115,8 @@ class Frontend extends Extension implements IFrontendInterface
                     'Option' => new Standard('', '/Education/Competence/SkillGrid/Edit', new Edit(),
                         ['SchoolTypeId' => $SchoolTypeId, 'Filter' => $Filter, 'SkillGridId' => $tblSkillGrid->getId()],
                         'Kompetenzraster bearbeiten')
+                        . (new Standard('', ApiSkillGrid::getEndpoint(), new Extern(), array(), 'Kompetenzraster kopieren'))
+                            ->ajaxPipelineOnClick(ApiSkillGrid::pipelineOpenCopySkillGridModal($tblSkillGrid->getId(), $SchoolTypeId, $Filter))
                         . (new Standard('', ApiSkillGrid::getEndpoint(), new Remove(), array(), 'Kompetenzraster löschen'))
                             ->ajaxPipelineOnClick(ApiSkillGrid::pipelineOpenDeleteSkillGridModal($tblSkillGrid->getId(), $SchoolTypeId, $Filter))
                 ];
@@ -128,7 +134,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ],
                 [
                     'columnDefs' => array(
-                        array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                        array('orderable' => false, 'width' => '100px', 'targets' => -1),
                         // array('searchable' => false, 'targets' => array(-1, -2)),
                     ),
                     'order' => array(
@@ -579,7 +585,6 @@ class Frontend extends Extension implements IFrontendInterface
                     $skillInput
                 , 7),
             new LayoutColumn(array(
-                // TODO with flex ?
                 (new Container('&nbsp;'))->setStyle(['height: 22px;']),
                 (new Standard('', ApiSkillGrid::getEndpoint(), new Minus(), [], 'Kompetenz löschen'))
                     ->ajaxPipelineOnClick(ApiSkillGrid::pipelineLoadEditSkillGridContent(
@@ -603,5 +608,159 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return new Layout(new LayoutGroup($rows));
+    }
+
+    /**
+     *
+     * @param IFormInterface $form
+     * @param null $SkillGridId
+     *
+     * @return string
+     */
+    public function loadCopySkillGridContent(IFormInterface $form, $SkillGridId = null): string
+    {
+        if (!(SkillGrid::useService()->getSkillGridById($SkillGridId))) {
+            return new \SPHERE\Common\Frontend\Message\Repository\Danger('Das Kompetenzraster wurde nicht gefunden', new Exclamation());
+        }
+
+        return
+            new Title(new Extern() . ' Kompetenzraster kopieren')
+            . new Well($form);
+    }
+
+    /**
+     * @param bool $setPost
+     * @param null $SchoolTypeId
+     * @param null $Filter
+     * @param null $SkillGridId
+     * @param null $ErrorList
+     *
+     * @return Form
+     */
+    public function formCopySkillGrid(bool $setPost, $SchoolTypeId = null, $Filter = null, $SkillGridId = null, $ErrorList = null): Form
+    {
+        // beim Checken der Input-Felder darf der Post nicht gesetzt werden
+        $tblSkillGrid = SkillGrid::useService()->getSkillGridById($SkillGridId);
+        if ($setPost && $tblSkillGrid) {
+            $Global = $this->getGlobal();
+
+            $Global->POST['Data']['SchoolTypeId'] = ($tblSchoolType = $tblSkillGrid->getServiceTblSchoolType()) ? $tblSchoolType->getId() : 0;
+
+            $Global->POST['Data']['Name'] = 'Kopiert ' . $tblSkillGrid->getName();
+            $Global->POST['Data']['ScoreTypeId'] = ($tblScoreType = $tblSkillGrid->getServiceTblScoreType()) ? $tblScoreType->getId() : -1;
+            $Global->POST['Data']['IsAverage'] = $tblSkillGrid->getIsAverage();
+
+            $Global->POST['Data']['Level'] = $tblSkillGrid->getLevel();
+            $Global->POST['Data']['SubjectId'] = ($tblSubject = $tblSkillGrid->getServiceTblSubject()) ? $tblSubject->getId() : 0;
+//            $Global->POST['Data']['CourseId'] = ($tblCourse = $tblSkillGrid->getServiceTblCourse()) ? $tblCourse->getId() : 0;
+            $Global->POST['Data']['SupportFocusTypeId'] = ($tblSupportFocusType = $tblSkillGrid->getServiceTblSupportFocusType())
+                ? $tblSupportFocusType->getId() : 0;
+
+            foreach ($tblSkillGrid->getSkillAreas() as $tblSkillArea) {
+                $Global->POST['Data']['SkillAreaList'][$tblSkillArea->getId()] = 1;
+            }
+
+            $Global->savePost();
+        }
+
+        // Bewertungssysteme
+        $tblScoreTypeList = ScoreType::useService()->getScoreTypeAll();
+
+        $tblSubjectList = SkillGrid::useService()->getAvailableSubjectList();
+        $tblSupportFocusTypeAll = Student::useService()->getSupportFocusTypeAll();
+
+        if (SkillGrid::useService()->getIsHeadmaster()) {
+            $labelSubject = 'Fach (ansonsten Fächerübergreifend)';
+        } else {
+            $labelSubject = 'Fach ' . new Danger('*');
+        }
+
+        $panelScope = new Panel(
+            'Gültigkeitsbereich des Kompetenzrasters',
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        (new SelectBox('Data[SchoolTypeId]', 'Schulart ' . new Danger('*'),
+                            array('{{ Name }}' => SkillGrid::useService()->getAvailableSchoolTypeList())))
+                    )
+                )),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        (new NumberField('Data[Level]', '', 'Klassenstufe ' . new Danger('*')))//->setRequired()
+                        , 4),
+                    new LayoutColumn(
+                        (new SelectBox('Data[SubjectId]', $labelSubject, array('{{ Acronym }} - {{ Name }}' => $tblSubjectList)))
+                        , 4),
+                    new LayoutColumn(
+                        (new SelectBox('Data[SupportFocusTypeId]', 'Primärer Förderschwerpunkt', array('{{ Name }}' => $tblSupportFocusTypeAll)))
+                        , 4)
+                ))
+            ))),
+            Panel::PANEL_TYPE_INFO
+        );
+
+        $skillAreaRows = [];
+        if ($tblSkillGrid) {
+            foreach ($tblSkillGrid->getSkillAreas() as $tblSkillArea) {
+                $skillAreaRows[] = new FormRow(new FormColumn(
+                   new CheckBox("Data[SkillAreaList][{$tblSkillArea->getId()}]", $tblSkillArea->getName(), 1)
+                ));
+            }
+        }
+
+        $form = (new Form(array(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel(
+                            'Kompetenzraster',
+                            new Layout(new LayoutGroup(array(
+                                new LayoutRow(array(
+                                    new LayoutColumn(
+                                        (new TextField('Data[Name]', '', 'Name ' . new Danger('*')))
+                                        , 6),
+                                    new LayoutColumn(
+                                        (new SelectBox('Data[ScoreTypeId]', 'Bewertungssystem', array('{{ Name }} {{ Description }}' => $tblScoreTypeList)))
+                                        , 6),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(
+                                        new CheckBox('Data[IsAverage]', 'Für eine mehrmalig bewertete Kompetenz wird ein Durchschnitt gebildet 
+                                            (Ansonsten zählt nur die letzte Eingabe "Auf-Leveln")', 1)
+                                    )
+                                ))
+                            ))),
+                            Panel::PANEL_TYPE_INFO
+                        )
+                    ),
+                )),
+                new FormRow(
+                    new FormColumn(
+                        $panelScope
+                    )
+                )
+            )),
+            new FormGroup(
+                $skillAreaRows
+            , new \SPHERE\Common\Frontend\Form\Repository\Title('Kompetenzbereiche')),
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(array(
+                        new Container('&nbsp;'),
+                        (new Primary('Speichern', ApiSkillGrid::getEndpoint(), new Save()))
+                            ->ajaxPipelineOnClick(ApiSkillGrid::pipelineCopySkillGridSave($SkillGridId, $SchoolTypeId, $Filter)),
+                        new Standard('Abbrechen', '/Education/Competence/SkillGrid', new Disable(), ['SchoolTypeId' => $SchoolTypeId, 'Filter' => $Filter])
+                    ))
+                )),
+            ))
+        )))->disableSubmitAction();
+
+        if ($ErrorList) {
+            foreach ($ErrorList as $error) {
+                $form->setError($error['Name'], $error['Message']);
+            }
+        }
+
+        return $form;
     }
 }
