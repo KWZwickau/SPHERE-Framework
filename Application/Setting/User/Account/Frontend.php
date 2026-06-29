@@ -598,7 +598,8 @@ class Frontend extends Extension implements IFrontendInterface
                             $Updater = $tblUserAccount->getAccountUpdater();
                         }
                         $updateTime = $tblUserAccount->getUpdateDate('d.m.Y');
-                        $item['LastUpdate'] = new ToolTip($UpdateTypeAcronym.' '.$Updater.' '.$updateTime, $UpdateTypeString);
+                        $OrderString = $tblUserAccount->getUpdateDate('Ymd');
+                        $item['LastUpdate'] = '<span hidden>'.$OrderString.'</span>'.new ToolTip($UpdateTypeAcronym.' '.$Updater.' '.$updateTime, $UpdateTypeString);
                     }
                     $item['Option'] = '<div style="width: 155px">' . $item['Option'] . '</div>';
                 }
@@ -817,7 +818,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $Updater = $tblUserAccount->getAccountUpdater();
                     }
                     $updateTime = $tblUserAccount->getUpdateDate('d.m.Y');
-                    $Item['LastUpdate'] = new ToolTip($UpdateTypeAcronym.' '.$Updater.' '.$updateTime, $UpdateTypeString);
+                    $OrderString = $tblUserAccount->getUpdateDate('Ymd');
+                    $Item['LastUpdate'] = '<span hidden>'.$OrderString.'</span>'.new ToolTip($UpdateTypeAcronym.' '.$Updater.' '.$updateTime, $UpdateTypeString);
                 }
                 if(!$IsDeleteModal) {
                     $Item['Option'] = '<div style="width: 155px">' . $Item['Option'] . '</div>';
