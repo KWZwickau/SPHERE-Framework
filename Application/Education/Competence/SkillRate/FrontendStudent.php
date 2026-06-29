@@ -281,7 +281,7 @@ class FrontendStudent extends FrontendDivisionCourse
         if ($tblSkill
             && ($tblSkillArea = $tblSkill->getTblSkillArea())
         ) {
-            $skillAreaName = $tblSkillArea->getName() ?: 'Ohne Kompetenzbereich';
+            $skillAreaName = $tblSkillArea->getDisplayName();
 
         } elseif ($tblStudentSkill) {
             $skillAreaName = $tblStudentSkill->getSkillArea() ?: 'Ohne Kompetenzbereich';
@@ -463,7 +463,7 @@ class FrontendStudent extends FrontendDivisionCourse
         if ($tblSkill
             && ($tblSkillArea = $tblSkill->getTblSkillArea())
         ) {
-            $skillAreaName = $tblSkillArea->getName() ?: 'Ohne Kompetenzbereich';
+            $skillAreaName = $tblSkillArea->getDisplayName();
             $inputKey = 'SkillId_' . $tblSkill->getId();
         } elseif ($tblStudentSkill) {
             $skillAreaName = $tblStudentSkill->getSkillArea() ?: 'Ohne Kompetenzbereich';
@@ -773,8 +773,7 @@ class FrontendStudent extends FrontendDivisionCourse
                     $skillLevel = $tblStudentSkill->getSkillLevel();
                     $skill = $tblStudentSkill->getSkill();
                 } else {
-                    $skillArea = $tblSkill->getTblSkillArea() ? $tblSkill->getTblSkillArea()->getName() : '';
-                    $skillArea = $skillArea ?: 'Ohne Kompetenzbereich';
+                    $skillArea = $tblSkill->getTblSkillArea() ? $tblSkill->getTblSkillArea()->getDisplayName() : '';
                     $skillLevel = $tblSkill->getLevel();
                     $skill = $tblSkill->getSkill();
                 }
@@ -923,8 +922,7 @@ class FrontendStudent extends FrontendDivisionCourse
                         continue;
                     }
 
-                    $skillArea = $tblSkill->getTblSkillArea() ? $tblSkill->getTblSkillArea()->getName() : '';
-                    $skillArea = $skillArea ?: 'Ohne Kompetenzbereich';
+                    $skillArea = $tblSkill->getTblSkillArea() ? $tblSkill->getTblSkillArea()->getDisplayName() : '';
                     $skillLevel = $tblSkill->getLevel();
                     $skill = $tblSkill->getSkill();
                     $list[] = new SelectBoxItem($tblSkill->getId(),

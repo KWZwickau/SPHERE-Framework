@@ -703,7 +703,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblSkillGrid) {
             foreach ($tblSkillGrid->getSkillAreas() as $tblSkillArea) {
                 $skillAreaRows[] = new FormRow(new FormColumn(
-                   new CheckBox("Data[SkillAreaList][{$tblSkillArea->getId()}]", $tblSkillArea->getName(), 1)
+                   new CheckBox("Data[SkillAreaList][{$tblSkillArea->getId()}]", $tblSkillArea->getDisplayName(), 1)
                 ));
             }
         }

@@ -221,7 +221,7 @@ class TblSkillGrid extends Element
     {
         $skillAreas = [];
         foreach ($this->getSkillAreas() as $tblSkillArea) {
-            $skillAreas[] = $tblSkillArea->getName() ?: 'Ohne Kompetenzbereich';
+            $skillAreas[] = $tblSkillArea->getDisplayName();
         }
 
         return implode(', ', $skillAreas);

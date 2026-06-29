@@ -126,8 +126,7 @@ class TblSkill extends Element
      */
     public function getDisplayName(): string
     {
-        $skillArea = $this->getTblSkillArea() ? $this->getTblSkillArea()->getName() : '';
-        $skillArea = $skillArea ?: 'Ohne Kompetenzbereich';
+        $skillArea = $this->getTblSkillArea() ? $this->getTblSkillArea()->getDisplayName() : '';
         $skillLevel = $this->getLevel();
         $skill = $this->getSkill();
 
