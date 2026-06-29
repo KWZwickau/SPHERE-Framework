@@ -703,10 +703,13 @@ class ReplacementService
             // Aktionen
             if(isset($Replacement['Aktionen'])){
                 $ReplacementEntryList = $Replacement['Aktionen'];
+                // Import kann identische doppelte Einträge enthalten
+                $ReplacementEntryList = array_unique($ReplacementEntryList, SORT_REGULAR);
                 foreach($ReplacementEntryList as $ReplacementEntry){
                     $item = array();
                     $item['Art'] = $ReplacementEntry['Ak_Art']?:'';
                     $item['Date'] = $ReplacementEntry['Ak_DatumVon']?:'';
+                    $item['DateTo'] = isset($ReplacementEntry['Ak_DatumNach'])?$ReplacementEntry['Ak_DatumNach']:'';
                     $Hour = $item['Hour'] = $ReplacementEntry['Ak_StundeVon']?:'';
                     $HourTo = $item['HourTo'] = isset($ReplacementEntry['Ak_StundeNach'])?$ReplacementEntry['Ak_StundeNach']:'';
                     if($HourTo){
@@ -788,6 +791,9 @@ class ReplacementService
             $Art = $read['Art'];
             $Date = $read['Date'];
             $DateTime = new DateTime($Date);
+            if(($DateTo = $read['DateTo'])){
+                $DateToTime = new DateTime($Date);
+            }
             $Hour = $read['Hour'];
             $HourTo = $read['HourTo'];
             $SekIICourse = $read['SekIICourse'];
@@ -892,6 +898,11 @@ class ReplacementService
                 $resultList[] = $item;
                 // neuer Eintrag an der Zielstunde
                 if($HourTo){
+                    // // neu er Eintrag ander Zielstunde && Datum (beim schieben auf ein anderes Datum gehe ich davon aus, das HourTo gepflegt ist)
+                    if($DateTo){
+                        $item['Date'] = $DateToTime;
+                        $item['DateString'] = $DateTo;
+                    }
                     // Vertretung gilt als neu, Substitute muss also hier rein
                     $item['tblSubstituteSubject'] = $tblSubjectV;
                     // Vertretung gilt als neu, Subject muss also leer sein
