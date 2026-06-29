@@ -251,7 +251,7 @@ class Service extends AbstractService
         }
 
         $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId']);
-        $tblCourse = Course::useService()->getCourseById($Data['CourseId']);
+        $tblCourse = Course::useService()->getCourseById($Data['CourseId'] ?? 0);
         $tblSupportFocusType = Student::useService()->getSupportFocusTypeById($Data['SupportFocusTypeId']);
         $tblScoreType = $Data['ScoreTypeId'] > 0 ? ScoreType::useService()->getScoreTypeById($Data['ScoreTypeId']) : null;
 

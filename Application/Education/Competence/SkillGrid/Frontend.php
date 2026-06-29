@@ -350,7 +350,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblScoreTypeList = ScoreType::useService()->getScoreTypeAll();
 
         $tblSubjectList = SkillGrid::useService()->getAvailableSubjectList();
-        $tblCourseAll = Course::useService()->getCourseAll();
+        $tblCourseAll = Course::useService()->getCourseAllForSecondarySchool();
         $tblSupportFocusTypeAll = Student::useService()->getSupportFocusTypeAll();
 
         $skillAreaRows = [];
@@ -376,6 +376,47 @@ class Frontend extends Extension implements IFrontendInterface
             $labelSubject = 'Fach (ansonsten Fächerübergreifend)';
         } else {
             $labelSubject = 'Fach ' . new Danger('*');
+        }
+
+        // Bildungsgang nur bei Oberschule OS anzeigen
+        if ($SchoolTypeId
+            && ($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))
+            && $tblSchoolType->getShortName() == 'OS'
+        ) {
+            $panelScope = new Panel(
+                'Gültigkeitsbereich des Kompetenzrasters',
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        (new NumberField('Data[Level]', '', 'Klassenstufe ' . new Danger('*')))//->setRequired()
+                        , 3),
+                    new LayoutColumn(
+                        (new SelectBox('Data[SubjectId]', $labelSubject, array('{{ Acronym }} - {{ Name }}' => $tblSubjectList)))
+                        , 3),
+                    new LayoutColumn(
+                        (new SelectBox('Data[CourseId]', 'Bildungsgang', array('{{ Name }}' => $tblCourseAll)))
+                        , 3),
+                    new LayoutColumn(
+                        (new SelectBox('Data[SupportFocusTypeId]', 'Primärer Förderschwerpunkt', array('{{ Name }}' => $tblSupportFocusTypeAll)))
+                        , 3)
+                )))),
+                Panel::PANEL_TYPE_INFO
+            );
+        } else {
+            $panelScope = new Panel(
+                'Gültigkeitsbereich des Kompetenzrasters',
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        (new NumberField('Data[Level]', '', 'Klassenstufe ' . new Danger('*')))//->setRequired()
+                        , 4),
+                    new LayoutColumn(
+                        (new SelectBox('Data[SubjectId]', $labelSubject, array('{{ Acronym }} - {{ Name }}' => $tblSubjectList)))
+                        , 4),
+                    new LayoutColumn(
+                        (new SelectBox('Data[SupportFocusTypeId]', 'Primärer Förderschwerpunkt', array('{{ Name }}' => $tblSupportFocusTypeAll)))
+                        , 4)
+                )))),
+                Panel::PANEL_TYPE_INFO
+            );
         }
 
         $form = (new Form(array(
@@ -405,24 +446,7 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
                 new FormRow(
                     new FormColumn(
-                        new Panel(
-                            'Gültigkeitsbereich des Kompetenzrasters',
-                            new Layout(new LayoutGroup(new LayoutRow(array(
-                                new LayoutColumn(
-                                    (new NumberField('Data[Level]', '', 'Klassenstufe ' . new Danger('*')))//->setRequired()
-                                    , 3 ),
-                                new LayoutColumn(
-                                    (new SelectBox('Data[SubjectId]', $labelSubject, array('{{ Acronym }} - {{ Name }}' => $tblSubjectList)))
-                                    , 3 ),
-                                new LayoutColumn(
-                                    (new SelectBox('Data[CourseId]', 'Bildungsgang', array('{{ Name }}' => $tblCourseAll)))
-                                    , 3 ),
-                                new LayoutColumn(
-                                    (new SelectBox('Data[SupportFocusTypeId]', 'Primärer Förderschwerpunkt', array('{{ Name }}' => $tblSupportFocusTypeAll)))
-                                    , 3 )
-                            )))),
-                            Panel::PANEL_TYPE_INFO
-                        )
+                        $panelScope
                     )
                 )
             )),
