@@ -187,7 +187,7 @@ class Service extends AbstractService
                 $tblSkillGridList = $tblSkillGridSupport;
             }
         } else {
-            $tblSkillGridList = $this->getSkillGridListBy($tblSchoolType, $level, $tblSubject);
+            $tblSkillGridList = $this->getSkillGridListBySupportFocusType($tblSchoolType, $level, $tblSubject);
         }
 
         $tblSkillList = [];

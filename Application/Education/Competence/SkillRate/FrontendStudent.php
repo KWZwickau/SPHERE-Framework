@@ -1062,7 +1062,7 @@ class FrontendStudent extends FrontendDivisionCourse
                 && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
                 && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
                 && ($level = $tblStudentEducation->getLevel()) !== null
-                && ($tblSkillGridList = SkillGrid::useService()->getSkillGridListBy($tblSchoolType, $level, $tblSubject))
+                && ($tblSkillGridList = SkillGrid::useService()->getSkillGridListBySupportFocusType($tblSchoolType, $level, $tblSubject, null))
             ) {
                 $tblSkillGrid = current($tblSkillGridList);
                 $isAverage = $tblSkillGrid->getIsAverage();
