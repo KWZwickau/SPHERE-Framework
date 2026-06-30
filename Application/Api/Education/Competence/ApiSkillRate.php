@@ -57,6 +57,7 @@ class ApiSkillRate extends Extension implements IApiInterface
         $Dispatcher->registerMethod('saveRenameSkill');
 
         $Dispatcher->registerMethod('openAddStudentSkillModal');
+        $Dispatcher->registerMethod('loadSkillGridSelectContent');
         $Dispatcher->registerMethod('saveAddStudentSkill');
 
         $Dispatcher->registerMethod('openCreateStudentSkillModal');
@@ -803,6 +804,47 @@ class ApiSkillRate extends Extension implements IApiInterface
     public function openAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId): string
     {
         return SkillRate::useFrontend()->openAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $SubjectId
+     * @param $SelectedYearId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadSkillGridSelectContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SkillGridSelectContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadSkillGridSelectContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'PersonId' => $PersonId,
+            'SubjectId' => $SubjectId,
+            'SelectedYearId' => $SelectedYearId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $SubjectId
+     * @param $SelectedYearId
+     * @param null $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function loadSkillGridSelectContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $Data = null): string
+    {
+        return SkillRate::useFrontend()->loadSkillGridSelectContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $Data);
     }
 
     /**

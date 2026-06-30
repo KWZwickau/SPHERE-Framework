@@ -30,6 +30,9 @@ class TblSkillGrid extends Element
     const string SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const string SERVICE_TBL_SCORE_TYPE = 'serviceTblScoreType';
     const string ATTR_LEVEL = 'Level';
+    const string SERVICE_TBL_SUPPORT_FOCUS_TYPE = 'serviceTblSupportFocusType';
+
+
 
     /**
      * @Column(type="bigint")

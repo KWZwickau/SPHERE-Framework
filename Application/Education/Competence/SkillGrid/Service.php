@@ -73,6 +73,20 @@ class Service extends AbstractService
     /**
      * @param TblType $tblSchoolType
      * @param int|null $level
+     * @param TblSubject|null $tblSubject
+     * @param TblSupportFocusType|null $tblSupportFocusType
+     *
+     * @return array|false
+     */
+    public function getSkillGridListBySupportFocusType(
+        TblType $tblSchoolType, ?int $level = null, ?TblSubject $tblSubject = null, ?TblSupportFocusType $tblSupportFocusType = null): array|false
+    {
+        return (new Data($this->getBinding()))->getSkillGridListBySupportFocusType($tblSchoolType, $level, $tblSubject, $tblSupportFocusType);
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     * @param int|null $level
      * @param TblSubject|null $tblSubjectFilter
      *
      * @return array|TblSkillGrid[]
@@ -159,15 +173,29 @@ class Service extends AbstractService
     public function getSkillListBy(TblType $tblSchoolType, ?int $level = null,
         ?TblSubject $tblSubject = null, ?TblCourse $tblCourse = null, ?TblSupportFocusType $tblSupportFocusType = null): array
     {
+        // prüfen: ob es Kompetenzen mit und ohne Förderschwerpunkt gibt
+        if ($tblSupportFocusType) {
+            $tblSkillGridSupport = $this->getSkillGridListBySupportFocusType($tblSchoolType, $level, $tblSubject, $tblSupportFocusType);
+            $tblSkillGridWithoutSupport = $this->getSkillGridListBySupportFocusType($tblSchoolType, $level, $tblSubject);
+
+            // beides vorhanden → keine Kompetenz automatisch liefern → sollen händisch hinzugefügt werden
+            if ($tblSkillGridSupport && $tblSkillGridWithoutSupport) {
+                return [];
+            } elseif ($tblSkillGridWithoutSupport) {
+                $tblSkillGridList = $tblSkillGridWithoutSupport;
+            } else {
+                $tblSkillGridList = $tblSkillGridSupport;
+            }
+        } else {
+            $tblSkillGridList = $this->getSkillGridListBy($tblSchoolType, $level, $tblSubject);
+        }
+
         $tblSkillList = [];
-        if (($tblSkillGridList = $this->getSkillGridListBy($tblSchoolType, $level, $tblSubject))) {
+        if ($tblSkillGridList) {
             foreach ($tblSkillGridList as $tblSkillGrid) {
                 $tblCourseSkillGrid = $tblSkillGrid->getServiceTblCourse();
-                $tblSupportFocusTypeSkillGrid = $tblSkillGrid->getServiceTblSupportFocusType();
                 // Anzeige alle Kompetenzraster, die den Bildungsgang haben und alle ohne Bildungsgang
-                if ((!$tblCourseSkillGrid || $tblCourseSkillGrid->getId() == $tblCourse?->getId())
-                    && (!$tblSupportFocusTypeSkillGrid || $tblSupportFocusTypeSkillGrid->getId() == $tblSupportFocusType?->getId())
-                ) {
+                if ((!$tblCourseSkillGrid || $tblCourseSkillGrid->getId() == $tblCourse?->getId())) {
                     $tblSkillList = array_merge($tblSkillList, $tblSkillGrid->getSkills());
                 }
             }

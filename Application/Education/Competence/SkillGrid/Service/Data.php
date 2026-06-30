@@ -55,6 +55,27 @@ class Data extends AbstractData
     /**
      * @param TblType $tblSchoolType
      * @param int|null $level
+     * @param TblSubject|null $tblSubject
+     * @param TblSupportFocusType|null $tblSupportFocusType
+     *
+     * @return array|false
+     */
+    public function getSkillGridListBySupportFocusType(
+        TblType $tblSchoolType, ?int $level = null, ?TblSubject $tblSubject = null, ?TblSupportFocusType $tblSupportFocusType = null): array|false
+    {
+        $parameters[TblSkillGrid::SERVICE_TBL_SCHOOL_TYPE] = $tblSchoolType->getId();
+        if ($level !== null) {
+            $parameters[TblSkillGrid::ATTR_LEVEL] = $level;
+        }
+        $parameters[TblSkillGrid::SERVICE_TBL_SUBJECT] = $tblSubject?->getId();
+        $parameters[TblSkillGrid::SERVICE_TBL_SUPPORT_FOCUS_TYPE] = $tblSupportFocusType?->getId();
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSkillGrid', $parameters, [Element::ENTITY_CREATE => self::ORDER_ASC]);
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     * @param int|null $level
      *
      * @return TblSkillGrid[]|false
      */
