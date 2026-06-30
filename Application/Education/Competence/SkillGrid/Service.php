@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSupportFocusType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
@@ -67,6 +68,20 @@ class Service extends AbstractService
     public function getSkillGridListBy(TblType $tblSchoolType, ?int $level = null, ?TblSubject $tblSubject = null): array|false
     {
         return (new Data($this->getBinding()))->getSkillGridListBy($tblSchoolType, $level, $tblSubject);
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     * @param int|null $level
+     * @param TblSubject|null $tblSubject
+     * @param TblSupportFocusType|null $tblSupportFocusType
+     *
+     * @return array|false
+     */
+    public function getSkillGridListBySupportFocusType(
+        TblType $tblSchoolType, ?int $level = null, ?TblSubject $tblSubject = null, ?TblSupportFocusType $tblSupportFocusType = null): array|false
+    {
+        return (new Data($this->getBinding()))->getSkillGridListBySupportFocusType($tblSchoolType, $level, $tblSubject, $tblSupportFocusType);
     }
 
     /**
@@ -158,15 +173,29 @@ class Service extends AbstractService
     public function getSkillListBy(TblType $tblSchoolType, ?int $level = null,
         ?TblSubject $tblSubject = null, ?TblCourse $tblCourse = null, ?TblSupportFocusType $tblSupportFocusType = null): array
     {
+        // prüfen: ob es Kompetenzen mit und ohne Förderschwerpunkt gibt
+        if ($tblSupportFocusType) {
+            $tblSkillGridSupport = $this->getSkillGridListBySupportFocusType($tblSchoolType, $level, $tblSubject, $tblSupportFocusType);
+            $tblSkillGridWithoutSupport = $this->getSkillGridListBySupportFocusType($tblSchoolType, $level, $tblSubject);
+
+            // beides vorhanden → keine Kompetenz automatisch liefern → sollen händisch hinzugefügt werden
+            if ($tblSkillGridSupport && $tblSkillGridWithoutSupport) {
+                return [];
+            } elseif ($tblSkillGridWithoutSupport) {
+                $tblSkillGridList = $tblSkillGridWithoutSupport;
+            } else {
+                $tblSkillGridList = $tblSkillGridSupport;
+            }
+        } else {
+            $tblSkillGridList = $this->getSkillGridListBy($tblSchoolType, $level, $tblSubject);
+        }
+
         $tblSkillList = [];
-        if (($tblSkillGridList = $this->getSkillGridListBy($tblSchoolType, $level, $tblSubject))) {
+        if ($tblSkillGridList) {
             foreach ($tblSkillGridList as $tblSkillGrid) {
                 $tblCourseSkillGrid = $tblSkillGrid->getServiceTblCourse();
-                $tblSupportFocusTypeSkillGrid = $tblSkillGrid->getServiceTblSupportFocusType();
                 // Anzeige alle Kompetenzraster, die den Bildungsgang haben und alle ohne Bildungsgang
-                if ((!$tblCourseSkillGrid || $tblCourseSkillGrid->getId() == $tblCourse?->getId())
-                    && (!$tblSupportFocusTypeSkillGrid || $tblSupportFocusTypeSkillGrid->getId() == $tblSupportFocusType?->getId())
-                ) {
+                if ((!$tblCourseSkillGrid || $tblCourseSkillGrid->getId() == $tblCourse?->getId())) {
                     $tblSkillList = array_merge($tblSkillList, $tblSkillGrid->getSkills());
                 }
             }
@@ -195,32 +224,8 @@ class Service extends AbstractService
      */
     public function updateSkillGrid(TblType $tblSchoolType, $Filter, $Data, ?TblSkillGrid $tblSkillGrid = null): IFormInterface|string
     {
-        $hasErrors = false;
-        $ErrorList = [];
-        if (empty($Data['Name'])) {
-            $ErrorList[] = [
-                'Name' => 'Data[Name]',
-                'Message' => 'Bitte geben Sie einen Namen an'
-            ];
-            $hasErrors = true;
-        }
-        if (empty($Data['Level'])) {
-            $ErrorList[] = [
-                'Name' => 'Data[Level]',
-                'Message' => 'Bitte geben Sie eine Klassenstufe an'
-            ];
-            $hasErrors = true;
-        }
-        // Fachlehrer müssen ein Fach auswählen
-        if (!$this->getIsHeadmaster()
-            && (empty($Data['SubjectId']) || !Subject::useService()->getSubjectById($Data['SubjectId']))
-        ) {
-            $ErrorList[] = [
-                'Name' => 'Data[SubjectId]',
-                'Message' => 'Bitte geben Sie ein Fach an'
-            ];
-            $hasErrors = true;
-        }
+        list($hasErrors, $ErrorList, $Data) = $this->checkInputSkillGrid($Data);
+
         // Data[Skills][$AreaRanking-$SkillRanking][SkillGrid]
         foreach ($Data['Skills'] as $key => $skillArray) {
             $split = explode('-', $key);
@@ -251,7 +256,7 @@ class Service extends AbstractService
         }
 
         $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId']);
-        $tblCourse = Course::useService()->getCourseById($Data['CourseId']);
+        $tblCourse = Course::useService()->getCourseById($Data['CourseId'] ?? 0);
         $tblSupportFocusType = Student::useService()->getSupportFocusTypeById($Data['SupportFocusTypeId']);
         $tblScoreType = $Data['ScoreTypeId'] > 0 ? ScoreType::useService()->getScoreTypeById($Data['ScoreTypeId']) : null;
 
@@ -332,6 +337,94 @@ class Service extends AbstractService
         }
         if ($destroySkillAreaList) {
             (new Data($this->getBinding()))->destroySkillAreaBulkList($destroySkillAreaList);
+        }
+
+        return new Success('Die Daten wurden erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+            . new Redirect('/Education/Competence/SkillGrid', Redirect::TIMEOUT_SUCCESS, ['SchoolTypeId' => $tblSchoolType->getId(), 'Filter' => $Filter]);
+    }
+
+    /**
+     * @param $Data
+     * @return array
+     */
+    private function checkInputSkillGrid($Data): array
+    {
+        $hasErrors = false;
+        $ErrorList = [];
+        if (empty($Data['Name'])) {
+            $ErrorList[] = [
+                'Name' => 'Data[Name]',
+                'Message' => 'Bitte geben Sie einen Namen an'
+            ];
+            $hasErrors = true;
+        }
+        if (empty($Data['Level'])) {
+            $ErrorList[] = [
+                'Name' => 'Data[Level]',
+                'Message' => 'Bitte geben Sie eine Klassenstufe an'
+            ];
+            $hasErrors = true;
+        }
+        // Fachlehrer müssen ein Fach auswählen
+        if (!$this->getIsHeadmaster()
+            && (empty($Data['SubjectId']) || !Subject::useService()->getSubjectById($Data['SubjectId']))
+        ) {
+            $ErrorList[] = [
+                'Name' => 'Data[SubjectId]',
+                'Message' => 'Bitte geben Sie ein Fach an'
+            ];
+            $hasErrors = true;
+        }
+        return array($hasErrors, $ErrorList, $Data);
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     * @param TblSkillGrid $tblSkillGrid
+     * @param $Filter
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function copySkillGrid(TblType $tblSchoolType, TblSkillGrid $tblSkillGrid, $Filter, $Data): IFormInterface|string
+    {
+        list($hasErrors, $ErrorList, $Data) = $this->checkInputSkillGrid($Data);
+
+        // extra Prüfung für Schulart
+        $tblSchoolTypeCopy = false;
+        if (empty($Data['SchoolTypeId']) || !($tblSchoolTypeCopy = Type::useService()->getTypeById($Data['SchoolTypeId']))) {
+            $ErrorList[] = [
+                'Name' => 'Data[SchoolTypeId]',
+                'Message' => 'Bitte geben Sie eine Schulart an'
+            ];
+            $hasErrors = true;
+        }
+
+        if ($hasErrors) {
+            $form = SkillGrid::useFrontend()->formCopySkillGrid(false, $tblSchoolType->getId(), $Filter, $tblSkillGrid->getId(), $ErrorList);
+
+            return SkillGrid::useFrontend()->loadCopySkillGridContent($form, $tblSkillGrid->getId());
+        }
+
+        $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId']);
+        $tblSupportFocusType = Student::useService()->getSupportFocusTypeById($Data['SupportFocusTypeId']);
+        $tblScoreType = $Data['ScoreTypeId'] > 0 ? ScoreType::useService()->getScoreTypeById($Data['ScoreTypeId']) : null;
+
+        if ($tblSchoolTypeCopy
+            && ($tblSkillGridNew = (new Data($this->getBinding()))->createSkillGrid(
+                $tblSchoolTypeCopy, $Data['Name'], isset($Data['IsAverage']),
+                $Data['Level'], $tblSubject ?: null, null, $tblSupportFocusType ?: null, $tblScoreType ?: null))
+            && isset($Data['SkillAreaList'])
+        ) {
+            foreach($Data['SkillAreaList'] as $skillAreaId => $value)
+            {
+                if (($tblSkillArea = $this->getSkillAreaById($skillAreaId))) {
+                    $tblSkillAreaNew = (new Data($this->getBinding()))->createSkillArea($tblSkillGridNew, $tblSkillArea->getName(), $tblSkillArea->getSortOrder());
+                    foreach($tblSkillArea->getSkills() as $tblSkill) {
+                        (new Data($this->getBinding()))->createSkill($tblSkillAreaNew, $tblSkill->getLevel(), $tblSkill->getSkill(), $tblSkill->getSortOrder());
+                    }
+                }
+            }
         }
 
         return new Success('Die Daten wurden erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())

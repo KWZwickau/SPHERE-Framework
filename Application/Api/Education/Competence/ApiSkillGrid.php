@@ -54,6 +54,9 @@ class ApiSkillGrid extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openDeleteSkillGridModal');
         $Dispatcher->registerMethod('saveDeleteSkillGridModal');
 
+        $Dispatcher->registerMethod('openCopySkillGridModal');
+        $Dispatcher->registerMethod('saveCopySkillGridModal');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -420,5 +423,91 @@ class ApiSkillGrid extends Extension implements IApiInterface
         } else {
             return new Danger('Der Kompetenzraster konnte nicht gelöscht werden.') . self::pipelineClose();
         }
+    }
+
+    /**
+     * @param $SkillGridId
+     * @param $SchoolTypeId
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenCopySkillGridModal($SkillGridId, $SchoolTypeId, $Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openCopySkillGridModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SkillGridId' => $SkillGridId,
+            'SchoolTypeId' => $SchoolTypeId,
+            'Filter' => $Filter
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $SkillGridId
+     * @param $SchoolTypeId
+     * @param null $Filter
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function openCopySkillGridModal($SkillGridId, $SchoolTypeId, $Filter = null): string
+    {
+        $form = SkillGrid::useFrontend()->formCopySkillGrid(true, $SchoolTypeId, $Filter, $SkillGridId);
+
+        return SkillGrid::useFrontend()->loadCopySkillGridContent($form, $SkillGridId);
+    }
+
+    /**
+     * @param $SkillGridId
+     * @param $SchoolTypeId
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCopySkillGridSave($SkillGridId, $SchoolTypeId, $Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveCopySkillGridModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SkillGridId' => $SkillGridId,
+            'SchoolTypeId' => $SchoolTypeId,
+            'Filter' => $Filter
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $SkillGridId
+     * @param $SchoolTypeId
+     * @param null $Filter
+     * @param null $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function saveCopySkillGridModal($SkillGridId, $SchoolTypeId, $Filter = null, $Data = null): string
+    {
+        if (!($tblSkillGrid = SkillGrid::useService()->getSkillGridById($SkillGridId))) {
+            return new Danger('Der Kompetenzraster wurde nicht gefunden', new Exclamation());
+        }
+
+        if (!($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))) {
+            return new Danger('Schulart wurde nicht gefunden!', new Exclamation());
+        }
+
+        return SkillGrid::useService()->copySkillGrid($tblSchoolType, $tblSkillGrid, $Filter, $Data);
     }
 }

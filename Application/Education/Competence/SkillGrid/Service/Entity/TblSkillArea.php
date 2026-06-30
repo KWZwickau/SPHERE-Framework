@@ -54,6 +54,11 @@ class TblSkillArea extends Element
         return $this->Name;
     }
 
+    public function getDisplayName(): string
+    {
+        return $this->Name ?: 'Ohne Kompetenzbereich';
+    }
+
     public function setName(?string $Name): void
     {
         $this->Name = $Name;

@@ -181,7 +181,9 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                                 ? new Standard('', '/Education/Competence/SkillRate/Student/Overview', new EyeOpen(),
                                     ['DivisionCourseId' => $DivisionCourseId, 'SubjectId' => $SubjectId, 'PersonId' => $tblPerson->getId(),
                                         'BackRoute' => '/Education/Competence/SkillRate/DivisionCourse', 'SelectedYearId' => $SelectedYearId], 'Schülerübersicht')
-                                : '')
+                                : ''),
+                            null,
+                            '8%'
                         );
                     }
                 }
@@ -238,6 +240,7 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
     ): string {
         $countTotal = 0;
         $countRates = 0;
+        $tblSupportFocusType = null;
         if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
             && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
             && ($level = $tblStudentEducation->getLevel()) !== null
@@ -278,7 +281,13 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
             }
         }
 
-        return "$countRates von $countTotal Kompetenzen bewertet.";
+        if ($tblSupportFocusType && $countTotal == 0) {
+            return new \SPHERE\Common\Frontend\Text\Repository\Warning("Es existieren Kompetenzraster mit und ohne den 
+                Förderschwerpunkt: {$tblSupportFocusType->getName()}.<br> 
+                Bitte wählen Sie für den Schüler die entsprechenden Kompetenzen bei der Kompetenzbewertung über: \"Kompetenzen auswählen\" aus.");
+        } else {
+            return "$countRates von $countTotal Kompetenzen bewertet.";
+        }
     }
 
     /**

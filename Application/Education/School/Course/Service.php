@@ -49,6 +49,25 @@ class Service extends AbstractService
     }
 
     /**
+     * Bildungsgänge nur für Oberschule OS
+     *
+     * @return TblCourse[]
+     */
+    public function getCourseAllForSecondarySchool(): array
+    {
+        $resultList = [];
+        if (($tblCourseList = $this->getCourseAll())) {
+            foreach ($tblCourseList as $tblCourse) {
+                if ($tblCourse->getName() != 'Gymnasium') {
+                    $resultList[$tblCourse->getId()] = $tblCourse;
+                }
+            }
+        }
+
+        return $resultList ?:  [];
+    }
+
+    /**
      * @param int $Id
      *
      * @return bool|TblCourse

@@ -112,7 +112,6 @@ class Service extends AbstractService
             && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
             && ($level = $tblStudentEducation->getLevel()) !== null
         ) {
-            // todo check performance optimize
             if (($tblSkillList = SkillGrid::useService()->getSkillListBy($tblSchoolType, $level, $tblSubject))) {
                 foreach ($tblSkillList as $tblSkillTemp) {
                     if ($tblSkill->getId() === $tblSkillTemp->getId()) {
@@ -595,17 +594,10 @@ class Service extends AbstractService
      *
      * @return string
      */
-    public function addStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $Data): string {
-
-        if (!isset($Data['Id']) || !($tblSkill = SkillGrid::useService()->getSkillById($Data['Id']))) {
-            $ErrorList[] = [
-                'Name' => 'Data[Id]',
-                'Message' => 'Bitte wählen Sie eine Kompetenz aus.'
-            ];
-
-            return SkillRate::useFrontend()->openAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $ErrorList);
-        }
-
+    public function addStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $Data): string
+    {
+        $count = 0;
+        $createStudentSkillList = [];
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
             && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
@@ -613,16 +605,38 @@ class Service extends AbstractService
             $tblPersonTeacher = Account::useService()->getPersonByLogin() ?: null;
             $tblSubject = Subject::useService()->getSubjectById($SubjectId) ?: null;
 
-            // prüfen, ob schon vorhanden
-            if (!$this->getStudentSkillBy($tblPerson, $tblYear, $tblSkill)) {
-                (new Data($this->getBinding()))->createStudentSkill(
-                    $tblPerson, $tblYear, $tblSubject, $tblSkill, $tblPersonTeacher,
-                    $tblSkill->getTblSkillArea()->getName() ?: null, $tblSkill->getLevel() ?: null, $tblSkill->getSkill()
-                );
+            if (isset($Data['Skills'])) {
+                foreach ($Data['Skills'] as $skillId => $value) {
+                    if (($tblSkill = SkillGrid::useService()->getSkillById($skillId))
+                        // prüfen, ob schon vorhanden
+                        && !$this->getStudentSkillBy($tblPerson, $tblYear, $tblSkill)
+                    ) {
+//                        (new Data($this->getBinding()))->createStudentSkill(
+//                            $tblPerson, $tblYear, $tblSubject, $tblSkill, $tblPersonTeacher,
+//                            $tblSkill->getTblSkillArea()->getName() ?: null, $tblSkill->getLevel() ?: null, $tblSkill->getSkill()
+//                        );
+
+                        $tblStudentSkill = new TblStudentSkill();
+                        $tblStudentSkill->setServiceTblPerson($tblPerson);
+                        $tblStudentSkill->setServiceTblYear($tblYear);
+                        $tblStudentSkill->setServiceTblSubject($tblSubject);
+                        $tblStudentSkill->setServiceTblPersonTeacher($tblPersonTeacher);
+                        $tblStudentSkill->setServiceTblSkill($tblSkill);
+                        $tblStudentSkill->setSkillArea($tblSkill->getTblSkillArea()->getName() ?: null);
+                        $tblStudentSkill->setSkillLevel($tblSkill->getLevel() ?: null);
+                        $tblStudentSkill->setSkill($tblSkill->getSkill());
+
+                        $createStudentSkillList[] = $tblStudentSkill;
+                    }
+                }
             }
         }
 
-        return new Success('Kompetenz wurde erfolgreich hinzugefügt.')
+        if ($createStudentSkillList) {
+            (new Data($this->getBinding()))->createEntityListBulk($createStudentSkillList);
+        }
+
+        return new Success($count . ' Kompetenzen wurde erfolgreich hinzugefügt.')
             . ApiSkillRate::pipelineClose()
             . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId);
     }
