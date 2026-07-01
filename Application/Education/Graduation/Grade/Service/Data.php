@@ -919,7 +919,7 @@ class Data extends DataTask
             ->setParameter(1, $tblPerson->getId())
             ->setParameter(2, $tblSubject->getId())
             ->setParameter(3, $toDate)
-            ->orderBy('t.Date', 'ASC')
+            ->orderBy('t.Date', 'DESC')
             ->getQuery();
 
         $resultList = $query->getResult();
