@@ -9,11 +9,13 @@ use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
+use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
@@ -24,6 +26,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
@@ -601,6 +604,26 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                 }
 
                 if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByStudentAndYear($tblPerson, $tblYear))) {
+                    $tblProfileSubject  = false;
+                    if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
+                        && ($value = $tblSetting->getValue())
+                    ) {
+                        $tblProfileSubject = Subject::useService()->getSubjectByAcronym($value);
+                    }
+                    $tblOrientationSubject  = false;
+                    if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'OrientationAcronym'))
+                        && ($value = $tblSetting->getValue())
+                    ) {
+                        $tblOrientationSubject = Subject::useService()->getSubjectByAcronym($value);
+                    }
+                    $tblStudentSubjectTypeProfile = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE');
+                    $tblStudentSubjectTypeOrientation = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
+                    $tblStudentSubjectTypeForeignLanguage = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
+                    $missingSubjectList = Setting::useService()->getCheckCertificateMissingSubjectsForPerson(
+                        $tblPerson, $tblYear, $tblCertificate, $tblProfileSubject, $tblOrientationSubject,
+                        $tblStudentSubjectTypeProfile, $tblStudentSubjectTypeOrientation, $tblStudentSubjectTypeForeignLanguage
+                    );
+
                     $tabIndex = 0;
                     foreach ($tblSubjectList as $tblSubject) {
                         $gradeDisplayList = array();
@@ -689,7 +712,7 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                             $gradeText = '';
                         }
 
-                        if (!Generator::useService()->getCertificateSubjectBySubject($tblCertificate, $tblSubject)) {
+                        if (isset($missingSubjectList[$tblSubject->getAcronym()])) {
                             $hasMissingSubjects = true;
                             $subjectName = new \SPHERE\Common\Frontend\Text\Repository\Warning($tblSubject->getDisplayName() . ' ' . new Ban());
                         } else {
