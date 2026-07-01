@@ -1386,7 +1386,8 @@ class Service extends AbstractService
                 }
 
                 // Ferien
-                if (($tblState = BasicData::useService()->getStateById($Data['State']))
+                if (isset($Data['State'])
+                    && ($tblState = BasicData::useService()->getStateById($Data['State']))
                     && $startDate && $endDate
                     && ($tblHolidaySystemList = BasicData::useService()->getHolidayAllBy($startDate, $endDate))
                 ) {
