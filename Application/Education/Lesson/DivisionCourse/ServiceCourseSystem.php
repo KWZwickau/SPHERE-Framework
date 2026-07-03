@@ -55,6 +55,30 @@ abstract class ServiceCourseSystem extends AbstractService
     }
 
     /**
+     * SeKII-Kurse eines Schülers
+     *
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return array
+     */
+    public function getCourseListForStudentByYear(TblPerson $tblPerson, TblYear $tblYear): array
+    {
+        $resultList = [];
+        if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)
+            && ($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear, true))
+        ) {
+            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                if (($tblDivisionCourse = $tblStudentSubject->getTblDivisionCourse())) {
+                    $resultList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+                }
+            }
+        }
+
+        return $resultList;
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      *

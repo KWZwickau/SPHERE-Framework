@@ -57,7 +57,7 @@ class Custom implements IApplicationInterface
             if ($consumerAcronym === 'ESBD') { // Bad Düben
                 BadDuebenPerson::registerModule();
             }
-            if ($consumerAcronym === 'EGE') { // Annaberg
+            if ($consumerAcronym === 'EGE' || $consumerAcronym === 'REF') { // Annaberg
                 AnnabergPerson::registerModule();
             }
             if ($consumerAcronym === 'EVOSG') { // Gersdorf
