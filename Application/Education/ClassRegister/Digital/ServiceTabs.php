@@ -134,17 +134,7 @@ abstract class ServiceTabs extends ServiceForgotten
 
             if ($hasLastYearsTemp) {
                 $date = new DateTime('now');
-                // springt das neue Jahr in den Juli muss weniger als 1 Jahr abgezogen werden,
-                // um das letzte Jahr zu bekommen, wenn es regulär am 01.08.xxxx oder später begonnen hat
-                $isChange = false;
-                if($date->format('m') == '07'){
-                    $date = $date->sub(new DateInterval('P11M'));
-                    $isChange = true;
-                }
-                // Standard
-                 if(!$isChange) {
-                    $date = $date->sub(new DateInterval('P1Y'));
-                }
+                $date = $date->sub(new DateInterval('P1Y'));
                 if (($tblLastYearList = Term::useService()->getYearAllByDate($date))) {
                     foreach ($tblLastYearList as $tblLastYear) {
                         if ($tblYear && $tblYear->getId() == $tblLastYear->getId()) {
