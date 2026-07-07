@@ -128,6 +128,7 @@ class Service extends AbstractService
             case 'GS': return GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN) ? 6 : 4;
             case 'ISS':
             case 'RS':
+            case 'WRS':
             case 'OS': return 10;
             case 'GMS':
             case 'Gy': return 12;
