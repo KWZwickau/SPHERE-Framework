@@ -14,6 +14,20 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 abstract class SkillStyle extends Certificate
 {
+    const int HEIGHT_SUBJECT = 70;
+    const int HEIGHT_SKILL_AREA = 16;
+    const int HEIGHT_SKILL = 16;
+    const int HEIGHT_SKILL_TWO_ROW = 30;
+
+    const int HEIGHT_PAGE = 1123 - (2 * 51);
+    const int HEIGHT_HEADER = 40;
+
+    protected int $heightStartPixel = 0;
+    protected int $pageCount = 0;
+    protected array $pageSliceList = [];
+    protected ?TblSubject $tblLastSubject = null;
+    protected ?string $lastSubjectArea = null;
+
     /**
      * @param bool $isSample
      * @param bool $isBigLogo
@@ -70,13 +84,9 @@ abstract class SkillStyle extends Certificate
 
     /**
      * @param TblPerson $tblPerson
-     *
-     * @return array
      */
-    protected function getSkillContent(TblPerson $tblPerson): array
+    protected function setSkillContent(TblPerson $tblPerson): void
     {
-        $sliceList = [];
-
         // Fächer des Schülers
         if (($tblStudentEducation = $this->getTblStudentEducation())
             && ($tblYear = $tblStudentEducation->getServiceTblYear())
@@ -84,32 +94,28 @@ abstract class SkillStyle extends Certificate
         ) {
             $tblSubjectList = $this->getSorter($tblSubjectList)->sortObjectBy('Name');
             // Fächerübergreifend
-            $sliceList = array_merge($sliceList, $this->getSubject($tblPerson, $tblYear, null));
+            $this->getSubject($tblPerson, $tblYear, null);
             foreach ($tblSubjectList as $tblSubject) {
-                $sliceList = array_merge($sliceList, $this->getSubject($tblPerson, $tblYear, $tblSubject));
+                $this->getSubject($tblPerson, $tblYear, $tblSubject);
             }
         }
-
-        return $sliceList;
     }
 
-    private function getSubject(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject): array
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject|null $tblSubject
+     *
+     * @return void
+     */
+    private function getSubject(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject): void
     {
-        $sliceList = [];
-        $sliceList[] = (new Slice())
-            ->styleMarginTop('20px')
-            ->styleBorderTop()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addElement((new Element())
-                ->setContent($tblSubject ? $tblSubject->getName(): 'Überfachliche Kompetenzen')
-                ->styleTextSize('16px')
-                ->stylePaddingTop('10px')
-                ->stylePaddingBottom('10px')
-                ->stylePaddingLeft('5px')
-                ->styleTextBold()
-                ->styleBorderBottom()
-            );
+        $slice = $this->getSubjectSlice($tblSubject, false);
+        // prüfen, ob neue Seite erforderlich
+        $this->checkNewPage(self::HEIGHT_SKILL_AREA + self::HEIGHT_SKILL_TWO_ROW);
+        $this->pageSliceList[$this->pageCount][] = $slice;
+        $this->tblLastSubject = $tblSubject;
+        $this->lastSubjectArea = null;
 
         $tblStudentSkillList = SkillRate::useService()->getStudentSkillListByPersonAndYear($tblPerson, $tblYear, $tblSubject);
         $skillAreaList = SkillRate::useService()->setStudentSkillsForDisplay(
@@ -122,34 +128,99 @@ abstract class SkillStyle extends Certificate
             foreach ($array['ScoreTypeList'] as $scoreType) {
                 if (count($scoreType['SkillList']) > 0) {
                     //$content .= $this->getSkillAreaRow($scoreType['tblScoreType'], $array['Name']);
-                    // todo bewertungssystem
-                    $sliceList[] = $this->getSkillArea($array['Name']);
+                    $slice = $this->getSkillAreaSlice($array['Name'], false);
+                    // prüfen, ob neue Seite erforderlich
+                    $this->checkNewPage(self::HEIGHT_SKILL_TWO_ROW);
+                    $this->lastSubjectArea = $array['Name'];
+                    $this->pageSliceList[$this->pageCount][] = $slice;
+
                     foreach ($scoreType['SkillList'] as $skill) {
                         $text = $skill['SkillLevel'] ? $skill['SkillLevel'] . ' ' : '';
                         $text .= $skill['Skill'];
-                        $sliceList[] = $this->getSkill($text, $skill['Display'], $skill['Value']);
+
+                        $slice  = $this->getSkill($text, $skill['Display'], $skill['Value']);
+                        // prüfen, ob neue Seite erforderlich
+                        $this->checkNewPage(0);
+                        $this->pageSliceList[$this->pageCount][] = $slice;
                     }
+                    $this->lastSubjectArea = null;
                 }
             }
         }
 
-        // todo Platz ermitteln -> bei SeitenUmbruch (Fach (Fortsetzung), Kompetenzbereich (Fortsetzung)
-        // todo auch mal Claude, chatgpt oder Rene fragen
-
-        return $sliceList;
+        $this->tblLastSubject = null;
     }
 
-    private function getSkillArea(string $skillArea): Slice
+    /**
+     * @param int $minHeightRequiredAfter
+     *
+     * @return void
+     */
+    protected function checkNewPage(int $minHeightRequiredAfter): void
     {
+        // prüfen bei Fach ob noch Platz zusätzlich skillArea + 2rowSkill
+        // prüfen bei Kompetenzbereich ob noch Platz zusätzlich 2rowSkill
+        if ($this->heightStartPixel > self::HEIGHT_PAGE - $minHeightRequiredAfter) {
+            $this->heightStartPixel = self::HEIGHT_HEADER;
+            $this->pageSliceList[++$this->pageCount] = [];
+            if ($this->tblLastSubject !== null) {
+                $this->pageSliceList[$this->pageCount][] = $this->getSubjectSlice($this->tblLastSubject, true)->styleBorderTop();
+            }
+            if ($this->lastSubjectArea !== null) {
+                $this->pageSliceList[$this->pageCount][] = $this->getSkillAreaSlice($this->lastSubjectArea, true);
+            }
+        }
+    }
+
+    /**
+     * @param TblSubject|null $tblSubject
+     * @param bool $isContinue
+     *
+     * @return Slice
+     */
+    public function getSubjectSlice(?TblSubject $tblSubject, bool $isContinue): Slice
+    {
+        $this->heightStartPixel += self::HEIGHT_SUBJECT;
+
+        return (new Slice())
+            ->styleMarginTop('20px')
+            ->styleBorderTop()
+            ->styleBorderLeft()
+            ->styleBorderRight()
+            ->addElement((new Element())
+                ->setContent(
+                    ($tblSubject ? $tblSubject->getName(): 'Überfachliche Kompetenzen')
+                    . ($isContinue ? ' (Fortsetzung)' : '')
+                )
+                ->styleTextSize('16px')
+                ->stylePaddingTop('10px')
+                ->stylePaddingBottom('10px')
+                ->stylePaddingLeft('5px')
+                ->styleTextBold()
+                ->styleBorderBottom()
+            );
+    }
+
+    /**
+     * @param string $skillArea
+     * @param bool $isContinue
+     *
+     * @return Slice
+     */
+    private function getSkillAreaSlice(string $skillArea, bool $isContinue): Slice
+    {
+        // todo bewertungssystem
+
         $section = new Section();
         $section->addElementColumn((new Element())
-            ->setContent($skillArea)
+            ->setContent($skillArea . ($isContinue ? ' (Fortsetzung)' : ''))
             ->styleTextBold()
             ->stylePaddingLeft('5px')
             ->styleBorderBottom()
             ->styleBorderLeft()
             ->styleBorderRight()
         );
+        $this->heightStartPixel += self::HEIGHT_SKILL_AREA;
 
         return (new Slice())->addSection($section);
     }
@@ -188,7 +259,12 @@ abstract class SkillStyle extends Certificate
         if (strlen($skill) > 70) {
             $elementLeft->styleHeight('29.3px');
             $elementRight->styleHeight('29.3px');
+
+            $this->heightStartPixel += self::HEIGHT_SKILL_TWO_ROW;
+        } else {
+            $this->heightStartPixel += self::HEIGHT_SKILL;
         }
+
         $slicePercent = new Slice();
         $slicePercent
             ->addSection((new Section())
