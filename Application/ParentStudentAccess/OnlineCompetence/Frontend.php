@@ -148,87 +148,17 @@ class Frontend extends Extension implements IFrontendInterface
                             . $pullRight
                         ))->setStyle(['height: 28px;'])
                     );
-                    $skillAreaList = [];
-                    foreach ($tblStudentSkillList as $tblStudentSkill) {
-                        // bei fächerübergreifenden Kompetenzen wir ein Durchschnitt über alle bewerteten Fächer gebildet (zuvor Durchschnitt für ein Fach)
-                        $displayLast = $IsInterdisciplinary
-                            ? SkillRate::useService()->getStudentSkillRateLastOrAverageValueForInterdisciplinaryOverAllSubjects($tblStudentSkill)
-                            : SkillRate::useService()->getStudentSkillRateLastOrAverageValue($tblStudentSkill, null, null);
-                        if ($displayLast['Value'] !== '') {
-                            $skillLevel = $tblStudentSkill->getSkillLevel();
-                            $text = ($skillLevel ? new Muted($skillLevel . ' ') : '')
-                                . htmlspecialchars(htmlspecialchars($tblStudentSkill->getSkill()));
-                            $skillAreaName = $tblStudentSkill->getSkillArea() ?: 'Ohne Kompetenzbereich';
-                            $skillAreaKey = preg_replace('/[^a-zA-Z0-9\s]/', '-', $skillAreaName);
-                            $skillAreaName = htmlspecialchars($skillAreaName);
-
-                            if (!isset($skillAreaList[$skillAreaKey])) {
-                                $skillAreaList[$skillAreaKey] = [
-                                    'Name' => $skillAreaName,
-                                    'ScoreTypeList' => []
-                                ];
-                            }
-                            $tblScoreType = $tblStudentSkill->getVirtualTblScoreType();
-                            if (!isset($skillAreaList[$skillAreaKey]['ScoreTypeList'][$tblScoreType->getId()])) {
-                                $skillAreaList[$skillAreaKey]['ScoreTypeList'][$tblScoreType->getId()] = [
-                                    'tblScoreType' => $tblScoreType,
-                                    'SkillList' => []
-                                ];
-                            }
-
-                            $displayRate = $displayLast['Display'];
-                            $percentValue = $displayLast['Value'];
-
-                            // Prozent anzeigen
-                            if (!$tblStudentSkill->getServiceTblScoreType()) {
-
-                            // Bewertungssystem anzeigen
-                            } else {
-                                $tblScoreTypeItemList = $tblScoreType->getScoreTypeItems();
-                                $maxCount = count($tblScoreTypeItemList);
-                                $factor = $maxCount > 1 ? 100 / $maxCount : 0;
-
-                                // step ermitteln kann nicht 1 sein
-                                $step = ($factor * $maxCount) / 100;
-                                if (!$tblStudentSkill->getIsAverage()) {
-                                    // Bewertungssystem mit letzter Bewertung
-                                    // balken ausmalen auch bei Bewertungssystem und im Header von Kompetenzbereich die Stufen mit anzeigen
-                                    if ($tblScoreType->getSortOrder() == 'desc') {
-                                        // Berücksichtigung was ist die höchste Stufe
-                                        $percentValue = 100 - ($factor * ($maxCount - $percentValue));
-                                    } else {
-                                        $percentValue = $factor * ($maxCount - $percentValue + $step);
-                                    }
-                                } else {
-                                    // bewertungssystem durchschnitt
-                                    // bei einem Durchschnitt versuchen es umzurechnen und mit anzuzeigen
-                                    // offset damit die Komma-Fünf Noten immer auf dem Schritt sind
-                                    $offset = $factor * ($maxCount - $percentValue + $step) == 100
-                                        ? 0
-                                        : ($step / 2);
-                                    if ($tblScoreType->getSortOrder() == 'desc') {
-                                        // Berücksichtigung was ist die höchste Stufe
-                                        $percentValue = 100 - ($factor * ($maxCount - $percentValue + $offset));
-                                    } else {
-                                        $percentValue = $factor * ($maxCount - $percentValue + $step - $offset);
-                                    }
-                                }
-                            }
-
-                            if ($displayRate !== '') {
-                                $skillAreaList[$skillAreaKey]['ScoreTypeList'][$tblScoreType->getId()]['SkillList'][]
-                                    = $this->getSkillRowPercent($tblScoreType, $text, $displayRate, $percentValue);
-                            }
-                        }
-                    }
 
                     // Anzeige der Kompetenzbereich inklusive Kompetenzen
+                    $skillAreaList = SkillRate::useService()->setStudentSkillsForDisplay($tblStudentSkillList, $IsInterdisciplinary);
                     foreach ($skillAreaList as $array) {
                         foreach ($array['ScoreTypeList'] as $scoreType) {
                             if (count($scoreType['SkillList']) > 0) {
                                 $content .= $this->getSkillAreaRow($scoreType['tblScoreType'], $array['Name']);
                                 foreach ($scoreType['SkillList'] as $skill) {
-                                    $content .= $skill;
+                                    $text = $skill['SkillLevel'] ? new Muted($skill['SkillLevel']) . ' ' : '';
+                                    $text .= $skill['Skill'];
+                                    $content .= $this->getSkillRowPercent($scoreType['tblScoreType'], $text, $skill['Display'], $skill['Value']);
                                 }
                             }
                         }

@@ -49,7 +49,6 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
-use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -66,6 +65,8 @@ class Data extends AbstractData
     private $tblCertificateTypeLeave;
     private $tblCertificateTypeDiploma;
     private $tblCertificateTypeMidTermCourse;
+    private $tblCertificateTypeSkillHalfYear;
+    private $tblCertificateTypeSkillYear;
     private $tblSchoolTypePrimary;
     private $tblSchoolTypeSecondary;
     private $tblSchoolTypeGym;
@@ -253,6 +254,9 @@ class Data extends AbstractData
             $this->tblCertificateTypeLeave = $this->createCertificateType('Abgangszeugnis', 'LEAVE');
             $this->tblCertificateTypeDiploma = $this->createCertificateType('Abschlusszeugnis', 'DIPLOMA');
             $this->tblCertificateTypeMidTermCourse = $this->createCertificateType('Kurshalbjahreszeugnis', 'MID_TERM_COURSE');
+            $this->tblCertificateTypeSkillHalfYear = $this->createCertificateType('Kompetenz Halbjahresinformation', 'SKILL_HALF_YEAR');
+            $this->tblCertificateTypeSkillYear = $this->createCertificateType('Kompetenz Jahreszeugnis', 'SKILL_YEAR');
+
             $this->tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
             $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE);
             $this->tblSchoolTypeGym = Type::useService()->getTypeByName('Gymnasium');
@@ -266,6 +270,7 @@ class Data extends AbstractData
             $this->tblCourseReal = Course::useService()->getCourseByName('Realschule');
 
             $this->setCertificateGradeInformation();
+            $this->setCertificatesCompetence();
 
             if ($tblConsumer->getAcronym() == 'ESZC' || $tblConsumer->getAcronym() == 'REF') {
                 IDataESZC::setCertificateIndividually($this);
@@ -426,6 +431,15 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'RE/e', 1, 10);
             $this->setCertificateSubject($tblCertificate, 'SPO', 1, 11);
         }
+    }
+
+    /**
+     * @return void
+     */
+    private function setCertificatesCompetence(): void
+    {
+        $this->createCertificate('Kompetenz Halbjahresinformation', '', 'Competence\SkillHj', null, false, true, false, $this->tblCertificateTypeSkillHalfYear);
+        $this->createCertificate('Kompetenz Jahreszeugnis', '', 'Competence\SkillJ', null, false, false, false, $this->tblCertificateTypeSkillYear);
     }
 
     /**

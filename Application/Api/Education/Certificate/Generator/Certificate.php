@@ -733,12 +733,13 @@ abstract class Certificate extends Extension
     }
 
     /**
-     * @param bool   $IsSample
-     * @param bool   $isBigLogo
+     * @param bool $isSample
+     * @param bool $isBigLogo
+     * @param bool $showIndividualLogo
      *
      * @return Slice
      */
-    protected function getHead($IsSample, $isBigLogo = true, $showIndividualLogo = true)
+    protected function getHead(bool $isSample, bool $isBigLogo = true, bool $showIndividualLogo = true): Slice
     {
 
         $isOS = false;
@@ -773,7 +774,7 @@ abstract class Certificate extends Extension
             $Section->addElementColumn((new Element()), '39%');
         }
         // Sample
-        if($IsSample){
+        if($isSample){
             $Section->addElementColumn((new Element\Sample())->styleTextSize('30px'));
         } else {
             $Section->addElementColumn((new Element()), '22%');
@@ -4954,7 +4955,7 @@ abstract class Certificate extends Extension
      *
      * @return string
      */
-    private function getPictureHeight(bool $isOS = false) : string
+    protected function getPictureHeight(bool $isOS = false) : string
     {
         $StandardHeight = '66px';
         $value = '';
