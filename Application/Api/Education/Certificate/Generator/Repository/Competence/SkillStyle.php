@@ -4,8 +4,10 @@ namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\Comp
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Competence\SkillRate\SkillRate;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -14,6 +16,8 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 abstract class SkillStyle extends Certificate
 {
+    const int LEFT_WIDTH = 60;
+
     const int HEIGHT_SUBJECT = 70;
     const int HEIGHT_SKILL_AREA = 16;
     const int HEIGHT_SKILL = 16;
@@ -27,6 +31,7 @@ abstract class SkillStyle extends Certificate
     protected array $pageSliceList = [];
     protected ?TblSubject $tblLastSubject = null;
     protected ?string $lastSubjectArea = null;
+    protected ?TblScoreType $tblScoreType = null;
 
     /**
      * @param bool $isSample
@@ -84,6 +89,48 @@ abstract class SkillStyle extends Certificate
 
     /**
      * @param TblPerson $tblPerson
+     * @param string $certificateName
+     *
+     * @return array
+     */
+    protected function preBuildPages(TblPerson $tblPerson, string $certificateName): array
+    {
+        $pageList = [];
+        foreach ($this->pageSliceList as $i => $pageSlices) {
+            $page = new Page();
+            // Kopfzeile
+            if ($i > 1) {
+                $page->addSlice((new Slice)
+                    ->addElement((new Element())
+                        ->setContent(
+                            $certificateName . ' für '
+                            . $tblPerson->getFirstSecondName() . ' ' . $tblPerson->getLastName()
+//                            . ', geboren am {{ Content.P' . $tblPerson->getId() . '.Person.Common.BirthDates.Birthday }}'
+                            . ' - ' . $i . '. Seite von '
+                            . $this->pageCount . ' Seiten'
+                        )
+                    )
+                    ->styleAlignCenter()
+                    ->stylePaddingTop('10px')
+                    ->styleBorderBottom('0.5px')
+                    ->styleMarginBottom('20px')
+                );
+            }
+
+            $page->addSliceArray($pageSlices);
+            $pageList[] = $page;
+        }
+
+        // leere Seite bei ungerader Anzahl für Massendruck anfügen
+        if ($this->pageCount % 2 != 0) {
+            $pageList[] = new Page();
+        }
+
+        return $pageList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
      */
     protected function setSkillContent(TblPerson $tblPerson): void
     {
@@ -110,6 +157,16 @@ abstract class SkillStyle extends Certificate
      */
     private function getSubject(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject): void
     {
+        // Fach nur anzeigen, wenn auch Kompetenzen bewertet
+        if (!($tblStudentSkillList = SkillRate::useService()->getStudentSkillListByPersonAndYear($tblPerson, $tblYear, $tblSubject))) {
+            return;
+        }
+
+        $skillAreaList = SkillRate::useService()->setStudentSkillsForDisplay(
+            $tblStudentSkillList,
+            !$tblSubject
+        );
+
         $slice = $this->getSubjectSlice($tblSubject, false);
         // prüfen, ob neue Seite erforderlich
         $this->checkNewPage(self::HEIGHT_SKILL_AREA + self::HEIGHT_SKILL_TWO_ROW);
@@ -117,17 +174,11 @@ abstract class SkillStyle extends Certificate
         $this->tblLastSubject = $tblSubject;
         $this->lastSubjectArea = null;
 
-        $tblStudentSkillList = SkillRate::useService()->getStudentSkillListByPersonAndYear($tblPerson, $tblYear, $tblSubject);
-        $skillAreaList = SkillRate::useService()->setStudentSkillsForDisplay(
-            $tblStudentSkillList,
-            !$tblSubject
-        );
-
         // Anzeige der Kompetenzbereich inklusive Kompetenzen
         foreach ($skillAreaList as $array) {
             foreach ($array['ScoreTypeList'] as $scoreType) {
                 if (count($scoreType['SkillList']) > 0) {
-                    //$content .= $this->getSkillAreaRow($scoreType['tblScoreType'], $array['Name']);
+                    $this->tblScoreType = $scoreType['tblScoreType'];
                     $slice = $this->getSkillAreaSlice($array['Name'], false);
                     // prüfen, ob neue Seite erforderlich
                     $this->checkNewPage(self::HEIGHT_SKILL_TWO_ROW);
@@ -144,6 +195,7 @@ abstract class SkillStyle extends Certificate
                         $this->pageSliceList[$this->pageCount][] = $slice;
                     }
                     $this->lastSubjectArea = null;
+                    $this->tblScoreType = null;
                 }
             }
         }
@@ -209,20 +261,52 @@ abstract class SkillStyle extends Certificate
      */
     private function getSkillAreaSlice(string $skillArea, bool $isContinue): Slice
     {
-        // todo bewertungssystem
+        $this->heightStartPixel += self::HEIGHT_SKILL_AREA;
+
+        $sliceScoreType = null;
+        if ($this->tblScoreType
+            && ($tblScoreTypeItemList = $this->tblScoreType->getScoreTypeItems())
+        ) {
+            $countItems = count($tblScoreTypeItemList);
+            $sectionScoreType = new Section();
+            $count = 0;
+            foreach ($tblScoreTypeItemList as $tblScoreTypeItem) {
+                $count++;
+                $element = (new Element())
+                    ->setContent($tblScoreTypeItem->getName())
+                    ->styleAlignCenter()
+                    ->styleBorderRight()
+                    ->stylePaddingTop('2.5px')
+                    ->stylePaddingBottom('2.5px')
+                    ->styleTextSize('10px');
+                if ($count == 1) {
+                    $element->styleBorderLeft();
+                }
+
+                $sectionScoreType->addElementColumn($element, $count == $countItems ? 'auto' : 100 / $countItems . '%');
+            }
+            $sliceScoreType = (new Slice())->addSection($sectionScoreType);
+        }
 
         $section = new Section();
         $section->addElementColumn((new Element())
             ->setContent($skillArea . ($isContinue ? ' (Fortsetzung)' : ''))
             ->styleTextBold()
             ->stylePaddingLeft('5px')
-            ->styleBorderBottom()
             ->styleBorderLeft()
-            ->styleBorderRight()
-        );
-        $this->heightStartPixel += self::HEIGHT_SKILL_AREA;
+        , $sliceScoreType ? self::LEFT_WIDTH .  '%' : '100%');
+        if ($sliceScoreType) {
+            $section->addSliceColumn($sliceScoreType);
+        }
 
-        return (new Slice())->addSection($section);
+        $slice = (new Slice())
+            ->addSection($section)
+            ->styleBorderBottom();
+        if (!$sliceScoreType) {
+            $slice->styleBorderRight();
+        }
+
+        return $slice;
     }
 
     /**
@@ -235,13 +319,15 @@ abstract class SkillStyle extends Certificate
     private function getSkill(string $skill, string $display, string $value): Slice
     {
         // todo zwischenstriche?
+        // todo wert nimmt mehr Platz ein als vorhanden oder wert gar nicht anzeigen
+
         $sectionSkill = new Section();
         $sectionSkill
             ->addElementColumn((new Element())
                 ->setContent($skill)
                 ->stylePaddingLeft('5px')
                 ->styleTextSize('12px')
-                , '60%');
+                , self::LEFT_WIDTH .  '%');
 
         $elementLeft = new Element();
         $elementLeft
@@ -265,14 +351,12 @@ abstract class SkillStyle extends Certificate
             $this->heightStartPixel += self::HEIGHT_SKILL;
         }
 
-        $slicePercent = new Slice();
-        $slicePercent
-            ->addSection((new Section())
-                ->addElementColumn($elementLeft, $value . '%')
-                ->addElementColumn($elementRight)
-            );
-
-        $sectionSkill->addSliceColumn($slicePercent);
+        $sectionPercent = (new Section())
+            ->addElementColumn($elementLeft, $value . '%');
+        if ($value < 100) {
+            $sectionPercent->addElementColumn($elementRight);
+        }
+        $sectionSkill->addSliceColumn((new Slice())->addSection($sectionPercent));
 
         return (new Slice())
             ->addSection($sectionSkill)

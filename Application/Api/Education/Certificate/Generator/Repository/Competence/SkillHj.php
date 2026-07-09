@@ -2,9 +2,7 @@
 
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\Competence;
 
-use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 class SkillHj extends SkillStyle
@@ -16,6 +14,8 @@ class SkillHj extends SkillStyle
      */
     public function buildPages(TblPerson $tblPerson = null) : Page|array
     {
+        $certificateName = 'Kompetenz Halbjahresinformation';
+
         $personId = $tblPerson ? $tblPerson->getId() : 0;
         $tblSchoolType = $this->getTblSchoolType();
 
@@ -24,7 +24,7 @@ class SkillHj extends SkillStyle
         $this->pageSliceList[$this->pageCount][] = $this->getHead($this->isSample());
         $this->pageSliceList[$this->pageCount][] = $this->getSchoolName($personId);
         $this->pageSliceList[$this->pageCount][] = $this->getCertificateHead(
-                'Kompetenz Halbjahresinformation' . ($tblSchoolType ? ' der ' . $tblSchoolType->getName() : ''),
+                $certificateName . ($tblSchoolType ? ' der ' . $tblSchoolType->getName() : ''),
                 '25px'
             );
         $this->pageSliceList[$this->pageCount][] = $this->getDivisionAndYear($personId, '25px', '1. Schulhalbjahr');
@@ -38,7 +38,8 @@ class SkillHj extends SkillStyle
         $this->setSkillContent($tblPerson);
 
         // für test ansonsten auf false stellen
-        if (true) {
+        if (false) {
+            /** @noinspection PhpUnreachableStatementInspection */
             for ($i = 0; $i < 9; $i++) {
                 $this->setSkillContent($tblPerson);
             }
@@ -57,30 +58,8 @@ class SkillHj extends SkillStyle
 //            ))
 //            ;
 
-        $pageList = [];
-        foreach ($this->pageSliceList as $i => $pageSlices) {
-            $page = new Page();
-            // Kopfzeile
-            if ($i > 1) {
-                $page->addSlice((new Slice)
-                    ->addElement((new Element())
-                        ->setContent(
-                            $tblPerson->getFirstSecondName() . ' ' . $tblPerson->getLastName()
-                            . ', geboren am {{ Content.P' . $tblPerson->getId() . '.Person.Common.BirthDates.Birthday }} - ' . $i . '. Seite von '
-                            . $this->pageCount . ' Seiten'
-                        )
-                    )
-                    ->styleAlignCenter()
-                    ->stylePaddingTop('10px')
-                    ->styleBorderBottom('0.5px')
-                    ->styleMarginBottom('20px')
-                );
-            }
 
-            $page->addSliceArray($pageSlices);
-            $pageList[] = $page;
-        }
 
-        return $pageList;
+        return $this->preBuildPages($tblPerson, $certificateName);
     }
 }
