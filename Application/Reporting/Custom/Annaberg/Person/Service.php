@@ -7,16 +7,24 @@ use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationPara
 use MOC\V\Component\Document\Component\Parameter\Repository\PaperSizeParameter;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblType as TblTypeMail;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblToPersonPhone;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
-use SPHERE\Application\People\Relationship\Service\Entity\TblType;
+use SPHERE\Application\People\Relationship\Service\Entity\TblType as TblTypeRelationship;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Reporting\Standard\Person\Person;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
  * Class Service
@@ -63,7 +71,7 @@ class Service extends Extension
                 $item['PhoneStudent'] = $this->getPhoneList($tblPerson);
                 $item['PhoneStudentExcel'] = $this->getPhoneList($tblPerson, true);
                 $tblPersonGuardList = array();
-                if(($tblToPersonGuardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, TblType::IDENTIFIER_GUARDIAN))) {
+                if(($tblToPersonGuardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, TblTypeRelationship::IDENTIFIER_GUARDIAN))) {
                     foreach($tblToPersonGuardianList as $tblToPerson) {
                         $Ranking = $tblToPerson->getRanking();
                         if(($tblPersonGuard = $tblToPerson->getServiceTblPersonFrom())) {
@@ -259,5 +267,182 @@ class Service extends Extension
             }
         }
         return $result;
+    }
+
+    public function createExportList(TblYear $tblYear): array
+    {
+        $resultList = [];
+        if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYear))
+            && ($tblRelationshipType = Relationship::useService()->getTypeByName(TblTypeRelationship::IDENTIFIER_GUARDIAN))
+            && ($tblMailType = Mail::useService()->getTypeByName(TblTypeMail::VALUE_PRIVATE))
+        ) {
+            foreach ($tblStudentEducationList as $tblStudentEducation) {
+                if (($tblPerson = $tblStudentEducation->getServiceTblPerson())) {
+                    $tblStudent = $tblPerson->getStudent();
+                    $item = [
+                        'StudentNumber' => $tblStudent ? $tblStudent->getIdentifierComplete() : '',
+                        'StudentFirstName' => $tblPerson->getFirstName(),
+                        'StudentLastName' => $tblPerson->getLastName(),
+                        'StudentCallName' => $tblPerson->getCallName(),
+                        'StudentMail' => '',
+                        'StudentPhone' => '',
+                        'StudentBirthday' => $tblPerson->getBirthday(),
+                        'Division' => $tblStudentEducation->getTblDivision() ? $tblStudentEducation->getTblDivision()->getName() : '',
+                        'Groups' => $this->getGroupString($tblPerson, $tblYear),
+                    ];
+
+                    $guardianList = [];
+                    $phoneList = [];
+                    $mailList = [];
+                    $accountList = [];
+                    if (($tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType))) {
+                        foreach ($tblToPersonList as $tblToPerson) {
+                            if (($tblPersonFrom = $tblToPerson->getServiceTblPersonFrom())) {
+                                $guardianList[$tblToPerson->getRanking()] = $tblPersonFrom;
+
+                                $phoneList[$tblToPerson->getRanking()] = $this->getFirstPrivatNumber($tblPersonFrom);
+                                $mailList[$tblToPerson->getRanking()] =
+                                    Mail::useService()->getFirstMailAddressByPersonAndType($tblPersonFrom, $tblMailType)?->getAddress();
+
+                                if (($tblAccountList = Account::useService()->getAccountAllByPerson($tblPersonFrom))) {
+                                    $tblAccount = current($tblAccountList);
+                                    $accountList[$tblToPerson->getRanking()] = $tblAccount->getUsername();
+                                }
+                            }
+                        }
+                    }
+
+                    for ($i = 1; $i <= 2; $i++) {
+                        /** @var TblPerson $tblPersonGuardian */
+                        $tblPersonGuardian = $guardianList[$i] ?? null;
+                        $item["S$i Id"] = $accountList[$i] ?? '';
+                        $item["S$i FirstName"] = $tblPersonGuardian?->getFirstSecondName();
+                        $item["S$i LastName"] = $tblPersonGuardian?->getLastName();
+                        $item["S$i Mail"] = $mailList[$i] ?? '';
+                        $item["S$i Phone"] = $phoneList[$i] ?? '';
+                    }
+
+                    $resultList[$tblPerson->getId()] = $item;
+                }
+            }
+        }
+
+        return $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return string
+     */
+    private function getGroupString(TblPerson $tblPerson, TblYear $tblYear): string
+    {
+        $resultList = [];
+
+        // Stammgruppe, Unterrichtsgruppen und Lerngruppen
+        if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByStudentAndYear($tblPerson, $tblYear))) {
+            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                if ($tblDivisionCourse->getType()->getIdentifier() != TblDivisionCourseType::TYPE_DIVISION) {
+                    $resultList[$tblDivisionCourse->getId()] = $tblDivisionCourse->getName();
+                }
+            }
+        }
+
+        // SekII-Kurse
+        $tblDivisionCourseListSekII = DivisionCourse::useService()->getCourseListForStudentByYear($tblPerson, $tblYear);
+        foreach ($tblDivisionCourseListSekII as $tblDivisionCourseSekII) {
+            // Namensänderung 11Gy G-ma1 → 11_G-ma1
+            $name = $tblDivisionCourseSekII->getName();
+            if (str_starts_with($name, '11Gy ')) {
+                $name = str_replace('11Gy ', '11_', $name);
+            } elseif (str_starts_with($name, '12Gy ')) {
+                $name = str_replace('12Gy ', '12_', $name);
+            }
+
+            $resultList[] = $name;
+        }
+
+        return $resultList ? implode(', ', $resultList) : '';
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    private function getFirstPrivatNumber(TblPerson $tblPerson): string
+    {
+        if (($tblPhoneToPersonList = Phone::useService()->getPhoneAllByPerson($tblPerson))) {
+            $tblPhoneToPersonList = $this->getSorter($tblPhoneToPersonList)->sortObjectBy('EntityCreate', new DateTimeSorter());
+            /** @var TblToPerson $tblPhoneToPerson */
+            foreach ($tblPhoneToPersonList as $tblPhoneToPerson) {
+                if ($tblPhoneToPerson->getTblType()->getName() == 'Privat') {
+                    return $tblPhoneToPerson->getTblPhone()->getNumber();
+                }
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getExportHeaderList(): array
+    {
+        $resulList = [
+            'StudentNumber' => 'Externe ID Schüler (optional)',
+            'StudentFirstName' => 'Vorname Schüler',
+            'StudentLastName' => 'Nachname Schüler',
+            'StudentCallName' => 'Rufname Schüler',
+            'StudentMail' => 'E-Mail Schüler (optional)',
+            'StudentPhone' => 'Telefonnummer Schüler (optional)',
+            'StudentBirthday' => 'Geburtsdatum (DD.MM.YYYY)',
+            'Division' => 'Klasse',
+            'Groups' => 'Gruppen',
+        ];
+
+        for ($i = 1; $i <= 2; $i++) {
+            $resulList["S$i Id"] = "Externe ID Eltern $i (optional)";
+            $resulList["S$i FirstName"] = "Vorname Eltern $i";
+            $resulList["S$i LastName"] = "Nachname Eltern $i";
+            $resulList["S$i Mail"] = "E-Mail Eltern $i (optional)";
+            $resulList["S$i Phone"] = "Telefonnummer Eltern $i (optional)";
+        }
+
+        return $resulList;
+    }
+
+    /**
+     * @param array $headerList
+     * @param array $dataList
+     *
+     * @return FilePointer
+     */
+    public function createExportListCSV(array $headerList, array $dataList): FilePointer
+    {
+        $fileLocation = Storage::createFilePointer('csv');
+        /** @var PhpExcel $export */
+        $export = Document::getDocument($fileLocation->getFileLocation());
+        $export->setDelimiter(';');
+
+        $row = 0;
+        $column = 0;
+        foreach ($headerList as $header) {
+            $export->setValue($export->getCell($column++, $row), $header);
+        }
+        $row++;
+        foreach ($dataList as $data) {
+            $column = 0;
+            foreach ($headerList as $key => $value) {
+                $export->setValue($export->getCell($column++, $row), $data[$key] ?? '');
+            }
+            $row++;
+        }
+
+        $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+        return $fileLocation;
     }
 }

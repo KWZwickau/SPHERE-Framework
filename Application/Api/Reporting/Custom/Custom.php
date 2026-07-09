@@ -200,6 +200,10 @@ class Custom implements IModuleInterface
                     __NAMESPACE__ . '/Annaberg/Common/PrintClassList/Download',
                     __NAMESPACE__ . '\Annaberg\Common::downloadPrintClassList'
                 ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Annaberg/Common/Export/Download',
+                    __NAMESPACE__ . '\Annaberg\Common::downloadExportList'
+                ));
             }
 
             /*

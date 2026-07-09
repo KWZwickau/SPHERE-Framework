@@ -466,4 +466,26 @@ class Data extends AbstractData
 
         return null;
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblType|null $tblType
+     *
+     * @return TblMail|null
+     */
+    public function getFirstMailAddressByPersonAndType(TblPerson $tblPerson, ?TblType $tblType): ?TblMail
+    {
+        $parameters[TblToPerson::SERVICE_TBL_PERSON] = $tblPerson->getId();
+        if ($tblType) {
+            $parameters[TblToPerson::ATT_TBL_TYPE] = $tblType->getId();
+        }
+        if (($list = $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', $parameters, [Element::ENTITY_CREATE => self::ORDER_ASC]))) {
+            /** @var TblToPerson $tblToPerson */
+            $tblToPerson = $list[0];
+
+            return $tblToPerson->getTblMail();
+        }
+
+        return null;
+    }
 }
