@@ -115,15 +115,15 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $Stage = new Stage('EGE Auswertung', 'Export für SchulAPP');
 
+        $tblYear = null;
         if ($YearId) {
-            $tblYear = Term::useService()->getYearById($YearId);
-        } else {
-            $tblYearList = Term::useService()->getYearByNow();
+            $tblYear = Term::useService()->getYearById($YearId) ?: null;
+        } elseif (($tblYearList = Term::useService()->getYearByNow())) {
             $tblYear = current($tblYearList);
         }
 
         $Stage->setContent(
-            ApiStandard::receiverBlock(ApiStandard::pipelineLoad(['Content' => 'loadExportContent', 'YearId' => $tblYear]), 'Content')
+            ApiStandard::receiverBlock(ApiStandard::pipelineLoad(['Content' => 'loadExportContent', 'YearId' => $tblYear?->getId()]), 'Content')
         );
 
         return $Stage;
