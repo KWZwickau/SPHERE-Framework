@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Competence\ScoreType\ScoreType;
 use SPHERE\System\Database\Fitting\Element;
+use SPHERE\System\Extension\Repository\Sorter;
 
 /**
  * @Entity
@@ -67,9 +68,15 @@ class TblScoreType extends Element
     /**
      * @return TblScoreTypeItem[]
      */
-    public function getScoreTypeItems(): array
+    public function getScoreTypeItems(bool $isDisplayOrder = false): array
     {
-        return ScoreType::useService()->getScoreTypeItemsByScoreType($this->getId() < 0 ? null : $this);
+        $list = ScoreType::useService()->getScoreTypeItemsByScoreType($this->getId() < 0 ? null : $this);
+        if ($isDisplayOrder) {
+            $list = $this->getSorter($list)->sortObjectBy('Value', new Sorter\StringNaturalOrderSorter(),
+                $this->getSortOrder() == 'desc' ? Sorter::ORDER_ASC : Sorter::ORDER_DESC);
+        }
+
+        return $list;
     }
 
     /**

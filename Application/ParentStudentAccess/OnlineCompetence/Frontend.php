@@ -28,7 +28,6 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Sorter;
 
 class Frontend extends Extension implements IFrontendInterface
 {
@@ -232,13 +231,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         // stufen anzeigen
         $steps = "";
-        if (($tblScoreTypeItemList = $tblScoreType->getScoreTypeItems())) {
+        if (($tblScoreTypeItemList = $tblScoreType->getScoreTypeItems(true))) {
             $height = '72px';
             // vertikale Linie
             $steps .= "<div class='competence-divider'></div>";
             $steps .= "<div class='competence-area-sublabel'>";
-            $tblScoreTypeItemList = $this->getSorter($tblScoreTypeItemList)->sortObjectBy('Value', new Sorter\StringNaturalOrderSorter(),
-                $tblScoreType->getSortOrder() == 'desc' ? Sorter::ORDER_ASC : Sorter::ORDER_DESC);
             foreach ($tblScoreTypeItemList as $tblScoreTypeItem) {
                 $steps .= "<span>{$tblScoreTypeItem->getName()}</span>";
             }

@@ -265,7 +265,7 @@ abstract class SkillStyle extends Certificate
 
         $sliceScoreType = null;
         if ($this->tblScoreType
-            && ($tblScoreTypeItemList = $this->tblScoreType->getScoreTypeItems())
+            && ($tblScoreTypeItemList = $this->tblScoreType->getScoreTypeItems(true))
         ) {
             $countItems = count($tblScoreTypeItemList);
             $sectionScoreType = new Section();
@@ -276,9 +276,9 @@ abstract class SkillStyle extends Certificate
                     ->setContent($tblScoreTypeItem->getName())
                     ->styleAlignCenter()
                     ->styleBorderRight()
-                    ->stylePaddingTop('2.5px')
-                    ->stylePaddingBottom('2.5px')
-                    ->styleTextSize('10px');
+                    ->stylePaddingTop('3.25px')
+                    ->stylePaddingBottom('3.25px')
+                    ->styleTextSize('8.5px');
                 if ($count == 1) {
                     $element->styleBorderLeft();
                 }
@@ -318,8 +318,19 @@ abstract class SkillStyle extends Certificate
      */
     private function getSkill(string $skill, string $display, string $value): Slice
     {
-        // todo zwischenstriche?
-        // todo wert nimmt mehr Platz ein als vorhanden oder wert gar nicht anzeigen
+        // 2 Zeilen
+        if (strlen($skill) > 70) {
+            $height = '29.3px';
+
+            $this->heightStartPixel += self::HEIGHT_SKILL_TWO_ROW;
+            $marginTopText = '-20px';
+            $marginTopLinie = '-29.3px';
+        } else {
+            $height = '17px';
+            $this->heightStartPixel += self::HEIGHT_SKILL;
+            $marginTopText = '-14px';
+            $marginTopLinie = '-17px';
+        }
 
         $sectionSkill = new Section();
         $sectionSkill
@@ -331,8 +342,9 @@ abstract class SkillStyle extends Certificate
 
         $elementLeft = new Element();
         $elementLeft
-            ->setContent($display)
+            ->setContent('&nbsp;')
             ->styleTextSize('12px')
+            ->styleHeight($height)
             ->stylePaddingLeft('5px')
             ->styleBackgroundColor('lightblue')
             ->styleBorderLeft();
@@ -340,16 +352,8 @@ abstract class SkillStyle extends Certificate
         $elementRight
             ->setContent('&nbsp;')
             ->styleTextSize('12px')
+            ->styleHeight($height)
             ->styleBorderLeft();
-
-        if (strlen($skill) > 70) {
-            $elementLeft->styleHeight('29.3px');
-            $elementRight->styleHeight('29.3px');
-
-            $this->heightStartPixel += self::HEIGHT_SKILL_TWO_ROW;
-        } else {
-            $this->heightStartPixel += self::HEIGHT_SKILL;
-        }
 
         $sectionPercent = (new Section())
             ->addElementColumn($elementLeft, $value . '%');
@@ -357,9 +361,61 @@ abstract class SkillStyle extends Certificate
             $sectionPercent->addElementColumn($elementRight);
         }
         $sectionSkill->addSliceColumn((new Slice())->addSection($sectionPercent));
+        $slice = (new Slice())
+            ->addSection($sectionSkill);
 
-        return (new Slice())
-            ->addSection($sectionSkill)
+        // Zwischenstriche
+        if ($this->tblScoreType
+            && ($tblScoreTypeItemList = $this->tblScoreType->getScoreTypeItems(true))
+        ) {
+            $countItems = count($tblScoreTypeItemList);
+            $sectionScoreType = new Section();
+            $count = 0;
+            foreach ($tblScoreTypeItemList as $ignored) {
+                $count++;
+                $element = (new Element())
+                    ->setContent('&nbsp;')
+                    ->styleHeight($height);
+                if ($count < $countItems) {
+                    $element->styleBorderRight('0.5px', 'silver');
+                }
+
+                $sectionScoreType->addElementColumn($element, $count == $countItems ? 'auto' : 100 / $countItems . '%');
+            }
+            $sliceScoreType = (new Slice())
+                ->addSection($sectionScoreType)
+                ->styleMarginTop($marginTopLinie)
+                ->styleHeight('0px');
+            $slice
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleHeight('0px')
+                        ->styleMarginTop($marginTopLinie)
+                        , self::LEFT_WIDTH .  '%')
+                    ->addSliceColumn(
+                        $sliceScoreType
+                    )
+                );
+        }
+
+        return $slice
+            // anzeige des Wertes mit höhe 0 und danach damit dieser nicht vom Balken überdeckt wird
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleTextSize('10px')
+                    ->styleHeight('0px')
+                    ->styleMarginTop($marginTopText)
+                    , self::LEFT_WIDTH .  '%')
+                ->addElementColumn((new Element())
+                    ->setContent($display)
+                    ->stylePaddingLeft('5px')
+                    ->styleTextSize('10px')
+                    ->styleHeight('0px')
+                    ->styleMarginTop($marginTopText)
+                )
+            )
             ->styleBorderLeft()
             ->styleBorderBottom()
             ->styleBorderRight();
