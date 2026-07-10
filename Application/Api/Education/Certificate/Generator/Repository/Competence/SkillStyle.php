@@ -7,11 +7,13 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Competence\SkillRate\SkillRate;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 abstract class SkillStyle extends Certificate
@@ -32,6 +34,7 @@ abstract class SkillStyle extends Certificate
     protected ?TblSubject $tblLastSubject = null;
     protected ?string $lastSubjectArea = null;
     protected ?TblScoreType $tblScoreType = null;
+    protected array $tblScoreTypeList = [];
 
     /**
      * @param bool $isSample
@@ -169,7 +172,7 @@ abstract class SkillStyle extends Certificate
 
         $slice = $this->getSubjectSlice($tblSubject, false);
         // prüfen, ob neue Seite erforderlich
-        $this->checkNewPage(self::HEIGHT_SKILL_AREA + self::HEIGHT_SKILL_TWO_ROW);
+        $this->checkNewPageBySkillContent(self::HEIGHT_SKILL_AREA + self::HEIGHT_SKILL_TWO_ROW);
         $this->pageSliceList[$this->pageCount][] = $slice;
         $this->tblLastSubject = $tblSubject;
         $this->lastSubjectArea = null;
@@ -179,9 +182,12 @@ abstract class SkillStyle extends Certificate
             foreach ($array['ScoreTypeList'] as $scoreType) {
                 if (count($scoreType['SkillList']) > 0) {
                     $this->tblScoreType = $scoreType['tblScoreType'];
+                    if ($this->tblScoreType) {
+                        $this->tblScoreTypeList[$this->tblScoreType->getId()] = $this->tblScoreType;
+                    }
                     $slice = $this->getSkillAreaSlice($array['Name'], false);
                     // prüfen, ob neue Seite erforderlich
-                    $this->checkNewPage(self::HEIGHT_SKILL_TWO_ROW);
+                    $this->checkNewPageBySkillContent(self::HEIGHT_SKILL_TWO_ROW);
                     $this->lastSubjectArea = $array['Name'];
                     $this->pageSliceList[$this->pageCount][] = $slice;
 
@@ -191,7 +197,7 @@ abstract class SkillStyle extends Certificate
 
                         $slice  = $this->getSkill($text, $skill['Display'], $skill['Value']);
                         // prüfen, ob neue Seite erforderlich
-                        $this->checkNewPage(0);
+                        $this->checkNewPageBySkillContent(0);
                         $this->pageSliceList[$this->pageCount][] = $slice;
                     }
                     $this->lastSubjectArea = null;
@@ -208,11 +214,11 @@ abstract class SkillStyle extends Certificate
      *
      * @return void
      */
-    protected function checkNewPage(int $minHeightRequiredAfter): void
+    protected function checkNewPageBySkillContent(int $minHeightRequiredAfter): void
     {
         // prüfen bei Fach ob noch Platz zusätzlich skillArea + 2rowSkill
         // prüfen bei Kompetenzbereich ob noch Platz zusätzlich 2rowSkill
-        if ($this->heightStartPixel > self::HEIGHT_PAGE - $minHeightRequiredAfter) {
+        if ($this->heightStartPixel > self::HEIGHT_PAGE - self::HEIGHT_HEADER - $minHeightRequiredAfter) {
             $this->heightStartPixel = self::HEIGHT_HEADER;
             $this->pageSliceList[++$this->pageCount] = [];
             if ($this->tblLastSubject !== null) {
@@ -419,5 +425,170 @@ abstract class SkillStyle extends Certificate
             ->styleBorderLeft()
             ->styleBorderBottom()
             ->styleBorderRight();
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return void
+     */
+    protected function setSubjectLanes($personId): void
+    {
+        // nur wenn stichtagsnotenauftrag ausgewählt
+        if (($tblPrepareCertificate = $this->getTblPrepareCertificate())
+            && ($tblPrepareCertificate->getServiceTblAppointedDateTask())
+        ) {
+            $slice = $this->getSubjectLanesSmall($personId)
+                ->styleMarginTop('20px');
+
+            if ($this->countSubjectLanes > 0) {
+                $this->pageSliceList[$this->pageCount][] = $slice;
+
+                // eine Zeile entspricht ca. 0,6 cm -> 26px
+                $this->heightStartPixel += 20 + ($this->countSubjectLanes * 26);
+            }
+        }
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return void
+     */
+    protected function setRemark($personId): void
+    {
+        $minHeightRequired = 20 + 16;
+        // Sperrstrich oder Platz für Arbeitsgemeinschaften
+        $minHeightRequired += 20 + 32;
+        if (($tblPrepareCertificate = $this->getTblPrepareCertificate())
+            && ($tblPerson = Person::useService()->getPersonById($personId))
+            && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy(
+                $tblPrepareCertificate, $tblPerson, 'Remark'))
+        ) {
+            // 100 Zeichen entspricht ca. 1 Zeile
+            $minHeightRequired += (strlen($tblPrepareInformation->getValue()) / 100) * 16;
+        }
+
+        // erstmal nur Platz für 1 Seite bzw. die Seite nach max trennen
+        $this->checkNewPage($minHeightRequired);
+
+//        $this->pageSliceList[$this->pageCount][] =
+//            (new Slice())->addElement((new Element())->setContent($minHeightRequired));
+
+        $this->pageSliceList[$this->pageCount][] = $this->getDescriptionHead($personId, true, '20px');
+        $this->pageSliceList[$this->pageCount][] = $this->getDescriptionContent($personId, null, '20px');
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return void
+     */
+    protected function setTransfer($personId): void
+    {
+        $minHeightRequired = 20 + 16;
+        $this->checkNewPage($minHeightRequired);
+
+        $this->pageSliceList[$this->pageCount][] = $this->getTransfer($personId, '20px');
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return void
+     */
+    protected function setDateLine($personId): void
+    {
+        $minHeightRequired = 20 + 16;
+        $this->checkNewPage($minHeightRequired);
+
+        $this->pageSliceList[$this->pageCount][] = $this->getDateLine($personId, '20px');
+    }
+
+    /**
+     * @param $personId
+     * @param bool $isExtended
+     *
+     * @return void
+     */
+    protected function setSign($personId, bool $isExtended): void
+    {
+        $minHeightRequired = 30 + 16 + (2 * 12)
+            + 30 + 16 + 12;
+        $this->checkNewPage($minHeightRequired);
+
+        $this->pageSliceList[$this->pageCount][] = $this->getSignPart($personId, $isExtended, '30px');
+        $this->pageSliceList[$this->pageCount][] = $this->getParentSign('30px');
+    }
+
+    /**
+     * @return void
+     */
+    protected function setInfo(): void
+    {
+        $textSize = '9.5px';
+
+        $slice = (new Slice())
+//            ->styleMarginTop('20px')
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->styleBorderBottom()
+                    , '30%')
+                ->addElementColumn((new Element())
+                    , '70%')
+            )
+            ->addElement((new Element())
+                ->setContent('Für die Einschätzung der Kompetenzen gilt folgende Skala:')
+                ->styleTextSize($textSize)
+            );
+
+        /** @var TblScoreType $tblScoreType */
+        $countItems = 0;
+        foreach ($this->tblScoreTypeList as $tblScoreType) {
+            if (($items = $tblScoreType->getScoreTypeItems())) {
+                foreach ($items as $item) {
+                    if ($item->getName() && $item->getDescription()) {
+                        $countItems++;
+                        $slice->addElement((new Element())
+                            ->setContent($item->getName() . ' - ' . $item->getDescription())
+                            ->styleTextSize($textSize)
+                        );
+                    }
+                }
+            }
+        }
+
+        // Platzbedarf ermitteln und nach unten schieben
+        $marginTop = '20px';
+        $minHeightRequired = 20 + $countItems * 10;
+        $this->checkNewPage($minHeightRequired);
+
+        $offset = self::HEIGHT_PAGE - $this->heightStartPixel;
+        if ($offset > 0) {
+            $marginTop = $offset . 'px';
+        }
+
+//        $this->pageSliceList[$this->pageCount][] =
+//            (new Slice())->addElement((new Element())->setContent(
+//                "Offset: $offset required: $minHeightRequired start: $this->heightStartPixel"));
+
+        if ($countItems > 0) {
+            $this->pageSliceList[$this->pageCount][] = $slice->styleMarginTop($marginTop);
+        }
+    }
+
+    /**
+     * @param int $minHeightRequired
+     *
+     * @return void
+     */
+    protected function checkNewPage(int $minHeightRequired): void
+    {
+        if ($this->heightStartPixel > self::HEIGHT_PAGE - self::HEIGHT_HEADER - $minHeightRequired) {
+            $this->pageSliceList[++$this->pageCount] = [];
+            $this->heightStartPixel = self::HEIGHT_HEADER;
+        }
+
+        $this->heightStartPixel += $minHeightRequired;
     }
 }

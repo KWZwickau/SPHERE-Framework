@@ -35,6 +35,10 @@ class SkillHj extends SkillStyle
         //	7,8 - 1,2 cm = 6,6-> 283
         $this->heightStartPixel = 283;
 
+        // Fachnoten vom Stichtagsnotenauftrag, falls vorhanden
+        $this->setSubjectLanes($personId);
+
+        // Kompetenzen
         $this->setSkillContent($tblPerson);
 
         // für test ansonsten auf false stellen
@@ -45,20 +49,11 @@ class SkillHj extends SkillStyle
             }
         }
 
-
-//            ->addSlice($this->getDescriptionHead($personId, true))
-//            ->addSlice($this->getDescriptionContent($personId, '35px', '5px'))
-//            ->addSlice($this->getDateLine($personId, '10px'))
-//            ->addSlice($this->getSignPart($personId, true))
-//            ->addSlice($this->getParentSign('30px'))
-//            ->addSlice($this->getInfo('2px',
-//                'Für die Einschätzung der fachlichen Kompetenzen gilt folgende Skala:',
-//                '1 - übertrifft die Anforderung - liegt deutlich über den Regelanforderungen und jahrgangsgemäßen Erwartungen',
-//                '...'
-//            ))
-//            ;
-
-
+        $this->setRemark($personId);
+//        $this->setTransfer($personId);
+        $this->setDateLine($personId);
+        $this->setSign($personId, false);
+        $this->setInfo();
 
         return $this->preBuildPages($tblPerson, $certificateName);
     }

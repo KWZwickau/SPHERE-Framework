@@ -119,6 +119,7 @@ class Creator extends Extension
             && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
             && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
         ) {
+            ini_set('memory_limit', '2G');
             $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
             if (class_exists($CertificateClass)) {
                 $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
@@ -378,6 +379,7 @@ class Creator extends Extension
             && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
             && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
         ) {
+            ini_set('memory_limit', '4G');
             $description = $tblDivisionCourse->getName();
             foreach ($tblPersonList as $tblPerson) {
                 if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
@@ -513,6 +515,7 @@ class Creator extends Extension
             && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
             && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
         ) {
+            ini_set('memory_limit', '4G');
             $description = $tblDivisionCourse->getName();
             if (($tblCertificateType = $tblPrepare->getCertificateType())
                 && $tblCertificateType->isAutomaticallyApproved()
