@@ -41,7 +41,7 @@ class SkillHj extends SkillStyle
         // Kompetenzen
         $this->setSkillContent($tblPerson);
 
-        // für test ansonsten auf false stellen
+        // für test viele Kompetenzen ansonsten auf false stellen
         if (false) {
             /** @noinspection PhpUnreachableStatementInspection */
             for ($i = 0; $i < 9; $i++) {

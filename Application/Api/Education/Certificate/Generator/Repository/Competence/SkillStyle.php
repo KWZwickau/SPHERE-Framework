@@ -125,7 +125,7 @@ abstract class SkillStyle extends Certificate
         }
 
         // leere Seite bei ungerader Anzahl für Massendruck anfügen
-        if ($this->pageCount % 2 != 0) {
+        if ($this->pageCount % 2 != 0 && $this->pageCount > 1) {
             $pageList[] = new Page();
         }
 
@@ -204,6 +204,26 @@ abstract class SkillStyle extends Certificate
                     $this->tblScoreType = null;
                 }
             }
+        }
+
+        // ToDo Bemerkung für Fach setzen
+        if ($tblSubject?->getName() == 'Deutsch') {
+            $remarkSubject = 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut
+                labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores';
+
+            $minHeightRequired = (int) ((strlen($remarkSubject) / 100) * 16);
+            $this->checkNewPageBySkillContent($minHeightRequired > 16 ?: 20);
+
+            $this->pageSliceList[$this->pageCount][] = (new Slice())
+                ->addElement((new Element())
+                    ->setContent($remarkSubject)
+                )
+                ->stylePaddingLeft()
+                ->styleBorderLeft()
+                ->styleBorderRight()
+                ->styleBorderBottom();
+
+            $this->heightStartPixel += $minHeightRequired;
         }
 
         $this->tblLastSubject = null;
