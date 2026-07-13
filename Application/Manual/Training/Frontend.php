@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\Success;
@@ -112,13 +113,22 @@ class Frontend extends Extension implements IFrontendInterface
                 ]
             ];
         }
-        if ($today <= new DateTime('13.08.2026')) {
+        if (false) { // wurde abgesagt.
             $contentList[] = [
                 'Title' => 'Pädagogische Arbeit in der Schulsoftware',
                 'Content' => [
                     '11.08.2026 und 13.08.2026 | 11 Uhr | 2-teiliges Webinar für Pädagoginnen und Pädagogen',
                     'An den beiden Webinartagen werden die Prozesse des Schulalltags in der Schulsoftware vorgestellt und an praktischen Beispielen erläutert. 
                     Außerdem werden Weiterentwicklungen in den Blick genommen und Fragen zum Umgang geklärt.',
+                ]
+            ];
+        }
+
+        if(count($contentList) <= 1){
+            $contentList[] = [
+                'Title' => 'Aktuelle Veranstaltungen der ESDI GmbH',
+                'Content' => [
+                    (new Link('www.ev-schulen-sachsen.de/veranstaltungen-esdi', 'https://www.ev-schulen-sachsen.de/veranstaltungen-esdi'))->setExternal(),
                 ]
             ];
         }
