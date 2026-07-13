@@ -791,4 +791,15 @@ class Service extends AbstractService
     {
         return (new Data($this->getBinding()))->getLastMailAddressByPersonAndType($tblPerson, $tblType);
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblType|null $tblType
+     *
+     * @return TblMail|null
+     */
+    public function getFirstMailAddressByPersonAndType(TblPerson $tblPerson, ?TblType $tblType): ?TblMail
+    {
+        return (new Data($this->getBinding()))->getFirstMailAddressByPersonAndType($tblPerson, $tblType);
+    }
 }
