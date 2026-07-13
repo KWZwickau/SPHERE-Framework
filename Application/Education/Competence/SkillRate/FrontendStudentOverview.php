@@ -9,9 +9,12 @@ use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\ParentStudentAccess\OnlineCompetence\OnlineCompetence;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -82,14 +85,6 @@ class FrontendStudentOverview extends FrontendStudent
             return new Danger('Schüler wurde nicht gefunden!', new Exclamation());
         }
 
-        $subjectList = [];
-        if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByPersonListAndYear([$tblPerson], $tblYear))) {
-            $subjectList[] = new SelectBoxItem(-1, 'Fächerübergreifend');
-            foreach ($tblSubjectList as $tblSubject) {
-                $subjectList[] = new SelectBoxItem($tblSubject->getId(), $tblSubject->getName());
-            }
-        }
-
         $pictureHeight = '159px';
         if (($tblPersonPicture = Storage::useService()->getPersonPictureByPerson($tblPerson))) {
             $PersonPicture = (new Link($tblPersonPicture->getPicture($pictureHeight, '10px'), $tblPerson->getId()))
@@ -126,7 +121,8 @@ class FrontendStudentOverview extends FrontendStudent
                             new Panel(
                                 'Fach',
                                 (new Form(new FormGroup(new FormRow(new FormColumn(
-                                    (new SelectBox('Data[SubjectId]', '', array('{{ Name }}' => $subjectList)))
+                                    (new SelectBox('Data[SubjectId]', '', array('{{ Name }}' => $this->getSubjectListForStudentOverview($tblPerson, $tblYear)),
+                                        null, false, null))
                                         ->ajaxPipelineOnChange(ApiOnlineSkillRate::pipelineLoadSubjectContent($tblPerson->getId()))
                                 )))))->disableSubmitAction(),
                                 Panel::PANEL_TYPE_INFO
@@ -137,5 +133,27 @@ class FrontendStudentOverview extends FrontendStudent
                 ))
             ))
             . ApiOnlineSkillRate::receiverBlock(OnlineCompetence::useFrontend()->loadSubjectContent($tblPerson, null), 'SubjectContent');
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return TblSubject[]
+     */
+    public function getSubjectListForStudentOverview(TblPerson $tblPerson, TblYear $tblYear): array
+    {
+        $subjectList = [];
+        if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByPersonListAndYear([$tblPerson], $tblYear))) {
+            $subjectList[] = new SelectBoxItem(-2, 'Alle Fächer und Fächerübergreifend');
+            $subjectList[] = new SelectBoxItem(-1, 'Fächerübergreifend');
+            $tblSubjectList = $this->getSorter($tblSubjectList)->sortObjectBy('Name');
+            /** @var TblSubject $tblSubject */
+            foreach ($tblSubjectList as $tblSubject) {
+                $subjectList[] = new SelectBoxItem($tblSubject->getId(), $tblSubject->getName());
+            }
+        }
+
+        return $subjectList;
     }
 }

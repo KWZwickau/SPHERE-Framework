@@ -5,10 +5,11 @@ namespace SPHERE\Application\ParentStudentAccess\OnlineCompetence;
 use SPHERE\Application\Api\Education\Competence\ApiOnlineSkillRate;
 use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Competence\SkillRate\SkillRate;
-use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -76,19 +77,15 @@ class Frontend extends Extension implements IFrontendInterface
             $subjectList = [];
             if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))
                 && ($tblYear = $tblStudentEducation->getServiceTblYear())
-                && ($tblSubjectList = DivisionCourse::useService()->getSubjectListByPersonListAndYear([$tblPerson], $tblYear))
             ) {
-                $subjectList[] = new SelectBoxItem(-1, 'Fächerübergreifend');
-                foreach ($tblSubjectList as $tblSubject) {
-                    $subjectList[] = new SelectBoxItem($tblSubject->getId(), $tblSubject->getName());
-                }
+                $subjectList = SkillRate::useFrontend()->getSubjectListForStudentOverview($tblPerson, $tblYear);
             }
 
             return
                 new Panel(
                     'Fach',
                     (new Form(new FormGroup(new FormRow(new FormColumn(
-                        (new SelectBox('Data[SubjectId]', '', array('{{ Name }}' => $subjectList)))
+                        (new SelectBox('Data[SubjectId]', '', array('{{ Name }}' => $subjectList), null, false, null))
                             ->ajaxPipelineOnChange(ApiOnlineSkillRate::pipelineLoadSubjectContent($tblPerson->getId()))
                     )))))->disableSubmitAction(),
                     Panel::PANEL_TYPE_INFO
@@ -102,17 +99,19 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param TblPerson $tblPerson
      * @param TblSubject|null $tblSubject
-     * @param bool $IsOldYears
-     * @param bool $IsInterdisciplinary
+     * @param bool $isOldYears
+     * @param bool $isInterdisciplinary
+     * @param bool $isAllSubjects
      *
      * @return string
      */
-    public function loadSubjectContent(TblPerson $tblPerson, ?TblSubject $tblSubject, bool $IsOldYears = false, bool $IsInterdisciplinary = false): string
+    public function loadSubjectContent(TblPerson $tblPerson, ?TblSubject $tblSubject, bool $isOldYears = false,
+        bool $isInterdisciplinary = false, bool $isAllSubjects = false): string
     {
         $tblStudentEducationList = [];
         if (($tblYearList = Term::useService()->getYearByNow())) {
             foreach ($tblYearList as $tblYearTemp) {
-                if (($tempList = SkillRate::useService()->getStudentEducationList($tblPerson, $tblYearTemp, $IsOldYears))) {
+                if (($tempList = SkillRate::useService()->getStudentEducationList($tblPerson, $tblYearTemp, $isOldYears))) {
                     $tblStudentEducationList = $tempList;
                     break;
                 }
@@ -120,47 +119,32 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $isFirstYear = true;
-        if ($tblSubject || $IsInterdisciplinary) {
+        if ($tblSubject || $isInterdisciplinary || $isAllSubjects) {
             $content = '';
             // sortierung erstmal nach bewertung
             foreach ($tblStudentEducationList as $tblStudentEducation) {
                 if (($tblYear = $tblStudentEducation->getServiceTblYear())
                     && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
                     && ($level = $tblStudentEducation->getLevel()) !== null
-                    && ($tblStudentSkillList = SkillRate::useService()->getStudentSkillListByPersonAndYear($tblPerson, $tblYear, $tblSubject))
                 ) {
-                    $pullRight = '';
-                    if ($isFirstYear) {
-                        $isFirstYear = false;
-
-                        $pullRight = new PullRight(
-                            (new Standard('Alte Schuljahre ' . ($IsOldYears ? 'ausblenden' : 'anzeigen'), ApiOnlineSkillRate::getEndpoint()))
-                                ->ajaxPipelineOnClick(ApiOnlineSkillRate::pipelineLoadSubjectContent(
-                                    $tblPerson->getId(), $IsOldYears ? 'false' : 'true', $IsInterdisciplinary ? -1 : $tblSubject->getId()))
-                        );
-                    }
-
-                    $content .= new Title(
-                        (new Container(
-                            'Schuljahr: ' . $tblYear->getName()
-                            . new Muted(new Small(' Klassenstufe: ' . $level . ' Schulart: ' . $tblSchoolType->getName()))
-                            . $pullRight
-                        ))->setStyle(['height: 28px;'])
-                    );
-
-                    // Anzeige der Kompetenzbereich inklusive Kompetenzen
-                    $skillAreaList = SkillRate::useService()->setStudentSkillsForDisplay($tblStudentSkillList, $IsInterdisciplinary);
-                    foreach ($skillAreaList as $array) {
-                        foreach ($array['ScoreTypeList'] as $scoreType) {
-                            if (count($scoreType['SkillList']) > 0) {
-                                $content .= $this->getSkillAreaRow($scoreType['tblScoreType'], $array['Name']);
-                                foreach ($scoreType['SkillList'] as $skill) {
-                                    $text = $skill['SkillLevel'] ? new Muted($skill['SkillLevel']) . ' ' : '';
-                                    $text .= $skill['Skill'];
-                                    $content .= $this->getSkillRowPercent($scoreType['tblScoreType'], $text, $skill['Display'], $skill['Value']);
+                    if ($isAllSubjects) {
+                        if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByPersonListAndYear([$tblPerson], $tblYear))) {
+                            $tblSubjectList = $this->getSorter($tblSubjectList)->sortObjectBy('Name');
+                            // Fächerübergreifend
+                            array_unshift($tblSubjectList, null);
+                            foreach ($tblSubjectList as $tblSubjectTemp) {
+                                $contentItem = $this->getSubjectContent($tblPerson, $tblYear, $tblSchoolType, $level, $tblSubjectTemp,
+                                    $isFirstYear, $isOldYears, !$tblSubjectTemp, $isAllSubjects);
+                                if ($contentItem) {
+                                    // Fach anzeigen
+                                    $content .= new Title($tblSubjectTemp ? $tblSubjectTemp->getName() : 'Fächerübergreifend');
+                                    $content .= $contentItem;
                                 }
                             }
                         }
+                    } else {
+                        $content .= $this->getSubjectContent($tblPerson, $tblYear, $tblSchoolType, $level, $tblSubject,
+                            $isFirstYear, $isOldYears, $isInterdisciplinary, $isAllSubjects);
                     }
                 }
             }
@@ -172,6 +156,64 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblType $tblSchoolType
+     * @param int $level
+     * @param TblSubject|null $tblSubject
+     * @param bool $isFirstYear
+     * @param bool $isOldYears
+     * @param bool $isInterdisciplinary
+     * @param bool $isAllSubjects
+     *
+     * @return string
+     */
+    private function getSubjectContent(TblPerson $tblPerson, TblYear $tblYear, TblType $tblSchoolType, int $level,
+        ?TblSubject $tblSubject, bool &$isFirstYear, bool $isOldYears, bool $isInterdisciplinary, bool $isAllSubjects): string
+    {
+        $content = '';
+        if (($tblStudentSkillList = SkillRate::useService()->getStudentSkillListByPersonAndYear($tblPerson, $tblYear, $tblSubject))) {
+            $pullRight = '';
+            if ($isFirstYear) {
+                $isFirstYear = false;
+
+                $pullRight = new PullRight(
+                    (new Standard('Alte Schuljahre ' . ($isOldYears ? 'ausblenden' : 'anzeigen'), ApiOnlineSkillRate::getEndpoint()))
+                        ->ajaxPipelineOnClick(ApiOnlineSkillRate::pipelineLoadSubjectContent(
+                            $tblPerson->getId(), $isOldYears ? 'false' : 'true', $isInterdisciplinary ? -1 : $tblSubject?->getId()))
+                );
+            }
+
+            if (!$isAllSubjects) {
+                $content .= new Title(
+                    (new Container(
+                        'Schuljahr: ' . $tblYear->getName()
+                        . new Muted(new Small(' Klassenstufe: ' . $level . ' Schulart: ' . $tblSchoolType->getName()))
+                        . $pullRight
+                    ))->setStyle(['height: 28px;'])
+                );
+            }
+
+            // Anzeige der Kompetenzbereich inklusive Kompetenzen
+            $skillAreaList = SkillRate::useService()->setStudentSkillsForDisplay($tblStudentSkillList, $isInterdisciplinary);
+            foreach ($skillAreaList as $array) {
+                foreach ($array['ScoreTypeList'] as $scoreType) {
+                    if (count($scoreType['SkillList']) > 0) {
+                        $content .= $this->getSkillAreaRow($scoreType['tblScoreType'], $array['Name']);
+                        foreach ($scoreType['SkillList'] as $skill) {
+                            $text = $skill['SkillLevel'] ? new Muted($skill['SkillLevel']) . ' ' : '';
+                            $text .= $skill['Skill'];
+                            $content .= $this->getSkillRowPercent($scoreType['tblScoreType'], $text, $skill['Display'], $skill['Value']);
+                        }
+                    }
+                }
+            }
+        }
+
+        return $content;
+    }
+
+    /**
      * @param TblScoreType $tblScoreType
      * @param string $text
      * @param string $displayRate
@@ -179,6 +221,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param string $backgroundColor
      *
      * @return string
+     * @noinspection PhpSameParameterValueInspection
      */
     private function getSkillRowPercent(TblScoreType $tblScoreType, string $text, string $displayRate, float $percentValue, string $backgroundColor = '#D8EDF7')
         : string
@@ -224,6 +267,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param string $backgroundColor
      *
      * @return string
+     * @noinspection PhpSameParameterValueInspection
      */
     private function getSkillAreaRow(TblScoreType $tblScoreType, string $text, string $backgroundColor = '#31708f;'): string
     {

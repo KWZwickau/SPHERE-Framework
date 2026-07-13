@@ -128,6 +128,7 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
             $integrationList = array();
             $pictureList = array();
             $courseList = array();
+            $personSubjectList = array();
             if ($tblPersonList) {
                 foreach ($tblPersonList as $tblPerson) {
                     if (!$tblSubject
@@ -138,6 +139,7 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                     ) {
                         // Schüler-Informationen
                         Grade::useService()->setStudentInfo($tblPerson, $tblYear, $integrationList, $pictureList, $courseList);
+                        $personSubjectList[$tblPerson->getId()] = $tblPerson;
                     }
                 }
             }
@@ -152,41 +154,32 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
             $count = 0;
             $bodyList = [];
             $skillList = [];
-            if ($tblPersonList) {
-                foreach ($tblPersonList as $tblPerson) {
-                    if (!$tblSubject
-                        || (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject(
-                                $tblPerson, $tblYear, $tblSubject, isset($inactiveStudentList[$tblPerson->getId()])
-                            ))
-                            && $tblVirtualSubject->getHasGrading())
-                    ) {
-                        $bodyList[$tblPerson->getId()] = $gradeFrontend->getGradeBookPreBodyList($tblPerson, ++$count,
-                            $hasPicture, $hasIntegration, $hasCourse,
-                            $pictureList, $integrationList, $courseList, isset($inactiveStudentList[$tblPerson->getId()]));
+            foreach ($personSubjectList as $tblPerson) {
+                $bodyList[$tblPerson->getId()] = $gradeFrontend->getGradeBookPreBodyList($tblPerson, ++$count,
+                    $hasPicture, $hasIntegration, $hasCourse,
+                    $pictureList, $integrationList, $courseList, isset($inactiveStudentList[$tblPerson->getId()]));
 
-                        $bodyList[$tblPerson->getId()]['SkillRates'] = $gradeFrontend->getTableColumnBody(
-                            $this->getDisplayStudentSkills(
-                                $tblPerson, $tblYear, $IsInterdisciplinary ? null : $tblSubject, $IsInterdisciplinary ? $tblSubject : null, $skillList)
-                        );
+                $bodyList[$tblPerson->getId()]['SkillRates'] = $gradeFrontend->getTableColumnBody(
+                    $this->getDisplayStudentSkills(
+                        $tblPerson, $tblYear, $IsInterdisciplinary ? null : $tblSubject, $IsInterdisciplinary ? $tblSubject : null, $skillList)
+                );
 
-                        $bodyList[$tblPerson->getId()]['Option'] = $gradeFrontend->getTableColumnBody(
-                            new Standard('', '/Education/Competence/SkillRate/Student', new ClipBoard(), [
-                                'DivisionCourseId' => $tblDivisionCourse->getId(),
-                                'SubjectId' => $tblSubject->getId(),
-                                'PersonId' => $tblPerson->getId(),
-                                'SelectedYearId' => $SelectedYearId,
-                                'IsInterdisciplinary' => $IsInterdisciplinary
-                            ], 'Kompetenzbewertung')
-                            . ($hasStudentOverview
-                                ? new Standard('', '/Education/Competence/SkillRate/Student/Overview', new EyeOpen(),
-                                    ['DivisionCourseId' => $DivisionCourseId, 'SubjectId' => $SubjectId, 'PersonId' => $tblPerson->getId(),
-                                        'BackRoute' => '/Education/Competence/SkillRate/DivisionCourse', 'SelectedYearId' => $SelectedYearId], 'Schülerübersicht')
-                                : ''),
-                            null,
-                            '8%'
-                        );
-                    }
-                }
+                $bodyList[$tblPerson->getId()]['Option'] = $gradeFrontend->getTableColumnBody(
+                    new Standard('', '/Education/Competence/SkillRate/Student', new ClipBoard(), [
+                        'DivisionCourseId' => $tblDivisionCourse->getId(),
+                        'SubjectId' => $tblSubject->getId(),
+                        'PersonId' => $tblPerson->getId(),
+                        'SelectedYearId' => $SelectedYearId,
+                        'IsInterdisciplinary' => $IsInterdisciplinary
+                    ], 'Kompetenzbewertung')
+                    . ($hasStudentOverview
+                        ? new Standard('', '/Education/Competence/SkillRate/Student/Overview', new EyeOpen(),
+                            ['DivisionCourseId' => $DivisionCourseId, 'SubjectId' => $SubjectId, 'PersonId' => $tblPerson->getId(),
+                                'BackRoute' => '/Education/Competence/SkillRate/DivisionCourse', 'SelectedYearId' => $SelectedYearId], 'Schülerübersicht')
+                        : ''),
+                    null,
+                    '8%'
+                );
             }
 
             $actions = new Layout(new LayoutGroup(new LayoutRow(array(
@@ -211,6 +204,12 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                     , 3)
             ))));
 
+            $content = $personSubjectList
+                ? $actions
+                    . ($optionInActive ? '' : new Container('&nbsp;'))
+                    . $gradeFrontend->getTableCustom($headerList, $bodyList)
+                : Grade::useFrontend()->getMissingStudentSubjectMessage();
+
             return
                 new Title(
                     new Standard("Zurück", "/Education/Competence/SkillRate", new ChevronLeft(), ['SelectedYearId' => $SelectedYearId])
@@ -218,9 +217,7 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                     . new Muted(new Small(" für Kurs: ")) . new Bold($tblDivisionCourse->getDisplayName())
                     . new Muted(new Small(" im Fach: ")) . new Bold($tblSubject->getDisplayName())
                 )
-                . $actions
-                . ($optionInActive ? '' : new Container('&nbsp;'))
-                . $gradeFrontend->getTableCustom($headerList, $bodyList);
+                . $content;
         }
 
         return "";

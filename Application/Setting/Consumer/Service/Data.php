@@ -207,6 +207,14 @@ class Data extends AbstractData
             'Notenbücher', 'Anzeige zusätzliche Namensspalte im Notenbuch bei mehr als (Anzahl) Noten im gesamten
             Schuljahr [Standard: 10]', true);
 
+        // Kompetenzzeugnisse
+        $countSkillSettings = 0;
+        if (($tblSetting = $this->createSetting('Education', 'Competence', 'SkillRate', 'ShowDisplaySkillRate', TblSetting::TYPE_BOOLEAN, '1', 'Kompetenzzeugnisse',
+            'Anzeige des Wertes der Kompetenzbewertung in Schülerübersicht, Online Schülerübersicht und auf Kompetenzzeugnissen. [Standard: Ja]', true, ++$countSkillSettings))
+        ) {
+            $this->updateSettingSortOrder($tblSetting, $countSkillSettings);
+        }
+
         // Schüler-Eltern-Zugang
         if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Absence', 'OnlineAbsenceAllowedForSchoolTypes', TblSetting::TYPE_STRING, '',
             'Fehlzeiten', 'Online Fehlzeiten von Eltern/Schüler ist für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS) möglich. Mehrere Schularten sind mit

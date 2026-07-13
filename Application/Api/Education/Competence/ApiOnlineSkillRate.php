@@ -139,7 +139,10 @@ class ApiOnlineSkillRate extends Extension implements IApiInterface
         $subjectId = $Data['SubjectId'] ?? $SubjectId;
         $tblSubject = null;
         $isInterdisciplinary = false;
-        if ($subjectId == -1) {
+        $isAllSubjects = false;
+        if ($subjectId == -2) {
+            $isAllSubjects = true;
+        } elseif ($subjectId == -1) {
             // fächerübergreifend
             $isInterdisciplinary = true;
         } else {
@@ -147,6 +150,6 @@ class ApiOnlineSkillRate extends Extension implements IApiInterface
             $tblSubject = Subject::useService()->getSubjectById($subjectId) ?: null;
         }
 
-        return OnlineCompetence::useFrontend()->loadSubjectContent($tblPerson, $tblSubject, $OldYears === 'true', $isInterdisciplinary);
+        return OnlineCompetence::useFrontend()->loadSubjectContent($tblPerson, $tblSubject, $OldYears === 'true', $isInterdisciplinary, $isAllSubjects);
     }
 }

@@ -864,6 +864,9 @@ class Service extends AbstractService
      */
     public function setStudentSkillsForDisplay(array $tblStudentSkillList, bool $isInterdisciplinary): array
     {
+        $showDisplay = ($tblSetting = Consumer::useService()->getSetting('Education', 'Competence', 'SkillRate', 'ShowDisplaySkillRate'))
+            && $tblSetting->getValue();
+
         $skillAreaList = [];
         /** @var TblStudentSkill $tblStudentSkill */
         foreach ($tblStudentSkillList as $tblStudentSkill) {
@@ -934,7 +937,7 @@ class Service extends AbstractService
                     $skillAreaList[$skillAreaKey]['ScoreTypeList'][$tblScoreType->getId()]['SkillList'][] = [
                         'Skill' => htmlspecialchars($tblStudentSkill->getSkill() ?: ''),
                         'SkillLevel' => htmlspecialchars($tblStudentSkill->getSkillLevel() ?: ''),
-                        'Display' => $displayRate,
+                        'Display' => $showDisplay ? $displayRate : '',
                         'Value' => $percentValue
                     ];
                 }
