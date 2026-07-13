@@ -126,10 +126,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         if(count($contentList) <= 1){
             $contentList[] = [
-                'Title' => 'Aktuelle Veranstaltungen der ESDI GmbH',
-                'Content' => [
-                    (new Link('www.ev-schulen-sachsen.de/veranstaltungen-esdi', 'https://www.ev-schulen-sachsen.de/veranstaltungen-esdi'))->setExternal(),
-                ]
+                'Title' => (new Link('www.ev-schulen-sachsen.de/veranstaltungen-esdi', 'https://www.ev-schulen-sachsen.de/veranstaltungen-esdi'))->setExternal()
+                .'</br>&nbsp;',
+                'Content' => []
             ];
         }
 
