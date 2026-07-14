@@ -48,7 +48,7 @@ class SkillJ extends SkillStyle
         $this->setRemark($personId);
         $this->setTransfer($personId);
         $this->setDateLine($personId);
-        $this->setSign($personId, false);
+        $this->setSign($personId, true);
         $this->setInfo();
 
         return $this->preBuildPages($tblPerson, $certificateName);

@@ -13,6 +13,8 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -44,8 +46,25 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
+        $doc = new Title("Import Dokumentation");
+        $doc .= new Container(' • Es werden leere Zeilen in der Import-Datei ignoriert (Spalte A - C ist leer)');
+        $doc .= new Container(' • Beginnt die Spalte A mit "Fach " oder "Fach:" wird ein neuer Gültigkeitsbereich festgelegt.
+            Somit wird ein neues Kompetenzraster angelegt.');
+        $doc .= new Container(' • In diesen Fall muss die Spalte B mit "Klassenstufe" oder "Klassenstufe:" beginnen.');
+        $doc .= new Container(' • Optional kann in der Spalte C mit "Bildungsgang" oder "Bildungsgang:" beginnend der Bildungsgang angegeben werden 
+            (Ansonsten auch komplett leer möglich).');
+        $doc .= new Container(' • Optional kann in der Spalte D mit "Primärer Förderschwerpunkt" oder "Primärer Förderschwerpunkt:" beginnend 
+            der Primärer Förderschwerpunkt angegeben werden (Ansonsten auch komplett leer möglich).');
+        $doc .= new Container('&nbsp;');
+        $doc .= new Container(' • Wenn in der einer Zeile kein Gültigkeitsbereich angegeben wird, wird in Spalte A ein neuer Kompetenzbereich angegeben.
+            Es wird folgendes vom Kompetenzbereich entfernt: Kompetenzbereich : „ “ "');
+        $doc .= new Container(' • Ist Spalte A leer wird die Kompetenz in Spalte B angegeben und optional das Niveau in Spalte C.
+            Es wird folgendes von Kompetenz und Niveau entfernt: •');
+
         $Stage->setContent(
-            new Layout(
+            $doc
+            . new Container('&nbsp;')
+            . new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(array(

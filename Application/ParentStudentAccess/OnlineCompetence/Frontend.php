@@ -223,7 +223,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @return string
      * @noinspection PhpSameParameterValueInspection
      */
-    private function getSkillRowPercent(TblScoreType $tblScoreType, string $text, string $displayRate, float $percentValue, string $backgroundColor = '#D8EDF7')
+    private function getSkillRowPercent(TblScoreType $tblScoreType, string $text, string $displayRate, float $percentValue, string $backgroundColor = '#CBE4F4')
         : string
     {
         $result = "<div class='competence-row'>";

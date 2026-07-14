@@ -254,8 +254,9 @@ class Data extends AbstractData
             $this->tblCertificateTypeLeave = $this->createCertificateType('Abgangszeugnis', 'LEAVE');
             $this->tblCertificateTypeDiploma = $this->createCertificateType('Abschlusszeugnis', 'DIPLOMA');
             $this->tblCertificateTypeMidTermCourse = $this->createCertificateType('Kurshalbjahreszeugnis', 'MID_TERM_COURSE');
-            $this->tblCertificateTypeSkillHalfYear = $this->createCertificateType('Kompetenz Halbjahresinformation', 'SKILL_HALF_YEAR');
-            $this->tblCertificateTypeSkillYear = $this->createCertificateType('Kompetenz Jahreszeugnis', 'SKILL_YEAR');
+            // ToDo: wieder aktivieren im nächsten release
+//            $this->tblCertificateTypeSkillHalfYear = $this->createCertificateType('Kompetenz Halbjahresinformation', 'SKILL_HALF_YEAR');
+//            $this->tblCertificateTypeSkillYear = $this->createCertificateType('Kompetenz Jahreszeugnis', 'SKILL_YEAR');
 
             $this->tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
             $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE);
@@ -438,8 +439,9 @@ class Data extends AbstractData
      */
     private function setCertificatesCompetence(): void
     {
-        $this->createCertificate('Kompetenz Halbjahresinformation', '', 'Competence\SkillHj', null, false, true, false, $this->tblCertificateTypeSkillHalfYear);
-        $this->createCertificate('Kompetenz Jahreszeugnis', '', 'Competence\SkillJ', null, false, false, false, $this->tblCertificateTypeSkillYear);
+        // ToDo: wieder aktivieren im nächsten release
+//        $this->createCertificate('Kompetenz Halbjahresinformation', '', 'Competence\SkillHj', null, false, true, false, $this->tblCertificateTypeSkillHalfYear);
+//        $this->createCertificate('Kompetenz Jahreszeugnis', '', 'Competence\SkillJ', null, false, false, false, $this->tblCertificateTypeSkillYear);
     }
 
     /**
