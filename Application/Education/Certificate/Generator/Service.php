@@ -894,6 +894,14 @@ class Service extends AbstractService
     ): array {
         $resultList = array();
 
+        // keine Fächerprüfung bei Kompetenzzeugnissen
+        if (($tblCertificateType = $tblCertificate->getTblCertificateType())
+            && ($tblCertificateType->getIdentifier() == 'SKILL_HALF_YEAR'
+                || $tblCertificateType->getIdentifier() == 'SKILL_YEAR')
+        ) {
+            return $resultList;
+        }
+
         $tblTechnicalCourse = Student::useService()->getTechnicalCourseByPerson($tblPerson);
         $subjectIgnoreList = array();
         if ($tblProfileSubject) {

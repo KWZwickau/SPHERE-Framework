@@ -212,7 +212,7 @@ class Service extends AbstractService
         ?string $extraToolTip = ""): array
     {
         $display = '';
-        $value = floatval(0);
+        $value = 0;
         if ($tblStudentSkill->getIsAverage()) {
             if (($average = $this->getCalcAverageStudentSkillRate($tblStudentSkill, $tblSubjectForSkillRate)) !== null) {
                 // in deutsches Zahlformat umwandeln
@@ -282,7 +282,7 @@ class Service extends AbstractService
             $value = round($sum / $count, 2);
             $display = '&#216; ' . $value . (!$tblStudentSkill->getServiceTblScoreType() ? '%' : '');
         } else {
-            $value = floatval(0);
+            $value = 0;
             $display = '';
         }
 
@@ -854,5 +854,96 @@ class Service extends AbstractService
         }
 
         return [$hasErrors, $ErrorList];
+    }
+
+    /**
+     * @param array $tblStudentSkillList
+     * @param bool $isInterdisciplinary
+     *
+     * @return array
+     */
+    public function setStudentSkillsForDisplay(array $tblStudentSkillList, bool $isInterdisciplinary): array
+    {
+        $showDisplay = ($tblSetting = Consumer::useService()->getSetting('Education', 'Competence', 'SkillRate', 'ShowDisplaySkillRate'))
+            && $tblSetting->getValue();
+
+        $skillAreaList = [];
+        /** @var TblStudentSkill $tblStudentSkill */
+        foreach ($tblStudentSkillList as $tblStudentSkill) {
+            // bei fächerübergreifenden Kompetenzen wir ein Durchschnitt über alle bewerteten Fächer gebildet (zuvor Durchschnitt für ein Fach)
+            $displayLast = $isInterdisciplinary
+                ? SkillRate::useService()->getStudentSkillRateLastOrAverageValueForInterdisciplinaryOverAllSubjects($tblStudentSkill)
+                : SkillRate::useService()->getStudentSkillRateLastOrAverageValue($tblStudentSkill, null, null);
+//            Debugger::devDump($displayLast);
+            if ($displayLast['Value'] !== 0) {
+                $skillAreaName = $tblStudentSkill->getSkillArea() ?: 'Ohne Kompetenzbereich';
+                $skillAreaKey = preg_replace('/[^a-zA-Z0-9\s]/', '-', $skillAreaName);
+                $skillAreaName = htmlspecialchars($skillAreaName);
+
+                if (!isset($skillAreaList[$skillAreaKey])) {
+                    $skillAreaList[$skillAreaKey] = [
+                        'Name' => $skillAreaName,
+                        'ScoreTypeList' => []
+                    ];
+                }
+                $tblScoreType = $tblStudentSkill->getVirtualTblScoreType();
+                if (!isset($skillAreaList[$skillAreaKey]['ScoreTypeList'][$tblScoreType->getId()])) {
+                    $skillAreaList[$skillAreaKey]['ScoreTypeList'][$tblScoreType->getId()] = [
+                        'tblScoreType' => $tblScoreType,
+                        'SkillList' => []
+                    ];
+                }
+
+                $displayRate = $displayLast['Display'];
+                $percentValue = $displayLast['Value'];
+
+                // Prozent anzeigen
+                if (!$tblStudentSkill->getServiceTblScoreType()) {
+
+                    // Bewertungssystem anzeigen
+                } else {
+                    $tblScoreTypeItemList = $tblScoreType->getScoreTypeItems();
+                    $maxCount = count($tblScoreTypeItemList);
+                    $factor = $maxCount > 1 ? 100 / $maxCount : 0;
+
+                    // step ermitteln kann nicht 1 sein
+                    $step = ($factor * $maxCount) / 100;
+                    if (!$tblStudentSkill->getIsAverage()) {
+                        // Bewertungssystem mit letzter Bewertung
+                        // balken ausmalen auch bei Bewertungssystem und im Header von Kompetenzbereich die Stufen mit anzeigen
+                        if ($tblScoreType->getSortOrder() == 'desc') {
+                            // Berücksichtigung was ist die höchste Stufe
+                            $percentValue = 100 - ($factor * ($maxCount - $percentValue));
+                        } else {
+                            $percentValue = $factor * ($maxCount - $percentValue + $step);
+                        }
+                    } else {
+                        // bewertungssystem durchschnitt
+                        // bei einem Durchschnitt versuchen es umzurechnen und mit anzuzeigen
+                        // offset damit die Komma-Fünf Noten immer auf dem Schritt sind
+                        $offset = $factor * ($maxCount - $percentValue + $step) == 100
+                            ? 0
+                            : ($step / 2);
+                        if ($tblScoreType->getSortOrder() == 'desc') {
+                            // Berücksichtigung was ist die höchste Stufe
+                            $percentValue = 100 - ($factor * ($maxCount - $percentValue + $offset));
+                        } else {
+                            $percentValue = $factor * ($maxCount - $percentValue + $step - $offset);
+                        }
+                    }
+                }
+
+                if ($displayRate !== '') {
+                    $skillAreaList[$skillAreaKey]['ScoreTypeList'][$tblScoreType->getId()]['SkillList'][] = [
+                        'Skill' => htmlspecialchars($tblStudentSkill->getSkill() ?: ''),
+                        'SkillLevel' => htmlspecialchars($tblStudentSkill->getSkillLevel() ?: ''),
+                        'Display' => $showDisplay ? $displayRate : '',
+                        'Value' => $percentValue
+                    ];
+                }
+            }
+        }
+
+        return $skillAreaList;
     }
 }

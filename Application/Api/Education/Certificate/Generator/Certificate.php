@@ -68,6 +68,8 @@ abstract class Certificate extends Extension
 
     protected ?array $CopyCertificateData;
 
+    protected int $countSubjectLanes = 0;
+
     /**
      * @param TblStudentEducation|null $tblStudentEducation
      * @param TblPrepareCertificate|null $tblPrepareCertificate
@@ -733,12 +735,13 @@ abstract class Certificate extends Extension
     }
 
     /**
-     * @param bool   $IsSample
-     * @param bool   $isBigLogo
+     * @param bool $isSample
+     * @param bool $isBigLogo
+     * @param bool $showIndividualLogo
      *
      * @return Slice
      */
-    protected function getHead($IsSample, $isBigLogo = true, $showIndividualLogo = true)
+    protected function getHead(bool $isSample, bool $isBigLogo = true, bool $showIndividualLogo = true): Slice
     {
 
         $isOS = false;
@@ -773,7 +776,7 @@ abstract class Certificate extends Extension
             $Section->addElementColumn((new Element()), '39%');
         }
         // Sample
-        if($IsSample){
+        if($isSample){
             $Section->addElementColumn((new Element\Sample())->styleTextSize('30px'));
         } else {
             $Section->addElementColumn((new Element()), '22%');
@@ -2054,6 +2057,7 @@ abstract class Certificate extends Extension
 
             $count = 0;
             foreach ($SubjectStructure as $SubjectList) {
+                $this->countSubjectLanes++;
                 $count++;
                 $subjectRowCount++;
                 // Sort Lane-Ranking (1,2...)
@@ -2493,10 +2497,11 @@ abstract class Certificate extends Extension
     /**
      * @param $personId
      * @param bool $isMissing
+     * @param string $marginTop
      *
      * @return Slice
      */
-    protected function getDescriptionHead($personId, $isMissing = false)
+    protected function getDescriptionHead($personId, bool $isMissing = false, string $marginTop = '15px')
     {
         $DescriptionSlice = (new Slice());
         if ($isMissing) {
@@ -2538,12 +2543,12 @@ abstract class Certificate extends Extension
                     ->styleAlignCenter()
                     , '4%')
             )
-                ->styleMarginTop('15px');
+                ->styleMarginTop($marginTop);
         } else {
             $DescriptionSlice->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Bemerkungen:'))
-            )->styleMarginTop('15px');
+            )->styleMarginTop($marginTop);
         }
         return $DescriptionSlice;
     }
@@ -2573,7 +2578,9 @@ abstract class Certificate extends Extension
                         &nbsp;
                     {% endif %}');
         }
-        $Element->styleHeight($Height);
+        if ($Height) {
+            $Element->styleHeight($Height);
+        }
         $Element->styleMarginTop($MarginTop);
 
         if($tblSetting && $tblSetting->getValue()){
@@ -4954,7 +4961,7 @@ abstract class Certificate extends Extension
      *
      * @return string
      */
-    private function getPictureHeight(bool $isOS = false) : string
+    protected function getPictureHeight(bool $isOS = false) : string
     {
         $StandardHeight = '66px';
         $value = '';

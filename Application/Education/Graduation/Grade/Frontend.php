@@ -204,6 +204,7 @@ class Frontend extends FrontendTestPlanning
         $optionInActive = '';
         $textCourse = "";
         $textSubject = "";
+        $hasStudents = false;
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
@@ -450,6 +451,15 @@ class Frontend extends FrontendTestPlanning
             , 3)
         ))));
 
+        if (!$hasStudents) {
+            $externalDownloadSingleGradeBookExcel = '';
+            $externalDownloadSingleGradeBookPdf = '';
+            $externalDownloadAllGradeBooks = '';
+            $optionInActive = '';
+            $secondRow = '';
+            $content = $this->getMissingStudentSubjectMessage();
+        }
+
         return
             new Title(
                 (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
@@ -464,6 +474,15 @@ class Frontend extends FrontendTestPlanning
             . ApiPersonPicture::receiverModal()
             . ApiGradeBook::receiverModal()
             . $content;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMissingStudentSubjectMessage(): string
+    {
+        return  new Warning('Im Kurs befindet sich kein Schüler bei dem das Fach benotet wird. 
+            Bitte überprüfen Sie die Stundentafel und die individuellen Fächer im Kurs.', new Exclamation());
     }
 
     private function getDivisionCourseSubjectAverageData($headerList, $averageTestSumList, $averageTestCountList): array
