@@ -238,16 +238,6 @@ class Frontend extends Extension
      */
     private function formGenerate(TblYear $tblYear = null): Form
     {
-        $certificateTypeList = array();
-        $tblCertificateTypeAll = Generator::useService()->getCertificateTypeAll();
-        if ($tblCertificateTypeAll) {
-            foreach ($tblCertificateTypeAll as $tblCertificateType) {
-                if ($tblCertificateType->getIdentifier() !== 'LEAVE') {
-                    $certificateTypeList[] = $tblCertificateType;
-                }
-            }
-        }
-
         $Global = $this->getGlobal();
         if (!$Global->POST) {
             if ($tblYear) {
@@ -326,7 +316,7 @@ class Frontend extends Extension
                             (new DatePicker('Data[AppointedDateForAbsence]', '', new ToolTip('Optionaler Stichtag für Fehlzeiten',
                                 'Für die Fehlzeiten kann ein optionaler Stichtag gesetzt werden, ansonsten wird
                                 das Zeugnisdatum als Stichtag verwendet.'), new Calendar())),
-                            (new SelectBox('Data[Type]', 'Typ', array('Name' => $certificateTypeList)))->setRequired()
+                            (new SelectBox('Data[Type]', 'Typ', array('Name' => Generator::useService()->getCertificateTypeAll(false))))->setRequired()
                         ),
                         Panel::PANEL_TYPE_INFO
                     ), 4
