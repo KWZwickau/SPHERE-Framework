@@ -81,7 +81,7 @@ abstract class FrontendSetting extends FrontendSelect
         $Data = null,
         $CertificateList = null,
         $Page = null
-    ) {
+    ): string|Stage {
         if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
             && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
         ) {
@@ -97,12 +97,16 @@ abstract class FrontendSetting extends FrontendSelect
                     || $tblPrepare->getServiceTblBehaviorTask()
                 )
             ) {
-                return $this->getBehaviorGradesStage($tblPrepare, $tblDivisionCourse, $Route, $useClassRegisterForAbsence, $Data,
-                    $GradeTypeId, $tblTaskList);
-            // Sonstige Informationen
-            } else {
-                return $this->getInformationStage($tblPrepare, $tblDivisionCourse, $Route, $CertificateList, $useClassRegisterForAbsence, $Data, $Page);
+                // Prüfen ob Kopfnoten auf den Zeugnisvorlagen sind
+                $hasBehaviorGrades = Prepare::useService()->hasPrepareCertificateBehaviorGrades($tblPrepare);
+                if ($hasBehaviorGrades) {
+                    return $this->getBehaviorGradesStage($tblPrepare, $tblDivisionCourse, $Route, $useClassRegisterForAbsence, $Data,
+                        $GradeTypeId, $tblTaskList);
+                }
             }
+
+            // Sonstige Informationen
+            return $this->getInformationStage($tblPrepare, $tblDivisionCourse, $Route, $CertificateList, $useClassRegisterForAbsence, $Data, $Page);
         }
 
         return (new Stage('Zeugnisvorbereitung'))
@@ -615,7 +619,9 @@ abstract class FrontendSetting extends FrontendSelect
         ));
 
         $tblGradeTypeList = false;
-        if (($tblTask = $tblPrepare->getServiceTblBehaviorTask())) {
+        if (($tblTask = $tblPrepare->getServiceTblBehaviorTask())
+            && Prepare::useService()->hasPrepareCertificateBehaviorGrades($tblPrepare)
+        ) {
             $tblGradeTypeList = Grade::useService()->getGradeTypeListByTask($tblTask);
         }
         $buttonList = $this->getInformationButtonList($tblPrepare, $Route, $useClassRegisterForAbsence, $tblGradeTypeList ?: array(), $Page, $nextPage,

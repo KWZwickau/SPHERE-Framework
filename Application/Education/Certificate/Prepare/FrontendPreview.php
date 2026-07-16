@@ -73,6 +73,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
         $isSekII = false;
         $hasColumnAbsence = false;
         $hasColumnBehaviorGrades = false;
+        $hasColumnSubjectGrades = false;
 
         $tblProfileSubject  = false;
         if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
@@ -196,6 +197,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                     }
 
                     if ($tblPrepare->getServiceTblAppointedDateTask()) {
+                        $hasColumnSubjectGrades = true;
                         $subjectGradesText = $countSubjectGrades . ' von ' . $countSubjects; // . ' Zensuren&nbsp;';
                     } else {
                         $subjectGradesText = 'Kein Stichtagsnotenauftrag ausgewählt';
@@ -220,6 +222,13 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                         } else {
                             $hasBehaviorGrades = Prepare::useService()->hasCertificateBehaviorGrades($tblCertificate, $tblPerson);
                             $certificateList[$tblCertificate->getId()]['BehaviorGrades'] = $hasBehaviorGrades;
+                        }
+
+                        // Kompetenzzeugnisse können keine Fachnoten haben
+                        if (!$hasColumnSubjectGrades
+                            && !str_contains($tblCertificate->getTblCertificateType()->getIdentifier(), 'SKILL')
+                        ) {
+                            $hasColumnSubjectGrades = true;
                         }
 
                         if ($hasCertificateAbsence) {
@@ -399,6 +408,11 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
             // Sekundarstufe II besitzt keine Kopfnoten und Fehlzeiten
             if ($isSekII || !$hasColumnBehaviorGrades) {
                 unset($columnTable['BehaviorGrades']);
+            }
+
+            // Kompetenzzeugnisse können keine Fachnoten haben
+            if (!$hasColumnSubjectGrades) {
+                unset($columnTable['SubjectGrades']);
             }
 
             if (!$hasColumnAbsence) {
