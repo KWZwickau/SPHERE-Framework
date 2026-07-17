@@ -8,7 +8,7 @@ use SPHERE\System\Extension\Extension;
 class Certificate extends Extension implements IModuleInterface
 {
 
-    public static function registerModule()
+    public static function registerModule(): void
     {
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Generator/Preview', __NAMESPACE__ . '\Generator\Creator::previewPdf'
@@ -39,6 +39,9 @@ class Certificate extends Extension implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Generator/History/CopyCertificate/DownloadPdf', __NAMESPACE__ . '\Generator\Creator::downloadCopyPdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Generator/FileLocation/DownloadPdf', __NAMESPACE__ . '\Generator\Creator::downloadFileLocation'
         ));
     }
 

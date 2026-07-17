@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\Competence;
 
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 class SkillJ extends SkillStyle
@@ -45,6 +46,15 @@ class SkillJ extends SkillStyle
         $this->setSubjectLanes($personId);
         // Kompetenzen
         $this->setSkillContent($tblPerson);
+
+        // für test viele Kompetenzen ansonsten auf false stellen
+        if (false) {
+            /** @noinspection PhpUnreachableStatementInspection */
+            for ($i = 0; $i < 9; $i++) {
+                $this->setSkillContent(Person::useService()->getPersonById(972));
+            }
+        }
+
         $this->setRemark($personId);
         $this->setTransfer($personId);
         $this->setDateLine($personId);
