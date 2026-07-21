@@ -604,7 +604,7 @@ class ApiBasket extends Extension implements IApiInterface
             $tblTypeList = School::useService()->getConsumerSchoolTypeAll();
             return array(
                 new Panel('Beitragsarten '.new DangerText('*'), $CheckboxList, Panel::PANEL_TYPE_INFO),
-                new Panel('Erweiterte Personenfilterung', array(
+                new Panel('Erweiterte Schülerfilterung', array(
                     (new SelectBox('Basket[SchoolYear]', 'Schuljahr', array('{{ Year }} {{ Description }}' => $YearList)))
                         ->ajaxPipelineOnChange(ApiBasket::pipelineLoadPersonFilterSelect($receiverPersonFilter)),
                     $receiverPersonFilter,
