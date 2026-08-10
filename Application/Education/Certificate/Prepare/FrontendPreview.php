@@ -3,9 +3,7 @@
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use DateTime;
-use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
-use SPHERE\Application\Api\Education\Certificate\PrintCertificate\ApiPrintCertificate;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Setting\Setting;
@@ -68,29 +66,6 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
     ) {
         $Stage = new Stage('Zeugnisvorbereitung', 'Vorschau');
         $isDiploma = $Route == 'Diploma';
-
-        // todo extra seite bauen
-//        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))) {
-//            $tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare);
-//            $prepareStudents = [];
-//            $filePointerList = [];
-//            foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-//                if ($tblPrepareStudent->getServiceTblCertificate()) {
-//                    $prepareStudents[$tblPrepareStudent->getId()] = 1;
-//                    $filePointerList[$tblPrepareStudent->getId()] = null;
-//                }
-//            }
-//
-//            $prepareStudentId = array_key_first($prepareStudents);
-//            $Stage->setContent(
-//                ApiPrintCertificate::receiverBlock(
-//                    ApiPrintCertificate::pipelineLoadCertificate($prepareStudentId, $prepareStudents, json_encode($filePointerList)),
-//                    'Content_' . $prepareStudentId
-//                )
-//            );
-//
-//            return $Stage;
-//        }
 
         $countBehavior = 0;
         $tblBehaviorTask = false;
@@ -516,11 +491,12 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                                 ) : null,
                                 new External(
                                     'Alle Zeugnisse als Muster herunterladen',
-                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
+//                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
+                                    '/Education/Certificate/Download',
                                     new Download(),
                                     array(
                                         'PrepareId' => $tblPrepare->getId(),
-                                        'Name' => 'Musterzeugnis'
+                                        'Name' => 'Musterzeugnisse'
                                     ),
                                     false
                                 ),

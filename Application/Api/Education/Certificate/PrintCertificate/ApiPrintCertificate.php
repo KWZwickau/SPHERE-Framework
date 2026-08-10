@@ -85,10 +85,12 @@ class ApiPrintCertificate extends Extension implements IApiInterface
      * @param $prepareStudentId
      * @param array $tblPrepareStudentList
      * @param string $filePointerList
+     * @param string $name
+     * @param string $type
      *
      * @return Pipeline
      */
-    public static function pipelineLoadCertificate($prepareStudentId, array $tblPrepareStudentList, string $filePointerList): Pipeline
+    public static function pipelineLoadCertificate($prepareStudentId, array $tblPrepareStudentList, string $filePointerList, string $name, string $type): Pipeline
     {
         $pipeline = new Pipeline();
         $receiver = self::receiverBlock('', 'Content_' . $prepareStudentId);
@@ -100,8 +102,7 @@ class ApiPrintCertificate extends Extension implements IApiInterface
         ));
         $emitter->setPostPayload(array(
             'prepareStudentId' => $prepareStudentId,
-//            'tblPrepareStudentList' => $tblPrepareStudentList,
-//            'filePointerList' => $filePointerList,
+            'type' => $type,
         ));
         $pipeline->appendEmitter($emitter);
 
@@ -114,6 +115,8 @@ class ApiPrintCertificate extends Extension implements IApiInterface
             'prepareStudentId' => $prepareStudentId,
             'tblPrepareStudentList' => $tblPrepareStudentList,
             'filePointerList' => $filePointerList,
+            'name' => $name,
+            'type' => $type
         ));
         $pipeline->appendEmitter($emitter);
 
@@ -122,17 +125,27 @@ class ApiPrintCertificate extends Extension implements IApiInterface
 
     /**
      * @param $prepareStudentId
+     * @param string $type
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function waitContent($prepareStudentId): string
+    public function waitContent($prepareStudentId, string $type): string
     {
         $content = 'Inhalt lädt...';
-        if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentById($prepareStudentId))
-            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
-        ) {
-            $content = "Zeugnis für {$tblPerson->getLastFirstName()} wird erstellt. Bitte warten...";
+
+        if ($type == 'PREPARE_STUDENT') {
+            if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentById($prepareStudentId))
+                && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+            ) {
+                $content = "Zeugnis für {$tblPerson->getLastFirstName()} wird erstellt. Bitte warten...";
+            }
+        } else {
+            if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($prepareStudentId))
+                && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
+            ) {
+                $content = "Abgangszeugnis für {$tblPerson->getLastFirstName()} wird erstellt. Bitte warten...";
+            }
         }
 
         return new Info($content . new ProgressBar(0, 100, 0, 12));
@@ -142,17 +155,67 @@ class ApiPrintCertificate extends Extension implements IApiInterface
      * @param $prepareStudentId
      * @param array $tblPrepareStudentList
      * @param string $filePointerList
+     * @param string $name
+     * @param string $type
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function loadCertificate($prepareStudentId, array $tblPrepareStudentList, string $filePointerList): string
+    public function loadCertificate($prepareStudentId, array $tblPrepareStudentList, string $filePointerList, string $name, string $type): string
     {
         $filePointerList = json_decode($filePointerList, true);
 
-        $pdfName = 'Musterzeugnisse ';
+        // tblPrepareStudent (Normales Zeugnis)
+        if ($type == 'PREPARE_STUDENT') {
+            $message = $this->setPrepareStudent($prepareStudentId, $filePointerList);
+        // tblLeaveStudent (Abgangszeugnis)
+        } else {
+            $message = $this->setLeaveStudent($prepareStudentId, $filePointerList);
+        }
+
+        unset($tblPrepareStudentList[$prepareStudentId]);
+        if (count($tblPrepareStudentList) > 0) {
+            $prepareStudentNextId = array_key_first($tblPrepareStudentList);
+
+            return $message
+                . self::receiverBlock(self::pipelineLoadCertificate($prepareStudentNextId, $tblPrepareStudentList, json_encode($filePointerList), $name, $type),
+                    'Content_' . $prepareStudentNextId);
+        }
+
+        // PdfMerger kann keine PNG's sondern nur JPEG
+        $MergeFile = Storage::createFilePointer('pdf', 'SPHERE-Temporary-Merge', false);
+        $PdfMerger = new PdfMerge();
+        $tblFilePointerDeleteList = [];
+        foreach ($filePointerList as $fileLocation) {
+            if ($fileLocation) {
+                $tblFile = FilePointer::fromFileLocation($fileLocation, false);
+                $tblFilePointerDeleteList[] = $tblFile;
+
+                $PdfMerger->addPdf($tblFile);
+            }
+        }
+        // mergen aller hinzugefügten PDF-Dateien
+        $PdfMerger->mergePdf($MergeFile);
+        // aufräumen der Temp-Files
+        foreach ($tblFilePointerDeleteList as $tblFile) {
+            $tblFile->setDestruct();
+        }
+
+        return $message . new Redirect('/Api/Education/Certificate/Generator/FileLocation/DownloadPdf', Redirect::TIMEOUT_SUCCESS, [
+            'FileLocation' => $MergeFile->getRealPath(),
+            'Name' => $name
+        ]);
+    }
+
+    /**
+     * @param $prepareStudentId
+     * @param array $filePointerList
+     *
+     * @return string
+     */
+    private function setPrepareStudent($prepareStudentId, array &$filePointerList): string
+    {
         $message = '';
-        $tblPrepare = null;
         if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentById($prepareStudentId))
             && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
             && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
@@ -165,7 +228,6 @@ class ApiPrintCertificate extends Extension implements IApiInterface
             $Data = [];
             $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
             if (class_exists($CertificateClass)) {
-                // Todo allgemeiner das es auch für abgangszeugnisse und den richtigen Druck funktioniert
                 $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
                 /** @var Certificate $Certificate */
                 $Certificate = new $CertificateClass($tblStudentEducation ?: null, $tblPrepare);
@@ -195,45 +257,55 @@ class ApiPrintCertificate extends Extension implements IApiInterface
             }
         }
 
-        unset($tblPrepareStudentList[$prepareStudentId]);
-        // todo auf 0 setzen
-        if (count($tblPrepareStudentList) > 23) {
-            $prepareStudentNextId = array_key_first($tblPrepareStudentList);
+        return $message;
+    }
 
-            return $message
-                . self::receiverBlock(self::pipelineLoadCertificate($prepareStudentNextId, $tblPrepareStudentList, json_encode($filePointerList)),
-                    'Content_' . $prepareStudentNextId);
-        }
+    /**
+     * @param $leaveStudentId
+     * @param array $filePointerList
+     *
+     * @return string
+     */
+    private function setLeaveStudent($leaveStudentId, array &$filePointerList): string
+    {
+        $message = '';
+        if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($leaveStudentId))
+            && ($tblCertificate = $tblLeaveStudent->getServiceTblCertificate())
+            && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
+            && ($tblYear = $tblLeaveStudent->getServiceTblYear())
+        ) {
+            $message = new Success("Abgangszeugnis für {$tblPerson->getLastFirstName()} erfolgreich erstellt.", new Check());
 
-        // PdfMerger kann keine PNG's sondern nur JPEG
-        $MergeFile = Storage::createFilePointer('pdf', 'SPHERE-Temporary-Merge', false);
-        $PdfMerger = new PdfMerge();
-        $tblFilePointerDeleteList = [];
-        foreach ($filePointerList as $fileLocation) {
-            if ($fileLocation) {
-                $tblFile = FilePointer::fromFileLocation($fileLocation, false);
-                $tblFilePointerDeleteList[] = $tblFile;
+            ini_set('memory_limit', '2G');
+            $Data = [];
+            $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+            if (class_exists($CertificateClass)) {
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+                /** @var Certificate $Certificate */
+                $Certificate = new $CertificateClass($tblStudentEducation ?: null);
 
-                $PdfMerger->addPdf($tblFile);
+                // get Content
+                Prepare::useService()->createCertificateContent($tblPerson, null, $tblLeaveStudent, $Data);
+                $personId = $tblPerson->getId();
+                if (isset($Data['P' . $personId]['Grade'])) {
+                    $Certificate->setGrade($Data['P' . $personId]['Grade']);
+                }
+
+                $page = $Certificate->buildPages($tblPerson);
+                $pageList[$personId] = $page;
+
+                if (isset($certificateList[$tblCertificate->getCertificate()])) {
+                    $certificateList[$tblCertificate->getCertificate()]++;
+                } else {
+                    $certificateList[$tblCertificate->getCertificate()] = 1;
+                }
+
+                if (($filePointer = Creator::buildMultiDummyFile($Data, $pageList, $certificateList, false))) {
+                    $filePointerList[$leaveStudentId] = $filePointer->getRealPath();
+                }
             }
         }
-        // mergen aller hinzugefügten PDF-Dateien
-        $PdfMerger->mergePdf($MergeFile);
-        // aufräumen der Temp-Files
-        foreach ($tblFilePointerDeleteList as $tblFile) {
-            $tblFile->setDestruct();
-        }
 
-
-        if ($tblPrepare
-            && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
-        ) {
-            $pdfName .= $tblDivisionCourse->getName();
-        }
-
-        return $message . new Redirect('/Api/Education/Certificate/Generator/FileLocation/DownloadPdf', Redirect::TIMEOUT_SUCCESS, [
-            'FileLocation' => $MergeFile->getRealPath(),
-            'Name' => $pdfName
-        ]);
+        return $message;
     }
 }
