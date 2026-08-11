@@ -257,7 +257,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     'columnDefs' => array(
                                         array('type' => 'natural', 'targets' => 2),
                                         array('searchable' => false, 'targets' => -1),
-                                    )
+                                    ),
+                                    'responsive' => false,
                                 )
                             )
                         ))
@@ -435,7 +436,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     'columnDefs' => array(
                                         array('type' => 'natural', 'targets' => 2),
                                         array('searchable' => false, 'targets' => -1),
-                                    )
+                                    ),
+                                    'responsive' => false,
                                 )
                             )
                         ))
@@ -520,10 +522,13 @@ class Frontend extends Extension implements IFrontendInterface
                             Panel::PANEL_TYPE_DANGER,
                             (new External(
                                 'Ja',
-                                '/Api/Education/Certificate/Generator/DownLoadMultiLeavePdf',
+//                                '/Api/Education/Certificate/Generator/DownLoadMultiLeavePdf',
+                                '/Education/Certificate/Download',
                                 new Ok(),
                                 array(
                                     'DivisionId' => $tblDivisionCourse->getId(),
+                                    'Name' => 'Abgangszeugnisse',
+                                    'IsPreview' => 'false'
                                 ),
                                 'Zeugnisse herunterladen und revisionssicher abspeichern'
                             ))->setRedirect($backRoute, 60)
@@ -587,9 +592,14 @@ class Frontend extends Extension implements IFrontendInterface
                             Panel::PANEL_TYPE_DANGER,
                             (new External(
                                 'Ja',
-                                '/Api/Education/Certificate/Generator/DownLoadMultiPdf',
+//                                '/Api/Education/Certificate/Generator/DownLoadMultiPdf',
+                                '/Education/Certificate/Download',
                                 new Ok(),
-                                array('PrepareId'  => $tblPrepare->getId()),
+                                array(
+                                    'PrepareId'  => $tblPrepare->getId(),
+                                    'Name' => 'Zeugnisse',
+                                    'IsPreview' => 'false'
+                                ),
                                 'Zeugnisse herunterladen und revisionssicher abspeichern'
                             ))->setRedirect($backRoute, 60)
                             . new Standard(

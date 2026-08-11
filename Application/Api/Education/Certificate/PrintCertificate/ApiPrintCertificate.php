@@ -2,16 +2,22 @@
 
 namespace SPHERE\Application\Api\Education\Certificate\PrintCertificate;
 
+use Exception;
+use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
+use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
+use MOC\V\Component\Document\Document;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Api\Education\Certificate\Generator\Creator;
 use SPHERE\Application\Document\Storage\FilePointer;
+use SPHERE\Application\Document\Storage\Service\Entity\TblBinary;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\PrintCertificate\PrintCertificate;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -134,7 +140,7 @@ class ApiPrintCertificate extends Extension implements IApiInterface
     {
         $content = 'Inhalt lädt...';
 
-        if ($type == 'PREPARE_STUDENT') {
+        if (str_contains($type, 'PREPARE_STUDENT')) {
             if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentById($prepareStudentId))
                 && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
             ) {
@@ -165,12 +171,17 @@ class ApiPrintCertificate extends Extension implements IApiInterface
     {
         $filePointerList = json_decode($filePointerList, true);
 
+        $message = '';
         // tblPrepareStudent (Normales Zeugnis)
-        if ($type == 'PREPARE_STUDENT') {
-            $message = $this->setPrepareStudent($prepareStudentId, $filePointerList);
+        if ($type == 'PREPARE_STUDENT_PREVIEW') {
+            $message = $this->setPrepareStudentPreview($prepareStudentId, $filePointerList);
+        } elseif ($type == 'PREPARE_STUDENT_DOWNLOAD') {
+            $message = $this->setPrepareStudentDownload($prepareStudentId, $filePointerList, $name);
         // tblLeaveStudent (Abgangszeugnis)
-        } else {
-            $message = $this->setLeaveStudent($prepareStudentId, $filePointerList);
+        } elseif ($type == 'LEAVE_STUDENT_PREVIEW') {
+            $message = $this->setLeaveStudentPreview($prepareStudentId, $filePointerList);
+        } elseif ($type == 'LEAVE_STUDENT_DOWNLOAD') {
+            $message = $this->setLeaveStudentDownload($prepareStudentId, $filePointerList, $name);
         }
 
         unset($tblPrepareStudentList[$prepareStudentId]);
@@ -213,7 +224,7 @@ class ApiPrintCertificate extends Extension implements IApiInterface
      *
      * @return string
      */
-    private function setPrepareStudent($prepareStudentId, array &$filePointerList): string
+    private function setPrepareStudentPreview($prepareStudentId, array &$filePointerList): string
     {
         $message = '';
         if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentById($prepareStudentId))
@@ -261,12 +272,94 @@ class ApiPrintCertificate extends Extension implements IApiInterface
     }
 
     /**
+     * @param $prepareStudentId
+     * @param array $filePointerList
+     * @param string $name
+     *
+     * @return string
+     */
+    private function setPrepareStudentDownload($prepareStudentId, array &$filePointerList, string $name): string
+    {
+        $message = '';
+        if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentById($prepareStudentId))
+            && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+            && ($tblYear = $tblPrepare->getYear())
+            && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
+            && !$tblPrepareStudent->isPrinted()
+        ) {
+            if (($tblCertificateType = $tblPrepare->getCertificateType())
+                && $tblCertificateType->isAutomaticallyApproved()
+            ) {
+                $isAutomaticallyApproved = true;
+            } else {
+                $isAutomaticallyApproved = false;
+            }
+
+            $isApproved = $tblPrepareStudent->isApproved();
+            // bei automatischer Freigabe → freigeben + kopieren der Fehlzeiten (optional)
+            if (!$isApproved && $isAutomaticallyApproved) {
+                Prepare::useService()->updatePrepareStudentSetApproved($tblPrepareStudent);
+                $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson, true);
+            }
+
+            $message = new Success("Zeugnis für {$tblPerson->getLastFirstName()} erfolgreich erstellt.", new Check());
+
+            ini_set('memory_limit', '2G');
+            $Data = [];
+            $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+            if (class_exists($CertificateClass)) {
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+                /** @var Certificate $Certificate */
+                $Certificate = new $CertificateClass($tblStudentEducation ?: null, $tblPrepare, false);
+
+                // get Content
+                Prepare::useService()->createCertificateContent($tblPerson, $tblPrepareStudent, null, $Data);
+                $personId = $tblPerson->getId();
+                if (isset($Data['P' . $personId]['Grade'])) {
+                    $Certificate->setGrade($Data['P' . $personId]['Grade']);
+                }
+                if (isset($Data['P' . $personId]['AdditionalGrade'])) {
+                    $Certificate->setAdditionalGrade($Data['P' . $personId]['AdditionalGrade']);
+                }
+
+                $page = $Certificate->buildPages($tblPerson);
+
+                $File = Storage::createFilePointer('pdf', $name . '-' . $this->getCertificatePersonName($tblPerson)
+                    . '-' . date('Y-m-d') . '--', false);
+                /** @var DomPdf $Document */
+                $Document = Document::getPdfDocument($File->getFileLocation());
+                $Content = $Certificate->createCertificate($Data, array(0 => $page));
+                $Document->setContent($Content);
+                // hier den hash erzeugen
+                $hash = TblBinary::getHashByContent($Document->getSource());
+                $Document->saveFile(new FileParameter($File->getFileLocation()));
+
+                try {
+                    $fileSizeKiloByte = intdiv(filesize($File->getFileLocation()), 1024);
+                } catch (Exception) {
+                    $fileSizeKiloByte = 0;
+                }
+
+                if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivisionCourse, $Certificate, $File, $fileSizeKiloByte, $hash, $tblPrepare)) {
+                    Prepare::useService()->updatePrepareStudentSetPrinted($tblPrepareStudent);
+                }
+
+                $filePointerList[$prepareStudentId] = $File->getRealPath();
+            }
+        }
+
+        return $message;
+    }
+
+    /**
      * @param $leaveStudentId
      * @param array $filePointerList
      *
      * @return string
      */
-    private function setLeaveStudent($leaveStudentId, array &$filePointerList): string
+    private function setLeaveStudentPreview($leaveStudentId, array &$filePointerList): string
     {
         $message = '';
         if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($leaveStudentId))
@@ -307,5 +400,84 @@ class ApiPrintCertificate extends Extension implements IApiInterface
         }
 
         return $message;
+    }
+
+    /**
+     * @param $leaveStudentId
+     * @param array $filePointerList
+     * @param string $name
+     *
+     * @return string
+     */
+    private function setLeaveStudentDownload($leaveStudentId, array &$filePointerList, string $name): string
+    {
+        $message = '';
+        if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($leaveStudentId))
+            && ($tblCertificate = $tblLeaveStudent->getServiceTblCertificate())
+            && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
+            && ($tblYear = $tblLeaveStudent->getServiceTblYear())
+            && ($tblDivisionCourse = $tblLeaveStudent->getTblDivisionCourse())
+            && !$tblLeaveStudent->isPrinted()
+        ) {
+            $message = new Success("Abgangszeugnis für {$tblPerson->getLastFirstName()} erfolgreich erstellt.", new Check());
+
+            ini_set('memory_limit', '2G');
+            $Data = [];
+            $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+            if (class_exists($CertificateClass)) {
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+                /** @var Certificate $Certificate */
+                $Certificate = new $CertificateClass($tblStudentEducation ?: null, null, false);
+
+                // get Content
+                Prepare::useService()->createCertificateContent($tblPerson, null, $tblLeaveStudent, $Data);
+                $personId = $tblPerson->getId();
+                if (isset($Data['P' . $personId]['Grade'])) {
+                    $Certificate->setGrade($Data['P' . $personId]['Grade']);
+                }
+
+                $page = $Certificate->buildPages($tblPerson);
+
+
+                $File = Storage::createFilePointer('pdf', $name . '-' . $this->getCertificatePersonName($tblPerson)
+                    . '-' . date('Y-m-d') . '--', false);
+                /** @var DomPdf $Document */
+                $Document = Document::getPdfDocument($File->getFileLocation());
+                $Content = $Certificate->createCertificate($Data, array(0 => $page));
+                $Document->setContent($Content);
+                // hier den hash erzeugen
+                $hash = TblBinary::getHashByContent($Document->getSource());
+                $Document->saveFile(new FileParameter($File->getFileLocation()));
+
+                try {
+                    $fileSizeKiloByte = intdiv(filesize($File->getFileLocation()), 1024);
+                } catch (Exception) {
+                    $fileSizeKiloByte = 0;
+                }
+
+                // Revisionssicher speichern
+                if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivisionCourse, $Certificate, $File, $fileSizeKiloByte, $hash)) {
+                    Prepare::useService()->updateLeaveStudent($tblLeaveStudent, true, true);
+                }
+
+                $filePointerList[$leaveStudentId] = $File->getRealPath();
+            }
+        }
+
+        return $message;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    private function getCertificatePersonName(TblPerson $tblPerson): string
+    {
+        $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
+        $personLastName = str_replace('ü', 'ue', $personLastName);
+        $personLastName = str_replace('ö', 'oe', $personLastName);
+
+        return str_replace('ß', 'ss', $personLastName);
     }
 }

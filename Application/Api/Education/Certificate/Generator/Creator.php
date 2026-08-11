@@ -497,6 +497,8 @@ class Creator extends Extension
     }
 
     /**
+     * @deprecated
+     *
      * @param null $PrepareId
      * @param string $Name
      * @param bool $Redirect
@@ -614,6 +616,8 @@ class Creator extends Extension
     }
 
     /**
+     * @deprecated
+     *
      * @param null $DivisionId
      * @param string $Name
      * @param bool $Redirect
