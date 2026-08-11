@@ -18,6 +18,7 @@ use SPHERE\Application\Education\Certificate\PrintCertificate\PrintCertificate;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -45,6 +46,8 @@ class ApiPrintCertificate extends Extension implements IApiInterface
         $Dispatcher->registerMethod('searchPerson');
         $Dispatcher->registerMethod('waitContent');
         $Dispatcher->registerMethod('loadCertificate');
+
+        $Dispatcher->registerMethod('getReload');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -172,16 +175,19 @@ class ApiPrintCertificate extends Extension implements IApiInterface
         $filePointerList = json_decode($filePointerList, true);
 
         $message = '';
+        $isPreview = true;
         // tblPrepareStudent (Normales Zeugnis)
         if ($type == 'PREPARE_STUDENT_PREVIEW') {
             $message = $this->setPrepareStudentPreview($prepareStudentId, $filePointerList);
         } elseif ($type == 'PREPARE_STUDENT_DOWNLOAD') {
             $message = $this->setPrepareStudentDownload($prepareStudentId, $filePointerList, $name);
+            $isPreview = false;
         // tblLeaveStudent (Abgangszeugnis)
         } elseif ($type == 'LEAVE_STUDENT_PREVIEW') {
             $message = $this->setLeaveStudentPreview($prepareStudentId, $filePointerList);
         } elseif ($type == 'LEAVE_STUDENT_DOWNLOAD') {
             $message = $this->setLeaveStudentDownload($prepareStudentId, $filePointerList, $name);
+            $isPreview = false;
         }
 
         unset($tblPrepareStudentList[$prepareStudentId]);
@@ -210,6 +216,11 @@ class ApiPrintCertificate extends Extension implements IApiInterface
         // aufräumen der Temp-Files
         foreach ($tblFilePointerDeleteList as $tblFile) {
             $tblFile->setDestruct();
+        }
+
+        // Redirect für warte Seite
+        if (!$isPreview) {
+            Consumer::useService()->createAccountSetting('IsPrintCertificateReload', 'True');
         }
 
         return $message . new Redirect('/Api/Education/Certificate/Generator/FileLocation/DownloadPdf', Redirect::TIMEOUT_SUCCESS, [
@@ -479,5 +490,42 @@ class ApiPrintCertificate extends Extension implements IApiInterface
         $personLastName = str_replace('ö', 'oe', $personLastName);
 
         return str_replace('ß', 'ss', $personLastName);
+    }
+
+    /**
+     * @param string $BackRoute
+     * @param int $Time
+     *
+     * @return Pipeline
+     */
+    public static function pipelineReload(string $BackRoute, int $Time = 5): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        // reload
+        $Emitter = new ServerEmitter(self::receiverBlock('', 'reload'), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'getReload'
+        ));
+        $Emitter->setPostPayload(array(
+            'BackRoute' => $BackRoute
+        ));
+        $Pipeline->appendEmitter($Emitter);
+        $Pipeline->repeatPipeline($Time);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $BackRoute
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function getReload(string $BackRoute): string
+    {
+        return
+            Consumer::useService()->getAccountSettingValue('IsPrintCertificateReload') === 'True'
+             ? new Redirect($BackRoute, Redirect::TIMEOUT_SUCCESS)
+             : '';
     }
 }
