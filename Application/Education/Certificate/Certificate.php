@@ -12,6 +12,8 @@ use SPHERE\Application\Education\Certificate\Reporting\Reporting;
 use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\IApplicationInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -74,7 +76,9 @@ class Certificate implements IApplicationInterface
         $isAutomaticallyApproved = false;
 
         // normale Zeugnisse
-        if ($PrepareId && ($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))) {
+        if ($PrepareId && ($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))
+        ) {
             if (($tblDivisionCourse = $tblPrepare->getServiceTblDivision())) {
                 $Name .= ' ' . $tblDivisionCourse->getName();
             }
@@ -87,7 +91,6 @@ class Certificate implements IApplicationInterface
                 }
             }
 
-            $tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare);
             $prepareStudents = [];
             $filePointerList = [];
             foreach ($tblPrepareStudentList as $tblPrepareStudent) {
@@ -145,6 +148,10 @@ class Certificate implements IApplicationInterface
                     ),
                     'Content_' . $leaveStudentId
                 )
+            );
+        } else {
+            $stage->setContent(
+                new Warning('Keine Zeugnisse vorhanden.', new Exclamation())
             );
         }
 
