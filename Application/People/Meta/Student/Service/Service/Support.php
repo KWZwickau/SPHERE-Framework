@@ -126,9 +126,14 @@ abstract class Support extends Subject
         $PersonSupport = $Data['PersonSupport'];
         $SupportTime = $Data['SupportTime'];
         $Remark = $Data['Remark'];
+        $hasAutism = false;
+        if(isset($Data['hasAutism'])){
+            $hasAutism = true;
+        }
+
 
         if($tblPerson && $tblSupportType && $Date){
-            $tblSupport = (new Data($this->getBinding()))->createSupport($tblPerson, $tblSupportType, $Date, $PersonEditor, $Company, $PersonSupport, $SupportTime, $Remark);
+            $tblSupport = (new Data($this->getBinding()))->createSupport($tblPerson, $tblSupportType, $Date, $PersonEditor, $Company, $PersonSupport, $SupportTime, $Remark, $hasAutism);
 
             if(isset($Data['PrimaryFocus']) && !empty($Data['PrimaryFocus'])){
                 $tblSupportFocusType = $this->getSupportFocusTypeById($Data['PrimaryFocus']);
@@ -357,9 +362,13 @@ abstract class Support extends Subject
         $PersonSupport = $Data['PersonSupport'];
         $SupportTime = $Data['SupportTime'];
         $Remark = $Data['Remark'];
+        $hasAutism = false;
+        if(isset($Data['hasAutism'])){
+            $hasAutism = true;
+        }
 
         if($tblSupport && $tblPerson && $tblSupportType && $Date){
-            (new Data($this->getBinding()))->updateSupport($tblSupport, $tblSupportType, $Date, $PersonEditor, $Company, $PersonSupport, $SupportTime, $Remark);
+            (new Data($this->getBinding()))->updateSupport($tblSupport, $tblSupportType, $Date, $PersonEditor, $Company, $PersonSupport, $SupportTime, $Remark, $hasAutism);
 
             //delete old entry's
             if(($tblSupportFocusList = Student::useService()->getSupportFocusListBySupport($tblSupport))){

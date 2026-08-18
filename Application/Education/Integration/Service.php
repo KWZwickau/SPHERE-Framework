@@ -101,6 +101,9 @@ class Service
                         $tblSubjectType = $tblSupport->getTblSupportType();
                         if(($tblSupportFocusPrimary = Student::useService()->getSupportPrimaryFocusBySupport($tblSupport))){
                             $SupportPrimary = $tblSupportFocusPrimary->getTblSupportFocusType()->getName();
+                            if($tblSupport->getHasAutism()){
+                                $SupportPrimary.= ' inkl. Autismus';
+                            }
                         }
                         $SupportSecondary = '';
                         $SupportSecondaryList = array();
