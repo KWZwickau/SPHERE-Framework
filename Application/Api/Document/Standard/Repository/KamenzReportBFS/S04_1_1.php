@@ -31,8 +31,8 @@ class S04_1_1
                 $width[3] = '12%';
                 $width['gender'] = '12%';
                 break;
-            case 'S04_2_1':
-                $title = 'S04-2.1 Schüler im <u>Teilzeitunterricht</u> im Schuljahr {{ Content.SchoolYear.Current }} nach
+            case 'S04_1_2':
+                $title = 'S04-1.2 Schüler im <u>Teilzeitunterricht</u> im Schuljahr {{ Content.SchoolYear.Current }} nach
                     Ausbildungsstatus, der Anzahl der derzeit erlernten Fremdsprachen und Klassenstufen';
                 $maxLevel = 5;
                 $width[0] = '22%';

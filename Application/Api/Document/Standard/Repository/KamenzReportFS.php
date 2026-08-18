@@ -282,13 +282,13 @@ class KamenzReportFS extends AbstractDocument
                     ->addSliceArray(S04_1_1::getContent('S04_1_1'))
                 )
                 ->addPage((new Page())
+                    ->addSliceArray(S04_1_1::getContent('S04_1_2'))
+                )
+                ->addPage((new Page())
                     ->addSliceArray(S04::getContent('S04_2_A'))
                 )
                 ->addPage((new Page())
                     ->addSliceArray(S04::getContent('S04_2_U'))
-                )
-                ->addPage((new Page())
-                    ->addSliceArray(S04_1_1::getContent('S04_2_1'))
                 );
         }
 
