@@ -26,7 +26,7 @@ class E16_01
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E16.1 Schüler in Grundkursen gemäß § 41 Abs. 1 SOGYA bzw. in fächerverbindenden Grundkursen im Schuljahr {{ Content.Schoolyear.Current }} nach Jahrgangsstufen')
+                ->setContent('E16.1 Schüler in Grundkursen gemäß § 41 Abs. 1 SOGYA bzw. in fächerverbindenden Grundkursen im Schuljahr {{ Content.SchoolYear.Current }} nach Jahrgangsstufen')
             );
 
         $sliceList[] = (new Slice())

@@ -1133,7 +1133,7 @@ class KamenzReportService
         &$countSecondForeignSubjectArray
     ) {
         /**
-         * E04 Schüler mit der ersten Fremdsprache im Schuljahr nach Klassenstufen
+         * E04.1 Schüler mit der mit einer Fremdsprache im Schuljahr nach Klassenstufen (Bitte nur die erste Fremdsprache angeben!)
          */
         if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))) {
             $countForeignSubjectsByStudent = 0;
@@ -1156,22 +1156,11 @@ class KamenzReportService
 
                         $countForeignSubjectsByStudent++;
 
-                        if ($tblType->getShortName() == 'OS') {
-                            // bei Oberschule nur 1. Fremdsprache
-                            if ($tblStudentSubjectRanking->getIdentifier() == 1) {
-                                if (isset($countForeignSubjectArray[$tblSubject->getName()][$level])) {
-                                    $countForeignSubjectArray[$tblSubject->getName()][$level]++;
-                                } else {
-                                    $countForeignSubjectArray[$tblSubject->getName()][$level] = 1;
-                                }
-                            }
-                        } else {
-                            if ($level < 11) {
-                                if (isset($countForeignSubjectArray[$tblSubject->getName()][$level])) {
-                                    $countForeignSubjectArray[$tblSubject->getName()][$level]++;
-                                } else {
-                                    $countForeignSubjectArray[$tblSubject->getName()][$level] = 1;
-                                }
+                        if ($level < 11) {
+                            if (isset($countForeignSubjectArray[$tblStudentSubjectRanking->getIdentifier()][$tblSubject->getName()][$level])) {
+                                $countForeignSubjectArray[$tblStudentSubjectRanking->getIdentifier()][$tblSubject->getName()][$level]++;
+                            } else {
+                                $countForeignSubjectArray[$tblStudentSubjectRanking->getIdentifier()][$tblSubject->getName()][$level] = 1;
                             }
                         }
 
@@ -1192,38 +1181,38 @@ class KamenzReportService
             }
 
             /**
-             * E04.1 Schüler im Schuljahr nach der Anzahl der derzeit erlernten Fremdsprachen und Klassenstufen
+             * E04 Schüler im Schuljahr nach der Anzahl der derzeit erlernten Fremdsprachen und Klassenstufen
              */
             if ($countForeignSubjectsByStudent > 4) {
                 $countForeignSubjectsByStudent = 4;
             }
-            if (isset($Content['E04_1']['F' . $countForeignSubjectsByStudent]['L' . $level])) {
-                $Content['E04_1']['F' . $countForeignSubjectsByStudent]['L' . $level]++;
+            if (isset($Content['E04']['F' . $countForeignSubjectsByStudent]['L' . $level])) {
+                $Content['E04']['F' . $countForeignSubjectsByStudent]['L' . $level]++;
             } else {
-                $Content['E04_1']['F' . $countForeignSubjectsByStudent]['L' . $level] = 1;
+                $Content['E04']['F' . $countForeignSubjectsByStudent]['L' . $level] = 1;
             }
-            if (isset($Content['E04_1']['F' . $countForeignSubjectsByStudent]['TotalCount'])) {
-                $Content['E04_1']['F' . $countForeignSubjectsByStudent]['TotalCount']++;
+            if (isset($Content['E04']['F' . $countForeignSubjectsByStudent]['TotalCount'])) {
+                $Content['E04']['F' . $countForeignSubjectsByStudent]['TotalCount']++;
             } else {
-                $Content['E04_1']['F' . $countForeignSubjectsByStudent]['TotalCount'] = 1;
+                $Content['E04']['F' . $countForeignSubjectsByStudent]['TotalCount'] = 1;
             }
-            if (isset($Content['E04_1']['TotalCount']['L' . $level])) {
-                $Content['E04_1']['TotalCount']['L' . $level]++;
+            if (isset($Content['E04']['TotalCount']['L' . $level])) {
+                $Content['E04']['TotalCount']['L' . $level]++;
             } else {
-                $Content['E04_1']['TotalCount']['L' . $level] = 1;
+                $Content['E04']['TotalCount']['L' . $level] = 1;
             }
 
             if ($isInPreparationDivisionForMigrants) {
-                if (isset($Content['E04_1']['F' . $countForeignSubjectsByStudent]['Migration'])) {
-                    $Content['E04_1']['F' . $countForeignSubjectsByStudent]['Migration']++;
+                if (isset($Content['E04']['F' . $countForeignSubjectsByStudent]['Migration'])) {
+                    $Content['E04']['F' . $countForeignSubjectsByStudent]['Migration']++;
                 } else {
-                    $Content['E04_1']['F' . $countForeignSubjectsByStudent]['Migration'] = 1;
+                    $Content['E04']['F' . $countForeignSubjectsByStudent]['Migration'] = 1;
                 }
 
-                if (isset($Content['E04_1']['TotalCount']['Migration'])) {
-                    $Content['E04_1']['TotalCount']['Migration']++;
+                if (isset($Content['E04']['TotalCount']['Migration'])) {
+                    $Content['E04']['TotalCount']['Migration']++;
                 } else {
-                    $Content['E04_1']['TotalCount']['Migration'] = 1;
+                    $Content['E04']['TotalCount']['Migration'] = 1;
                 }
             }
         }
@@ -1266,7 +1255,7 @@ class KamenzReportService
         $countForeignSubjectMatrix
     ): array {
         /**
-         * E15. Schüler in Sprachenfolgen im Schuljahr nach Klassenstufen
+         * E04.4. Schüler in Sprachenfolgen im Schuljahr nach Klassenstufen
          */
         $subjects = self::getForeignLanguages($tblPerson);
         if (!empty($subjects)) {
@@ -1306,19 +1295,21 @@ class KamenzReportService
         TblType $tblSchoolType
     ) {
         /**
-         * E04 Schüler mit der ersten Fremdsprache im Schuljahr nach Klassenstufen
+         * E04.1 - E04.3 Schüler mit der ersten, zweiten und dritten Fremdsprache im Schuljahr nach Klassenstufen
          */
-        ksort($countForeignSubjectArray);
-        $count = 0;
-        foreach ($countForeignSubjectArray as $subjectName => $levelArray) {
-            $Content['E04']['S' . $count]['TotalCount'] = 0;
-            $Content['E04']['S' . $count]['SubjectName'] = $subjectName;
-            foreach ($levelArray as $level => $value) {
-                $Content['E04']['S' . $count]['L' . $level] = $value;
-                $Content['E04']['S' . $count]['TotalCount'] += $value;
-            }
+        foreach ($countForeignSubjectArray as $subjectRanking => $countForeignSubjectContent) {
+            ksort($countForeignSubjectContent);
+            $count = 0;
+            foreach ($countForeignSubjectContent as $subjectName => $levelArray) {
+                $Content['E04_' . $subjectRanking]['S' . $count]['TotalCount'] = 0;
+                $Content['E04_' . $subjectRanking]['S' . $count]['SubjectName'] = $subjectName;
+                foreach ($levelArray as $level => $value) {
+                    $Content['E04_' . $subjectRanking]['S' . $count]['L' . $level] = $value;
+                    $Content['E04_' . $subjectRanking]['S' . $count]['TotalCount'] += $value;
+                }
 
-            $count++;
+                $count++;
+            }
         }
 
         if ($tblSchoolType->getName() == TblType::IDENT_OBER_SCHULE) {
@@ -1362,7 +1353,7 @@ class KamenzReportService
         $countForeignSubjectMatrix
     ) {
         /**
-         * E15. Schüler in Sprachenfolgen im Schuljahr nach Klassenstufen
+         * E04.4 Schüler in Sprachenfolgen im Schuljahr nach Klassenstufen
          */
         ksort($countForeignSubjectMatrix);
         $count = 0;
@@ -1371,7 +1362,7 @@ class KamenzReportService
             foreach ($identifierArray as $identifier => $array) {
                 if (isset($array['Subjects'])) {
                     foreach ($array['Subjects'] as $ranking => $acronym) {
-                        $Content['E15']['S' . $count]['N' . $ranking] =
+                        $Content['E04_4']['S' . $count]['N' . $ranking] =
                             ($tblSubject = Subject::useService()->getSubjectByAcronym($acronym))
                                 ? $tblSubject->getName()
                                 : '';
@@ -1379,12 +1370,12 @@ class KamenzReportService
                 }
                 if (isset($array['Levels'])) {
                     foreach ($array['Levels'] as $level => $value) {
-                        $Content['E15']['S' . $count]['L' . $level] = $value;
+                        $Content['E04_4']['S' . $count]['L' . $level] = $value;
 
-                        if (isset($Content['E15']['TotalCount']['L' . $level])) {
-                            $Content['E15']['TotalCount']['L' . $level] += $value;
+                        if (isset($Content['E04_4']['TotalCount']['L' . $level])) {
+                            $Content['E04_4']['TotalCount']['L' . $level] += $value;
                         } else {
-                            $Content['E15']['TotalCount']['L' . $level] = $value;
+                            $Content['E04_4']['TotalCount']['L' . $level] = $value;
                         }
                     }
                 }
@@ -2683,10 +2674,18 @@ class KamenzReportService
                                  * B02
                                  */
                                 if ($birthYear) {
-                                    if (isset($countArray[$birthYear][$identifier][$gender])) {
-                                        $countArray[$birthYear][$identifier][$gender]++;
+                                    if (isset($countArray['B02'][$birthYear][$identifier][$gender])) {
+                                        $countArray['B02'][$birthYear][$identifier][$gender]++;
                                     } else {
-                                        $countArray[$birthYear][$identifier][$gender] = 1;
+                                        $countArray['B02'][$birthYear][$identifier][$gender] = 1;
+                                    }
+
+                                    if ($hasMigrationBackground) {
+                                        if (isset($countArray['B02_1'][$birthYear][$identifier][$gender])) {
+                                            $countArray['B02_1'][$birthYear][$identifier][$gender]++;
+                                        } else {
+                                            $countArray['B02_1'][$birthYear][$identifier][$gender] = 1;
+                                        }
                                     }
                                 }
 
@@ -2791,10 +2790,18 @@ class KamenzReportService
                                                  * B02
                                                  */
                                                 if ($birthYear) {
-                                                    if (isset($countArray[$birthYear][$certificate][$gender])) {
-                                                        $countArray[$birthYear][$certificate][$gender]++;
+                                                    if (isset($countArray['B02'][$birthYear][$certificate][$gender])) {
+                                                        $countArray['B02'][$birthYear][$certificate][$gender]++;
                                                     } else {
-                                                        $countArray[$birthYear][$certificate][$gender] = 1;
+                                                        $countArray['B02'][$birthYear][$certificate][$gender] = 1;
+                                                    }
+
+                                                    if ($hasMigrationBackground) {
+                                                        if (isset($countArray['B02_1'][$birthYear][$certificate][$gender])) {
+                                                            $countArray['B02_1'][$birthYear][$certificate][$gender]++;
+                                                        } else {
+                                                            $countArray['B02_1'][$birthYear][$certificate][$gender] = 1;
+                                                        }
                                                     }
                                                 }
 
@@ -2836,31 +2843,33 @@ class KamenzReportService
             /**
              * B02. Absolventen/Abgänger aus dem Schuljahr 2015/16 nach Geburtsjahren und Abschlussarten
              */
-            ksort($countArray);
-            $count = 0;
-            $Content['B02']['TotalCount']['m'] = 0;
-            $Content['B02']['TotalCount']['w'] = 0;
-            foreach ($countArray as $year => $certificateArray) {
-                $Content['B02']['Y' . $count]['YearName'] = $year;
-                $Content['B02']['Y' . $count]['m'] = 0;
-                $Content['B02']['Y' . $count]['w'] = 0;
-                $Content['B02']['Y' . $count]['x'] = 0;
-                foreach ($certificateArray as $levelName => $genderArray) {
-                    foreach ($genderArray as $gender => $value) {
-                        $Content['B02']['Y' . $count][$levelName][$gender] = $value;
+            foreach ($countArray as $table => $countContent) {
+                ksort($countContent);
+                $count = 0;
+                $Content[$table]['TotalCount']['m'] = 0;
+                $Content[$table]['TotalCount']['w'] = 0;
+                foreach ($countContent as $year => $certificateArray) {
+                    $Content[$table]['Y' . $count]['YearName'] = $year;
+                    $Content[$table]['Y' . $count]['m'] = 0;
+                    $Content[$table]['Y' . $count]['w'] = 0;
+                    $Content[$table]['Y' . $count]['x'] = 0;
+                    foreach ($certificateArray as $levelName => $genderArray) {
+                        foreach ($genderArray as $gender => $value) {
+                            $Content[$table]['Y' . $count][$levelName][$gender] = $value;
 
-                        if (isset($Content['B02']['TotalCount'][$levelName][$gender])) {
-                            $Content['B02']['TotalCount'][$levelName][$gender] += $value;
-                        } else {
-                            $Content['B02']['TotalCount'][$levelName][$gender] = $value;
+                            if (isset($Content[$table]['TotalCount'][$levelName][$gender])) {
+                                $Content[$table]['TotalCount'][$levelName][$gender] += $value;
+                            } else {
+                                $Content[$table]['TotalCount'][$levelName][$gender] = $value;
+                            }
+
+                            $Content[$table]['Y' . $count][$gender] += $value;
+                            $Content[$table]['TotalCount'][$gender] += $value;
                         }
-
-                        $Content['B02']['Y' . $count][$gender] += $value;
-                        $Content['B02']['TotalCount'][$gender] += $value;
                     }
-                }
 
-                $count++;
+                    $count++;
+                }
             }
         }
     }

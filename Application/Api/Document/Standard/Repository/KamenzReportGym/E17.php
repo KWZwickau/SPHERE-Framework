@@ -12,6 +12,7 @@ use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
+// jetzt EZ02.1
 class E17
 {
     public static function getContent()
@@ -24,7 +25,7 @@ class E17
             ->styleMarginBottom('5px')
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('E17. Anzahl der Leistungskurse an dieser Schule im Schuljahr {{ Content.SchoolYear.Current }} nach Jahrgangsstufen')
+                    ->setContent('EZ02.1 Anzahl der Leistungskurse an dieser Schule im Schuljahr {{ Content.SchoolYear.Current }} nach Jahrgangsstufen')
                 )
             );
 

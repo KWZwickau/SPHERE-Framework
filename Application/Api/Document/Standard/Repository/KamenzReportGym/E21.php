@@ -26,7 +26,7 @@ class E21
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E21. Schüler aus dem Ausland mit individuellem Schulbesuch im Schuljahr {{ Content.Schoolyear.Current }}')
+                ->setContent('E21. Schüler aus dem Ausland mit individuellem Schulbesuch im Schuljahr {{ Content.SchoolYear.Current }}')
             );
 
         $sliceList[] = (new Slice())
@@ -38,7 +38,7 @@ class E21
             ->styleBorderRight()
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Besuch der Klassen-<br/> bzw. Jahrgangsstufe...<br/>im Schuljahr {{ Content.Schoolyear.Current }}')
+                    ->setContent('Besuch der Klassen-<br/> bzw. Jahrgangsstufe...<br/>im Schuljahr {{ Content.SchoolYear.Current }}')
                     ->styleBorderRight(), '30%'
                 )
                 ->addElementColumn((new Element())

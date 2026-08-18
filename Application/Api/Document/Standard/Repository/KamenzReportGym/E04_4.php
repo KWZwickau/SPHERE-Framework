@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: lehmann
- * Date: 27.06.2017
- * Time: 11:28
- */
 
 namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym;
 
@@ -12,7 +6,7 @@ use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
-class E15
+class E04_4
 {
     public static function getContent()
     {
@@ -22,7 +16,7 @@ class E15
             ->styleTextBold()
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E15. Schüler in Sprachenfolgen im Schuljahr {{ Content.Schoolyear.Current }} nach Klassenstufen')
+                ->setContent('E04.4 Schüler in Sprachenfolgen im Schuljahr {{ Content.SchoolYear.Current }} nach Klassenstufen')
             );
 
 
@@ -101,8 +95,8 @@ class E15
                 $section
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if (Content.E15.S' . $i . '.N' . $j. ' is not empty) %}
-                                {{ Content.E15.S' . $i . '.N' . $j. ' }}
+                            {% if (Content.E04_4.S' . $i . '.N' . $j. ' is not empty) %}
+                                {{ Content.E04_4.S' . $i . '.N' . $j. ' }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -116,8 +110,8 @@ class E15
                 $section
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if (Content.E15.S' . $i . '.L' . $j. ' is not empty) %}
-                                {{ Content.E15.S' . $i . '.L' . $j. ' }}
+                            {% if (Content.E04_4.S' . $i . '.L' . $j. ' is not empty) %}
+                                {{ Content.E04_4.S' . $i . '.L' . $j. ' }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -146,8 +140,8 @@ class E15
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.E15.TotalCount.L' . $j. ' is not empty) %}
-                                {{ Content.E15.TotalCount.L' . $j. ' }}
+                            {% if (Content.E04_4.TotalCount.L' . $j. ' is not empty) %}
+                                {{ Content.E04_4.TotalCount.L' . $j. ' }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
