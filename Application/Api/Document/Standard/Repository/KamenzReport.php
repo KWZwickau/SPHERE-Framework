@@ -6,6 +6,7 @@ use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\B01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\B01_1;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\B02;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\B02_1;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\C01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E02;
@@ -13,6 +14,8 @@ use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E02_1;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E03;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E04;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E04_1;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E04_2;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E04_3;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E05;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E07;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E08;
@@ -52,6 +55,9 @@ class KamenzReport extends AbstractDocument
                 ->addSliceArray(B01::getContent())
                 ->addSliceArray(B01_1::getContent())
                 ->addSliceArray(B02::getContent())
+                ->addSliceArray(B02_1::getContent())
+            )
+            ->addPage((new Page())
                 ->addSliceArray(C01::getContent())
             )
             ->addPage((new Page())
@@ -66,15 +72,19 @@ class KamenzReport extends AbstractDocument
             ->addPage((new Page())
                 ->addSliceArray(E04::getContent())
                 ->addSliceArray(E04_1::getContent())
-                ->addSliceArray(E05::getContent())
+                ->addSliceArray(E04_2::getContent())
+                ->addSliceArray(E04_3::getContent())
             )
             ->addPage((new Page())
+                ->addSliceArray(E05::getContent())
+                // jetzt E06
                 ->addSliceArray(E07::getContent())
+                // jetzt E07
                 ->addSliceArray(E08::getContent())
             )
-            ->addPage((new Page())
-                ->addSliceArray(E11::getContent())
-            )
+//            ->addPage((new Page())
+//                ->addSliceArray(E11::getContent())
+//            )
             ->addPage((new Page())
                 ->addSliceArray(F01::getContent(0,4))
             )

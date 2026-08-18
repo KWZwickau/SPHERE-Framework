@@ -23,8 +23,8 @@ class E04
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E04. Schüler mit der ersten Fremdsprache im Schuljahr {{Content.SchoolYear.Current}} 
-                    nach Fremdsprachen und Klassenstufen')
+                ->setContent('E04. Schüler im Schuljahr {{ Content.SchoolYear.Current }} nach der Anzahl der derzeit
+                    erlernten Fremdsprachen und <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -36,7 +36,7 @@ class E04
             ->styleBorderRight()
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Fremdsprache')
+                    ->setContent('Anzahl der<br/>Fremdsprachen')
                     ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('8.6px')
@@ -55,40 +55,56 @@ class E04
                         ->addElementColumn((new Element())
                             ->setContent('5')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight()
+                            ->stylePaddingTop('8.6px')
+                            ->stylePaddingBottom('8.5px'), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('6')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight()
+                            ->stylePaddingTop('8.6px')
+                            ->stylePaddingBottom('8.5px'), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('7')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight()
+                            ->stylePaddingTop('8.6px')
+                            ->stylePaddingBottom('8.5px'), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('8')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight()
+                            ->stylePaddingTop('8.6px')
+                            ->stylePaddingBottom('8.5px'), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('9')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight()
+                            ->stylePaddingTop('8.6px')
+                            ->stylePaddingBottom('8.5px'), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('10')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight()
+                            ->stylePaddingTop('8.6px')
+                            ->stylePaddingBottom('8.5px'), '10%'
                         )
                     ), '60%'
                 )
+//                ->addElementColumn((new Element())
+//                    ->setContent('Vorb.kl. u.<br/>-gruppen f.<br/>Migranten')
+//                    ->styleBorderRight(), '10%'
+//                )
                 ->addElementColumn((new Element())
                     ->setContent('Sonderkl.')
                     ->styleAlignCenter()
-                    ->stylePaddingTop('8.5px')
-                    ->stylePaddingBottom('8.5px')
+                    ->stylePaddingTop('17.1px')
+                    ->stylePaddingBottom('17.1px')
                     ->styleBorderRight()
                     , '10%'
                 )
@@ -96,32 +112,38 @@ class E04
                     ->setContent('Insgesamt')
                     ->styleAlignCenter()
                     ->styleTextBold()
-                    ->stylePaddingTop('8.5px')
-                    ->stylePaddingBottom('8.5px')
+                    ->stylePaddingTop('17.1px')
+                    ->stylePaddingBottom('17.1px')
                     , '10%'
                 )
             );
 
-        for ($i = 0; $i < 6; $i++) {
+        for ($i = 0; $i < 5; $i++) {
+            switch ($i) {
+                case 0: $text = 'keine'; break;
+                case 1: $text = 'eine'; break;
+                case 2: $text = 'zwei'; break;
+                case 3: $text = 'drei'; break;
+                case 4: $text = 'vier und mehr'; break;
+                default: $text = '&nbsp;';
+            }
+
             $section = new Section();
+
             $section
                 ->addElementColumn((new Element())
-                    ->setContent('
-                            {% if (Content.E04.S' . $i . '.SubjectName is not empty) %}
-                                {{ Content.E04.S' . $i . '.SubjectName }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
+                    ->setContent($text)
                     ->styleAlignCenter()
-                ->styleBorderRight(), '20%'
-            );
+                    ->styleBackgroundColor('lightgrey')
+                    ->styleBorderRight(), '20%'
+                );
+
             for ($level = 5; $level <= 10; $level++) {
                 $section
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if (Content.E04.S' . $i . '.L' . $level . ' is not empty) %}
-                                {{ Content.E04.S' . $i . '.L' . $level . ' }}
+                            {% if (Content.E04.F' . $i . '.L' . $level . ' is not empty) %}
+                                {{ Content.E04.F' . $i . '.L' . $level . ' }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -130,25 +152,32 @@ class E04
                         ->styleBorderRight(), '10%'
                     );
             }
+
             $section
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
                     ->styleAlignCenter()
-                    ->styleBorderRight()
-                    , '10%'
-                );
-            $section
+//                    ->setContent('
+//                        {% if (Content.E04.F' . $i . '.Migration is not empty) %}
+//                            {{ Content.E04.F' . $i . '.Migration }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+//                    ->styleBackgroundColor('lightgrey')
+                    ->styleBorderRight(), '10%'
+                )
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.E04.S' . $i . '.TotalCount is not empty) %}
-                                {{ Content.E04.S' . $i . '.TotalCount }}
+                            {% if (Content.E04.F' . $i . '.TotalCount is not empty) %}
+                                {{ Content.E04.F' . $i . '.TotalCount }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
                         ')
                     ->styleAlignCenter()
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleTextBold(), '10%'
+                    ->styleTextBold()
+                    ->styleBackgroundColor('lightgrey'), '10%'
                 );
 
             $sliceList[] = (new Slice())
@@ -158,6 +187,63 @@ class E04
                 ->styleBorderRight()
                 ->addSection($section);
         }
+
+        /**
+         * Total
+         */
+        $section = new Section();
+
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('Insgesamt')
+                ->styleAlignCenter()
+                ->styleBackgroundColor('lightgrey')
+                ->styleBorderRight(), '20%'
+            );
+
+        for ($level = 5; $level <= 10; $level++) {
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('
+                            {% if (Content.E04.TotalCount.L' . $level . ' is not empty) %}
+                                {{ Content.E04.TotalCount.L' . $level . ' }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '10%'
+                );
+        }
+
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleAlignCenter()
+//                ->setContent('
+//                    {% if (Content.E04.TotalCount.Migration is not empty) %}
+//                        {{ Content.E04.TotalCount.Migration }}
+//                    {% else %}
+//                        &nbsp;
+//                    {% endif %}
+//                ')
+                ->styleBackgroundColor('lightgrey')
+                ->styleBorderRight(), '10%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleAlignCenter()
+                ->styleBackgroundColor('lightgrey'), '10%'
+            );
+
+        $sliceList[] = (new Slice())
+            ->styleBackgroundColor('lightgrey')
+            ->styleTextBold()
+            ->styleAlignCenter()
+            ->styleBorderBottom()
+            ->styleBorderLeft()
+            ->styleBorderRight()
+            ->addSection($section);
 
         return $sliceList;
     }
