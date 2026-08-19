@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Text\Repository\Sup;
+use SPHERE\System\Extension\Repository\Debugger;
 
 class ExamGradeListOS extends AbstractDocument
 {
@@ -43,6 +44,7 @@ class ExamGradeListOS extends AbstractDocument
     private array $gradeList = array();
     private array $identifierList = array();
     private array $languageList = array();
+    private array $diplomaList = array();
 
     function __construct(TblPrepareCertificate $tblPrepareCertificate, TblDivisionCourse $tblDivisionCourse)
     {
@@ -102,6 +104,23 @@ class ExamGradeListOS extends AbstractDocument
                         && $isNativeLanguage
                     ) {
                         $this->languageList[$number]['Language'] = $language;
+                    }
+
+                    // diploma
+                    if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareCertificate, $tblPerson))
+                       && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                    ) {
+                        $this->diplomaList[$number] =  match (true) {
+                            str_contains($tblCertificate->getCertificate(), 'MsAbsRs') => 'RSA',
+                            str_contains($tblCertificate->getCertificate(), 'MsAbsHsQ') => 'qHSA',
+                            str_contains($tblCertificate->getCertificate(), 'MsAbsHsE') => 'HSA(g)',
+                            str_contains($tblCertificate->getCertificate(), 'MsAbsHs') => 'HSA',
+                            str_contains($tblCertificate->getCertificate(), 'MsAbsLernenHs') => 'AFL',
+                            str_contains($tblCertificate->getCertificate(), 'MsAbsLernenEquatedHs') => 'AFL',
+                            str_contains($tblCertificate->getCertificate(), 'MsAbsLernen') => 'AFL',
+
+                            default => '&nbsp;'
+                        };
                     }
 
                     $number++;
@@ -544,7 +563,9 @@ class ExamGradeListOS extends AbstractDocument
         for ($i = 1; $i <= self::NUMBER_MAX; $i++)
         {
             $slice->addSection((new Section())
-                ->addElementColumn($this->getBodyElement()->styleAlignLeft())
+                ->addElementColumn($this->getBodyElement($this->diplomaList[$i] ?? '&nbsp;')
+                    ->stylePaddingLeft('5px')
+                    ->styleAlignLeft())
             );
         }
         return $slice->styleBorderBottom(self::BORDER);
@@ -580,7 +601,9 @@ class ExamGradeListOS extends AbstractDocument
         for ($i = 1; $i <= self::NUMBER_MAX; $i++)
         {
             $slice->addSection((new Section())
-                ->addElementColumn($this->getBodyElement()->styleAlignLeft())
+                ->addElementColumn($this->getBodyElement($this->diplomaList[$i] ?? '&nbsp;')
+                    ->stylePaddingLeft('5px')
+                    ->styleAlignLeft())
             );
         }
         return $slice->styleBorderBottom(self::BORDER);

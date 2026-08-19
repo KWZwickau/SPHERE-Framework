@@ -42,9 +42,15 @@ class GradebookOverview extends AbstractDocument
         $pageList = [];
         if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYearAndDateWithLeaved($tblPerson, $tblYear))) {
             $dataPdf = Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, $View == 'Parent', true);
-            $isTwoPage = $dataPdf['isTwoPage'];
-            $headerPdfList = $dataPdf['headerPdfList'];
-            $bodyPdfList = $dataPdf['bodyPdfList'];
+            if (is_array($dataPdf)) {
+                $isTwoPage = $dataPdf['isTwoPage'] ?? false;
+                $headerPdfList = $dataPdf['headerPdfList'] ?? [];
+                $bodyPdfList = $dataPdf['bodyPdfList'] ?? [];
+            } else {
+                $isTwoPage = false;
+                $headerPdfList = [];
+                $bodyPdfList = [];
+            }
 
             if ($isTwoPage) {
                 $pageList[] = (new Page())

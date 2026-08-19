@@ -24,10 +24,12 @@ class BeGs extends Certificate
     {
         return array(
             'Type' => 'Bezieht sich auf',
-            'DateCertifcate' => 'Datum des Zeugnisses',
+            'DateCertifcate' => 'Datum der Halbjahresinformation',
             'DateConference' => 'Datum der Klassenkonferenz',
             'DateConsulting' => 'Datum der Bildungsberatung'
         );
+
+        //
     }
 
     /**
@@ -252,10 +254,18 @@ class BeGs extends Certificate
                                 der für das Jahreszeugnis vorgesehenen Noten gemäß Beschluss der Klassenkonferenz¹
                             {% endif %}
                                 vom
-                            {% if(Content.P' . $personId . '.Input.DateCertifcate is not empty) %}
-                                {{ Content.P' . $personId . '.Input.DateCertifcate }}
+                            {% if Content.P' . $personId . '.Input.Type == "der Halbjahresinformation" %}
+                                {% if(Content.P' . $personId . '.Input.DateCertifcate is not empty) %}
+                                    {{ Content.P' . $personId . '.Input.DateCertifcate }}
+                                {% else %}
+                                    ______________
+                                {% endif %}
                             {% else %}
-                                ______________
+                                {% if(Content.P'.$personId.'.Input.DateConference is not empty) %}
+                                    {{ Content.P'.$personId.'.Input.DateConference }}
+                                {% else %}
+                                    ______________
+                                {% endif %}
                             {% endif %}
                             folgende Leistungen erreicht:')
                         ->stylePaddingBottom('25px')

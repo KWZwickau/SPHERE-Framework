@@ -30,7 +30,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Structure\Form;
-use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -184,12 +184,12 @@ class Service extends ServiceTask
     /**
      * @param $DivisionCourseId
      * @param $SubjectId
+     * @param string $role
      *
      * @return bool
      */
-    public function getIsEdit($DivisionCourseId, $SubjectId): bool
+    public function getIsEdit($DivisionCourseId, $SubjectId, string $role): bool
     {
-        $role = $this->getRole();
         switch ($role) {
             case "Headmaster": return true;
             case "Teacher":
@@ -588,9 +588,61 @@ class Service extends ServiceTask
      *
      * @return TblTestGrade[]|false
      */
-    public function getTestGradeListToDateTimeByPersonAndSubject(TblPerson $tblPerson, TblSubject $tblSubject, DateTime $toDate)
+    public function getTestGradeListToDateTimeByPersonAndSubject(TblPerson $tblPerson, TblSubject $tblSubject, DateTime $toDate): false|array
     {
-        return (new Data($this->getBinding()))->getTestGradeListToDateTimeByPersonAndSubject($tblPerson, $tblSubject, $toDate);
+        // beachte Schuljahreswiederholungen → dann dürfen die Zensuren des vorherigen Schuljahres nicht mit berücksichtigt werden
+        // beachte Schularten
+        $testGradeList = [];
+        $tblSchoolType = null;
+        if (($tblTestGradeList = (new Data($this->getBinding()))->getTestGradeListToDateTimeByPersonAndSubject($tblPerson, $tblSubject, $toDate))) {
+            foreach ($tblTestGradeList as $tblTestGrade) {
+                if (($tblTest = $tblTestGrade->getTblTest())
+                    && ($tblYear = $tblTest->getServiceTblYear())
+                ) {
+                    if (!isset($testGradeList[$tblYear->getId()])) {
+                        $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+                        if (!$tblStudentEducation) {
+                            continue;
+                        }
+
+                        if (!$tblSchoolType
+                            && $tblStudentEducation->getServiceTblSchoolType()
+                        ) {
+                            $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
+                        }
+
+                        $testGradeList[$tblYear->getId()] = [
+                            'tblYear' => $tblYear,
+                            'tblStudentEducation' => $tblStudentEducation,
+                            'schoolTypeId' => $tblStudentEducation->getServiceTblSchoolType() ? $tblStudentEducation->getServiceTblSchoolType()->getId() : null,
+                            'level' => $tblStudentEducation->getLevel(),
+                            'tblTestGradeList' => []
+                        ];
+                    }
+
+                    $testGradeList[$tblYear->getId()]['tblTestGradeList'][$tblTestGrade->getId()] = $tblTestGrade;
+                }
+            }
+        }
+
+        $resultList = [];
+        $levelList = [];
+        foreach ($testGradeList as $array) {
+            // nur gleiche Schulart und Klassenstufe noch nicht vorhanden
+            if ($array['schoolTypeId'] == $tblSchoolType?->getId()
+                && !isset($levelList[$array['level']])
+            ) {
+                $levelList[$array['level']] = 1;
+                $resultList = array_merge($resultList, $array['tblTestGradeList']);
+            }
+        }
+
+        // Sortierung wieder auf aufsteigend ändern
+        if ($resultList) {
+            return $this->getSorter($resultList)->sortObjectBy('SortDate', new DateTimeSorter());
+        }
+
+        return false;
     }
 
     /**
@@ -621,11 +673,11 @@ class Service extends ServiceTask
      * @param array $pictureList
      * @param array $courseList
      */
-    public function setStudentInfo(TblPerson $tblPerson, TblYear $tblYear, array &$integrationList, array &$pictureList, array &$courseList)
+    public function setStudentInfo(TblPerson $tblPerson, TblYear $tblYear, array &$integrationList, array &$pictureList, array &$courseList): void
     {
         // Integration
         if(Student::useService()->getIsSupportByPerson($tblPerson)) {
-            $integrationList[$tblPerson->getId()] = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+            $integrationList[$tblPerson->getId()] = (new Standard('', ApiSupportReadOnly::getEndpoint(), new Tag(), [], 'Inklusion des Schülers anzeigen'))
                 ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
         }
 

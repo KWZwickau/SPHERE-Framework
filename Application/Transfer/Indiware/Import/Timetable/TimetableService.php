@@ -263,6 +263,11 @@ class TimetableService
                 && !empty($item['un_klassen'])
                 && $item['un_stufe'] !== ''
                 ){
+                    // fallback Unterrichtsgruppe statt in un_gruppe in un_fach gepflegt
+                    // aus dieser dann verwenden
+                    if(!$item['un_gruppe']){
+                        $item['un_gruppe'] = $item['un_fach'];
+                    }
                     array_push($unterrichtList, $item);
                 }
             }

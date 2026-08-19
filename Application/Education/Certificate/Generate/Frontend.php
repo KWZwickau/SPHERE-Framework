@@ -845,7 +845,7 @@ class Frontend extends Extension
                         $isMuted = $isDiploma
                             && $tblSchoolType && $tblSchoolType->getShortName() == 'OS'
                             && $tblStudentEducation->getLevel() == 9
-                            && $tblCourse && $tblCourse->getName() != 'Hauptschule';
+                            && $tblCourse && $tblCourse->getName() == 'Realschule';
                     }
 
                     // Primärer Förderschwerpunkt -> zur Hilfe für Auswahl des Zeugnisses

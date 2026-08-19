@@ -100,7 +100,7 @@ class ApiLiberation extends Extension implements IApiInterface
                 $Content .= new Container(($Description ? new Container(nl2br($Description)) : '---'));
             }
 
-            return new Title('Befreiung vom Unterricht')
+            return new Title('Befreiung')
                 .new Layout(new LayoutGroup(new LayoutRow(
                     new LayoutColumn(
                         new Well(

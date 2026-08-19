@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
+use DateTime;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Data;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
@@ -21,16 +22,6 @@ use SPHERE\Common\Window\Redirect;
 abstract class ServiceTeacher extends ServiceSubjectTable
 {
     /**
-     * @param $Id
-     *
-     * @return false|TblTeacherLectureship
-     */
-    public function getTeacherLectureshipById($Id)
-    {
-        return (new Data($this->getBinding()))->getTeacherLectureshipById($Id);
-    }
-
-    /**
      * @param TblYear|null $tblYear
      * @param TblPerson|null $tblPerson
      * @param TblDivisionCourse|null $tblDivisionCourse
@@ -38,7 +29,8 @@ abstract class ServiceTeacher extends ServiceSubjectTable
      *
      * @return false|TblTeacherLectureship[]
      */
-    public function getTeacherLectureshipListBy(TblYear $tblYear = null, TblPerson $tblPerson = null, TblDivisionCourse $tblDivisionCourse = null, TblSubject $tblSubject = null)
+    public function getTeacherLectureshipListBy(TblYear $tblYear = null, TblPerson $tblPerson = null, TblDivisionCourse $tblDivisionCourse = null,
+        TblSubject $tblSubject = null): false|array
     {
         return (new Data($this->getBinding()))->getTeacherLectureshipListBy($tblYear, $tblPerson, $tblDivisionCourse, $tblSubject);
     }
@@ -87,7 +79,7 @@ abstract class ServiceTeacher extends ServiceSubjectTable
                         && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($divisionCourseId))
                         && ($tblYearByDivisionCourse = $tblDivisionCourse->getServiceTblYear())
                     ) {
-                        // Lehraufrag anlegen
+                        // Lehrauftrag anlegen
                         (new Data($this->getBinding()))->createTeacherLectureship($tblPerson, $tblYearByDivisionCourse, $tblDivisionCourse, $tblSubject);
                     }
                 }
@@ -106,9 +98,30 @@ abstract class ServiceTeacher extends ServiceSubjectTable
      *
      * @return false|TblSubject[]
      */
-    public function getSubjectListByTeacherAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    public function getSubjectListByTeacherAndYear(TblPerson $tblPerson, TblYear $tblYear): false|array
     {
         return (new Data($this->getBinding()))->getSubjectListByTeacherAndYear($tblPerson, $tblYear);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $date
+     *
+     * @return array
+     */
+    public function getSubjectListByTeacherAndDate(TblPerson $tblPerson, string $date = 'now'): array
+    {
+        $dateTime = new DateTime($date);
+        $tblSubjectList = [];
+        if (($tblYearList = Term::useService()->getYearAllByDate($dateTime))) {
+            foreach ($tblYearList as $tblYear) {
+                if (($tblSubjectListTemp = DivisionCourse::useService()->getSubjectListByTeacherAndYear($tblPerson, $tblYear))) {
+                    $tblSubjectList = array_merge($tblSubjectList, $tblSubjectListTemp);
+                }
+            }
+        }
+
+        return $tblSubjectList;
     }
 
     /**

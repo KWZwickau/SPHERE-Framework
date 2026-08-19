@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\Reporting\Custom\Annaberg\Person\Person;
 use SPHERE\Application\Reporting\Standard\Person\Frontend;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -17,12 +18,15 @@ use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\System\Extension\Extension;
@@ -47,6 +51,9 @@ class ApiStandard extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('reloadAbsenceContent');
         $Dispatcher->registerMethod('loadStudentArchiveContent');
+
+        $Dispatcher->registerMethod('waitContent');
+        $Dispatcher->registerMethod('loadContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -267,5 +274,62 @@ class ApiStandard extends Extension implements IApiInterface
         }
 
         return new Warning('Bitte wählen Sie ein Schuljahr aus');
+    }
+
+    /**
+     * @param array $parameters
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoad(array $parameters): Pipeline
+    {
+
+        $Receiver = self::receiverBlock('', 'Content');
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'waitContent'
+        ));
+        $Pipeline->appendEmitter($Emitter);
+        $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'loadContent'
+        ));
+
+        $payLoad = [self::API_TARGET => 'loadContent'];
+        foreach ($parameters as $key => $value) {
+            $payLoad[$key] = $value;
+        }
+
+        $Emitter->setGetPayload($payLoad);
+
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function waitContent(): string
+    {
+        return new Info('Inhalt lädt...' . new ProgressBar(0, 100, 0, 12));
+    }
+
+    /**
+     * @param null $Content
+     * @param null $YearId
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function loadContent($Content = null, $YearId = null): string
+    {
+        if ($Content == 'loadExportContent') {
+            return Person::useFrontend()->loadExportContent($YearId);
+        } else {
+            return new Danger('Inhalt wurde nicht gefunden.', new Exclamation());
+        }
     }
 }

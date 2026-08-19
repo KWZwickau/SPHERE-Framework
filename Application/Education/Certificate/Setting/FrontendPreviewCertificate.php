@@ -120,15 +120,21 @@ class FrontendPreviewCertificate extends Extension implements IFrontendInterface
         $selectList = [];
         /** @var TblCertificate $tblCertificate */
         foreach ($tblCertificateList as $tblCertificate) {
-            if (($tblSchoolType = $tblCertificate->getServiceTblSchoolType())
-                && (!$tblSchoolTypeFilter || $tblSchoolTypeFilter->getId() == $tblSchoolType->getId())
+            // filtern nach Schulart
+            $tblSchoolType = $tblCertificate->getServiceTblSchoolType();
+            if (($tblSchoolType
+                && $tblSchoolTypeFilter
+                && $tblSchoolTypeFilter->getId() != $tblSchoolType->getId())
+                    || (!$tblSchoolType && $tblSchoolTypeFilter)
             ) {
-                $selectList[$tblCertificate->getId()] =
-                    (($tblConsumerCertificate = $tblCertificate->getServiceTblConsumer(true)) ? $tblConsumerCertificate->getAcronym() . ' - ' : '')
-                    . $tblCertificate->getName()
-                    . (($description = $tblCertificate->getDescription()) ? ' - ' . $description : '')
-                    . (($certificateNumber = $tblCertificate->getCertificateNumber()) ? ' ' . $certificateNumber : '');
+               continue;
             }
+
+            $selectList[$tblCertificate->getId()] =
+                (($tblConsumerCertificate = $tblCertificate->getServiceTblConsumer(true)) ? $tblConsumerCertificate->getAcronym() . ' - ' : '')
+                . $tblCertificate->getName()
+                . (($description = $tblCertificate->getDescription()) ? ' - ' . $description : '')
+                . (($certificateNumber = $tblCertificate->getCertificateNumber()) ? ' ' . $certificateNumber : '');
         }
 
         $global = $this->getGlobal();

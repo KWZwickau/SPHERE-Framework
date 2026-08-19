@@ -18,8 +18,10 @@ class TblConsumer extends Element
     const ATTR_NAME = 'Name';
 
     const TYPE_SACHSEN = 'Sachsen';
+    const TYPE_SACHSEN_ANHALT = 'Sachsen-Anhalt';
     const TYPE_THUERINGEN = 'Thüringen';
     const TYPE_BERLIN = 'Berlin';
+    const TYPE_BADEN_WÜRTTEMBERG = 'Baden-Württemberg';
 
     /**
      * @Column(type="string")

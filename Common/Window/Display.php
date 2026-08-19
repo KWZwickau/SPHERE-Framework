@@ -362,8 +362,12 @@ class Display extends Extension implements ITemplateInterface
 
         if( function_exists( 'sys_getloadavg' ) ) {
             $CpuLoad = sys_getloadavg();
+            $CpuCores = (int) trim( shell_exec( "grep -P '^physical id' /proc/cpuinfo|wc -l" ) );
+            if( $CpuCores < 1 ) {
+                $CpuCores = 1;
+            }
             $this->Template->setVariable('CpuLoad',
-                number_format(100 / (50 * (2 - $CpuLoad[0])) * (50 * ($CpuLoad[0])), 2, ',', '.') . '%');
+                number_format($CpuLoad[0] * 100 / $CpuCores, 2, ',', '.') . '%');
         } else {
             $this->Template->setVariable('CpuLoad', '');
         }

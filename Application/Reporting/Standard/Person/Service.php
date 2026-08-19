@@ -2258,7 +2258,7 @@ class Service extends Extension
                     $item['DivisionCourse'] = $tblDivisionCourseClass->getDisplayName();
                 }
                 if(($tblDivisionCourseCoreGroup = $tblStudentEducation->getTblCoreGroup())){
-                    $item['CoreGroup'] = ($item['CoreGroup'] ? ', ' : '').$tblDivisionCourseCoreGroup->getDisplayName();
+                    $item['CoreGroup'] = ($item['CoreGroup'] ? ', ' : '').$tblDivisionCourseCoreGroup->getName();
                 }
             }
             if(($tblMailAll = Mail::useService()->getMailAllByPerson($tblPerson))){
@@ -2366,9 +2366,9 @@ class Service extends Extension
                             }
                             if(($tblDivisionCourseCoreGroup = $SiblingStudentEducation->getTblCoreGroup())){
                                 if($DivisionSting){
-                                    $DivisionSting .= ', '.$tblDivisionCourseCoreGroup->getDisplayName();
+                                    $DivisionSting .= ', '.$tblDivisionCourseCoreGroup->getName();
                                 } else {
-                                    $DivisionSting = $tblDivisionCourseCoreGroup->getDisplayName();
+                                    $DivisionSting = $tblDivisionCourseCoreGroup->getName();
                                 }
                             }
                             $SiblingString = $SiblingString.' ('.$DivisionSting.')';

@@ -1098,4 +1098,20 @@ abstract class Support extends Subject
 
         return $tblSupport;
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return TblSupportFocusType|null
+     */
+    public function getPrimarySupportFocusTypeByPerson(TblPerson $tblPerson): ?TblSupportFocusType
+    {
+        if (($tblSupport = $this->getSupportForReportingByPerson($tblPerson))
+            && ($tblSupportFocus = $this->getSupportPrimaryFocusBySupport($tblSupport))
+        ) {
+            return $tblSupportFocus->getTblSupportFocusType() ?: null;
+        }
+
+        return null;
+    }
 }

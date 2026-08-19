@@ -115,7 +115,8 @@ class Setup extends AbstractSetup
 
         $this->createForeignKey($Table, $tblTimeTable);
 
-        $this->createIndex($Table, array(TblTimetableWeek::ATTR_WEEK, TblTimetableWeek::ATTR_DATE, TblTimetableWeek::ATTR_TBL_CLASS_REGISTER_TIMETABLE));
+        // SSWHD-4243 duplicate entry, sollte eigentlich nicht passieren bei EZSH erstmal gelöscht
+        $this->createIndex($Table, array(TblTimetableWeek::ATTR_WEEK, TblTimetableWeek::ATTR_DATE, TblTimetableWeek::ATTR_TBL_CLASS_REGISTER_TIMETABLE), false);
 
         return $Table;
     }

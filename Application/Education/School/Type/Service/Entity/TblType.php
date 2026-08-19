@@ -30,6 +30,8 @@ class TblType extends Element
     // Berlin
     const IDENT_INTEGRIERTE_SEKUNDAR_SCHULE = 'Integrierte Sekundarschule';
     const IDENT_GEMEINSCHAFTS_SCHULE = 'Gemeinschaftsschule';
+    // Baden-Württemberg
+    const IDENT_WERK_REAL_SCHULE = 'Werkrealschule';
 
     const ATTR_NAME = 'Name';
     const ATTR_SHORT_NAME = 'ShortName';

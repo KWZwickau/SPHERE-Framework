@@ -1,0 +1,115 @@
+<?php
+
+namespace SPHERE\Application\Education\Competence\ScoreType\Service\Entity;
+
+use Doctrine\ORM\Mapping\Cache;
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\Table;
+use NumberFormatter;
+use SPHERE\System\Database\Fitting\Element;
+
+/**
+ * @Entity
+ * @Table(name="tblCompetenceScoreTypeItem")
+ * @Cache(usage="READ_ONLY")
+ */
+class TblScoreTypeItem extends Element
+{
+    CONST string TBL_SCORE_TYPE = "tblCompetenceScoreType";
+    CONST string ATTR_VALUE = "Value";
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected ?int $tblCompetenceScoreType = null;
+    /**
+     * @Column(type="string")
+     */
+    protected string $Value = '';
+    /**
+     * @Column(type="string")
+     */
+    protected string $Name = '';
+    /**
+     * @Column(type="string")
+     */
+    protected ?string $Description = null;
+
+    /**
+     * @param TblScoreType|null $tblScoreType
+     * @return void
+     */
+    public function setTblScoreType(?TblScoreType $tblScoreType): void
+    {
+        $this->tblCompetenceScoreType = $tblScoreType?->getId();
+    }
+    
+    /**
+     * @return string
+     */
+    public function getValue(): string
+    {
+        return $this->Value;
+    }
+
+    /**
+     * @return float|null
+     */
+    public function getRateFloatValue(): ?float
+    {
+        if ($this->getValue() !== null) {
+            $formatter = new NumberFormatter('de_DE', NumberFormatter::DECIMAL);
+
+            return $formatter->parse($this->getValue());
+        }
+
+        return null;
+    }
+
+    /**
+     * @param string $Value
+     *
+     * @return void
+     */
+    public function setValue(string $Value): void
+    {
+        $this->Value = $Value;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->Name;
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return void
+     */
+    public function setName(string $Name): void
+    {
+        $this->Name = $Name;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getDescription(): ?string
+    {
+        return $this->Description;
+    }
+
+    /**
+     * @param string|null $Description
+     *
+     * @return void
+     */
+    public function setDescription(?string $Description): void
+    {
+        $this->Description = $Description;
+    }
+}

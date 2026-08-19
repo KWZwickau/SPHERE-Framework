@@ -652,7 +652,7 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($tblCompanyList as $tblCompany) {
                     $resultList[] = array(
                         'Select' => new RadioBox('To', '&nbsp;', $tblCompany->getId()),
-                        'Name' => $tblCompany->getDisplayName(),
+                        'Name' => $tblCompany->getName(),
                         'Extended' => $tblCompany->getExtendedName(),
                         'Description' => $tblCompany->getDescription(),
                         'Address' => ($tblAddress = $tblCompany->fetchMainAddress()) ? $tblAddress->getGuiString() : ''

@@ -26,7 +26,7 @@ class TblRoleConsumer extends Element
 {
 
     const ATTR_TBL_ROLE = 'tblRole';
-    const SERVICE_TBL_CONSUMER = 'serviceTblConsumer';
+    const ATTR_SERVICE_TBL_CONSUMER = 'serviceTblConsumer';
 
     /**
      * @Column(type="bigint")

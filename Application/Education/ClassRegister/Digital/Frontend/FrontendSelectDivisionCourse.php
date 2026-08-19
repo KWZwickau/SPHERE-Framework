@@ -135,8 +135,11 @@ class FrontendSelectDivisionCourse extends FrontendMail
                     || $tblDivisionCourse->getIsDigital()
                 ) {
                     $route = self::BASE_ROUTE . '/CourseContent';
+                } elseif (
                     // SSW-2850 Ausnahme für KG DKC
-                } elseif ($tblDivisionCourse->getName() != '2526 DKC' && DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
+                    !str_contains($tblDivisionCourse->getName(), 'DKC')
+                    && DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
+                ) {
                     $route = self::BASE_ROUTE . '/SelectCourse';
                 } else {
                     $route = self::BASE_ROUTE . '/LessonContent';
@@ -309,7 +312,7 @@ class FrontendSelectDivisionCourse extends FrontendMail
                 $route = self::BASE_ROUTE . '/CourseContent';
             } elseif (
                 // SSW-2850 Ausnahme für KG DKC
-                $tblDivisionCourse->getName() != '2526 DKC'
+                !str_contains($tblDivisionCourse->getName(), 'DKC')
                 && DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
             ) {
                 $route = self::BASE_ROUTE . '/SelectCourse';

@@ -262,7 +262,7 @@ abstract class DataTask extends DataScore
      *
      * @return TblTaskGrade[]|false
      */
-    public function getTaskGradeListByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
+    public function getTaskGradeListByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject): false|array
     {
         $Manager = $this->getEntityManager();
         $queryBuilder = $Manager->getQueryBuilder();
@@ -270,6 +270,7 @@ abstract class DataTask extends DataScore
         $query = $queryBuilder->select('g')
             ->from(TblTaskGrade::class, 'g')
             ->join(TblTask::class, 't')
+            ->leftJoin(TblGradeType::class, 'gt', 'WITH', 'g.tblGraduationGradeType = gt.Id')
             ->where(
                 $queryBuilder->expr()->andX(
                     $queryBuilder->expr()->eq('g.tblGraduationTask', 't.Id'),
@@ -282,7 +283,8 @@ abstract class DataTask extends DataScore
             ->setParameter(1, $tblPerson->getId())
             ->setParameter(2, $tblYear->getId())
             ->setParameter(3, $tblSubject->getId())
-            ->orderBy('t.Date', 'ASC')
+            // Nach Zensuren-Typ-Namen sortieren
+            ->orderBy('gt.Name', 'ASC')
             ->getQuery();
 
         $resultList = $query->getResult();

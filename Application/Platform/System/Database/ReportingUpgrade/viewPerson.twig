@@ -6,6 +6,11 @@ SELECT
     tP.FirstName AS TblPerson_FirstName,
     tP.LastName AS TblPerson_LastName,
     tP.SecondName AS TblPerson_SecondName,
+    concat(
+        tP.FirstName,
+        IF(tP.SecondName = '', '', ' '),
+        tP.SecondName
+        ) as TblPerson_FullFirstName,
     tP.CallName AS TblPerson_CallName,
     tP.BirthName AS TblPerson_BirthName,
     concat(

@@ -480,6 +480,10 @@ class Service extends AbstractService
                 if (!$tblStudentEducation->isInActive()
                     && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
                     && !isset($list[$tblSchoolType->getId()])
+                    // SSWHD-4165 zukünftige Schuljahre ignorieren
+                    && ($tblYear = $tblStudentEducation->getServiceTblYear())
+                    && ($starteDate = $tblYear->getStartDateTime())
+                    && $starteDate <= new DateTime('today')
                 ) {
                     $list[$tblSchoolType->getId()] = $tblSchoolType;
                 }

@@ -203,7 +203,7 @@ class FrontendStudentGeneral extends FrontendReadOnly
                                 )),
                             )))
                         ),
-                        FrontendReadOnly::getSubContent('Unterrichtsbefreiung', $LiberationPanel)
+                        FrontendReadOnly::getSubContent('Sportbefreiung', $LiberationPanel)
                     ), 4),
                     new LayoutColumn(
                         FrontendReadOnly::getSubContent(
@@ -355,7 +355,7 @@ class FrontendStudentGeneral extends FrontendReadOnly
                 );
             }
         );
-        $LiberationPanel = new Panel('Unterrichtsbefreiung', $LiberationPanel, Panel::PANEL_TYPE_INFO);
+        $LiberationPanel = new Panel('Sportbefreiung', $LiberationPanel, Panel::PANEL_TYPE_INFO);
 
         $Form = (new Form(array(
             new FormGroup(array(

@@ -11,6 +11,8 @@ use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 
 /**
@@ -166,6 +168,24 @@ class SignOutCertificate extends AbstractDocument
     private function getSignOut()
     {
 
+        if(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BADEN_WÜRTTEMBERG)) {
+            $Paragraph = 'Gemäß § 92 des Schulgesetzes für das Bundesland Baden-Württemberg ist die vorsätzliche oder fahrlässige
+                Verletzung der Schulpflicht bzw. Berufsschulpflicht eine Ordnungswidrigkeit, die mit einer Geldbuße geahndet werden kann.';
+        } elseif (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
+            $Paragraph = 'Gemäß § 126 des Schulgesetzes für das Bundesland Berlin ist die vorsätzliche oder fahrlässige
+                Verletzung der Schulpflicht bzw. Berufsschulpflicht eine Ordnungswidrigkeit, die mit einer Geldbuße geahndet werden kann.';
+        } elseif(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN_ANHALT)){
+            $Paragraph = 'Gemäß § 84 des Schulgesetzes für das Bundesland Sachsen-Anhalt ist die vorsätzliche oder fahrlässige
+                Verletzung der Schulpflicht bzw. Berufsschulpflicht eine Ordnungswidrigkeit, die mit einer Geldbuße geahndet werden kann.';
+        } elseif(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_THUERINGEN)){
+            $Paragraph = 'Gemäß § 59 des Schulgesetzes für den Freistaat Thüringen ist die vorsätzliche oder fahrlässige
+                Verletzung der Schulpflicht bzw. Berufsschulpflicht eine Ordnungswidrigkeit, die mit einer Geldbuße geahndet werden kann.';
+        } else {
+            // standard Sachsen
+            $Paragraph = 'Gemäß § 61 des Schulgesetzes für den Freistaat Sachsen ist die vorsätzliche oder fahrlässige
+                Verletzung der Schulpflicht bzw. Berufsschulpflicht eine Ordnungswidrigkeit, die mit einer Geldbuße geahndet werden kann.';
+        }
+
         $Slice = new Slice();
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
@@ -297,8 +317,7 @@ class SignOutCertificate extends AbstractDocument
             ->stylePaddingTop('15px')
         );
         $Slice->addElement((new Element())
-            ->setContent('Gemäß § 61 des Schulgesetzes für den Freistaat Sachsen ist die vorsätzliche oder fahrlässige
-                Verletzung der Schulpflicht bzw. Berufsschulpflicht eine Ordnungswidrigkeit, die mit einer Geldbuße geahndet werden kann.')
+            ->setContent($Paragraph)
             ->stylePaddingTop('15px')
         );
         $Slice->addElement((new Element())

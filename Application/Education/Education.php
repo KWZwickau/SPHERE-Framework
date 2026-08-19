@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Certificate;
 use SPHERE\Application\Education\ClassRegister\ClassRegister;
+use SPHERE\Application\Education\Competence\Competence;
 use SPHERE\Application\Education\Diary\Diary;
 use SPHERE\Application\Education\Graduation\Graduation;
 use SPHERE\Application\Education\Integration\Integration;
@@ -29,6 +30,7 @@ class Education implements IClusterInterface
         School::registerApplication();
         Lesson::registerApplication();
         Graduation::registerApplication();
+        Competence::registerApplication();
         Certificate::registerApplication();
         ClassRegister::registerApplication();
         Diary::registerApplication();

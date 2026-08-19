@@ -687,6 +687,36 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblRole $tblRole
+     * @param TblConsumer $tblConsumer
+     *
+     * @return bool|TblAuthorization[]
+     */
+    public function getAccountListByAuthorizationAndConsumer(TblRole $tblRole, TblConsumer $tblConsumer)
+    {
+
+
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $query = $queryBuilder->select('TA')
+            ->from(TblAuthorization::class, 'TAu')
+            ->leftJoin(TblAccount::class, 'TA', 'WITH', 'TAu.tblAccount = TA.Id')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->isNull('TA.EntityRemove'),
+                    $queryBuilder->expr()->eq('TA.serviceTblConsumer', '?1'),
+                    $queryBuilder->expr()->eq('TAu.serviceTblRole', '?2')
+                ),
+            )
+            ->setParameter(1, $tblConsumer->getId())
+            ->setParameter(2, $tblRole->getId())
+            ->getQuery();
+
+        $tblAccountList = $query->getResult();
+        return empty($tblAccountList) ? false : $tblAccountList;
+    }
+
+    /**
      * @param TblConsumer $tblConsumer
      *
      * @return bool|TblAccount[]
@@ -1079,16 +1109,25 @@ class Data extends AbstractData
     /**
      * @param TblAccount $tblAccount
      * @param string $IdentificationName
+     * @param bool $isForced
      *
      * @return bool
      */
-    public function getHasAuthenticationByAccountAndIdentificationName(TblAccount $tblAccount, string $IdentificationName): bool
+    public function getHasAuthenticationByAccountAndIdentificationName(TblAccount $tblAccount, string $IdentificationName, bool $isForced = false): bool
     {
         if (($tblIdentification = $this->getIdentificationByName($IdentificationName))) {
-            return (bool) $this->getCachedEntityBy(__METHOD__, $this->getEntityManager() , 'TblAuthentication', array(
-                TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
-                TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
-            ));
+            // Forced Standard -> update Identification war im Cache falsch
+            if($isForced){
+                return (bool) $this->getForceEntityBy(__METHOD__, $this->getEntityManager() , 'TblAuthentication', array(
+                    TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+                    TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
+                ));
+            } else {
+                return (bool) $this->getCachedEntityBy(__METHOD__, $this->getEntityManager() , 'TblAuthentication', array(
+                    TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+                    TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
+                ));
+            }
         }
 
         return false;
@@ -1471,6 +1510,35 @@ class Data extends AbstractData
             )
             ->setParameter(1, $tblIdentification->getId())
             ->setParameter(2, $tblConsumer->getId())
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblConsumer $tblConsumer
+     *
+     * @return array<int, array{Name: string, countAccount: int}>
+     * Name = tblIdentification->Name
+     */
+    public function getAccountCountByConsumer(TblConsumer $tblConsumer): array
+    {
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $query = $queryBuilder->select(' tI.Name, count(tA.Id) as countAccount')
+            ->from(TblAccount::class, 'tA')
+            ->leftJoin(TblAuthentication::class, 'tAu', 'WITH', 'tA.Id = tAu.tblAccount')
+            ->leftJoin(TblIdentification::class, 'tI', 'WITH', 'tI.Id = tAu.tblIdentification')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->isNull('tA.EntityRemove'),
+                    $queryBuilder->expr()->eq('tA.serviceTblConsumer', '?1'),
+                ),
+            )
+            ->setParameter(1, $tblConsumer->getId())
+            ->groupBy('tI.Name')
             ->getQuery();
 
         $resultList = $query->getResult();

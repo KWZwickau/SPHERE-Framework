@@ -572,7 +572,7 @@ class Service extends AbstractService
             'Content.Input.Deepening'           => 'Vertiefungsrichtung',
             'Content.Input.SchoolType'          => 'Ausbildung fortsetzen',
             'Content.Input.Type'                => 'Bezieht sich auf',
-            'Content.Input.DateCertifcate'      => 'Datum des Zeugnisses',
+            'Content.Input.DateCertifcate'      => 'Datum der Halbjahresinformation',
             'Content.Input.DateConference'      => 'Datum der Klassenkonferenz',
             'Content.Input.DateConsulting'      => 'Datum der Bildungsberatung',
             'Content.Input.Transfer'            => 'Versetzungsvermerk',
@@ -893,6 +893,14 @@ class Service extends AbstractService
         $tblStudentSubjectTypeForeignLanguage
     ): array {
         $resultList = array();
+
+        // keine Fächerprüfung bei Kompetenzzeugnissen
+        if (($tblCertificateType = $tblCertificate->getTblCertificateType())
+            && ($tblCertificateType->getIdentifier() == 'SKILL_HALF_YEAR'
+                || $tblCertificateType->getIdentifier() == 'SKILL_YEAR')
+        ) {
+            return $resultList;
+        }
 
         $tblTechnicalCourse = Student::useService()->getTechnicalCourseByPerson($tblPerson);
         $subjectIgnoreList = array();

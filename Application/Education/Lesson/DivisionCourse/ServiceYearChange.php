@@ -67,6 +67,18 @@ abstract class ServiceYearChange extends ServiceTeacher
                     }
 
                     if (($tblStudentEducationTarget = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYearTarget))) {
+                        // Schüler besitzt bereits eine SchülerBildung mit Klasse oder Stammgruppe fürs neue Schuljahr → keine Übernahme beim Schuljahreswechsel
+                        if ($tblStudentEducationTarget->getTblDivision() || $tblStudentEducationTarget->getTblCoreGroup()
+                            // oder hat eine andere Schulart
+                            || (($tblSchoolTypeTarget = $tblStudentEducationTarget->getServiceTblSchoolType()) && $tblSchoolTypeTarget->getId() != $tblSchoolType->getId())
+                            // oder hat nicht die nächste Klassenstufe
+                            || ($tblStudentEducationTarget->getLevel() && $tblStudentEducationTarget->getLevel() != $level + 1)
+                        ) {
+                            continue;
+                        }
+                    }
+
+                    if (($tblStudentEducationTarget = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYearTarget))) {
                         $dataTargetList[$tblStudentEducationTarget->getLevel() ?: 'keine'][$tblPerson->getId()] = $tblPerson->getLastFirstName();
                     } elseif ($level < $tblSchoolType->getMaxLevel()) {
                         $isSekTransition = ($level == 10 && $tblSchoolType->getShortName() == 'Gy')

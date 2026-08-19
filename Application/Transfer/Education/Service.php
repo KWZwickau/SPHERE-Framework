@@ -594,6 +594,12 @@ class Service extends AbstractService
             }
         // Indiware: BIO1
         } else {
+            // Spezialfall EGE
+            if (str_starts_with($courseName, 'L-') || str_starts_with($courseName, 'G-')) {
+                return str_starts_with($courseName, 'L-');
+            }
+
+            // Leistungskurse sind Großgeschrieben
             if (preg_match('!^([a-zA-Z]+)!', $courseName, $Match)) {
                 if (ctype_upper($Match[1])) {
                     return true;
@@ -622,7 +628,12 @@ class Service extends AbstractService
             $courseName = $level . $tblSchoolType->getShortName() . ' ' . $courseName;
             // Inidware: 11Gy L-BIO1
         } else {
-            $courseName = $level . $tblSchoolType->getShortName() . ' ' . ($isAdvancedCourse ? 'L-' : 'G-') . $courseName;
+            // Spezialfall EGE
+            if (str_starts_with($courseName, 'L-') || str_starts_with($courseName, 'G-')) {
+                $courseName = $level . $tblSchoolType->getShortName() . ' ' . $courseName;
+            } else {
+                $courseName = $level . $tblSchoolType->getShortName() . ' ' . ($isAdvancedCourse ? 'L-' : 'G-') . $courseName;
+            }
         }
 
         return $courseName;

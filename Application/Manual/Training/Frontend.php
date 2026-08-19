@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\Success;
@@ -49,77 +50,56 @@ class Frontend extends Extension implements IFrontendInterface
                     wenden Sie sich bitte an die ESDi GmbH unter ' . new Mailto(new Envelope() . ' info@esdigmbh.de', 'info@esdigmbh.de'),
             ]
         ];
-        if ($today <= new DateTime('23.04.2026')) {
+        if ($today <= new DateTime('15.09.2026')) {
             $contentList[] = [
-                'Title' => 'DLLP - Nutzertreffen',
+                'Title' => 'Canva - das Tool für Layout & Gestaltung',
                 'Content' => [
-                    '23.04.2026 | 15 Uhr |Online',
-                    'Vor fast 2 Jahren ist das DLLP aus einem Projekt in den Regelbetrieb übergegangen. Damit wird es Zeit sich auszutauschen über Erreichtes,
-                    Wünsche und Anregungen und mögliche Stolpersteine oder Herausforderungen.'
+                    '15.09.2026 | 16:00 Uhr | Starter - Webinar',
+                    'In diesem Grundlagenkurs lernen Sie das Online-Gestaltungstool Canva kennen. Wir zeigen Ihnen, wie Sie mit wenigen Klicks Beiträge, Flyer
+                     und Präsentationen für Ihre Öffentlichkeitsarbeit oder Material für den Unterricht erstellen können. Auch ohne Vorkenntnisse in Grafikdesign
+                     sind Sie schnell in der Lage ansprechende Layouts zu gestalten.'
                 ]
             ];
         }
-        if ($today <= new DateTime('06.05.2026')) {
+        if ($today <= new DateTime('06.10.2026')) {
             $contentList[] = [
-                'Title' => 'Best-Practice Schulsoftware | Verwaltung',
+                'Title' => 'Canva - das Tool für Layout & Gestaltung',
                 'Content' => [
-                    '06.05.2026 | 10 Uhr | Hybrides Seminar für Verwaltung/Sekretärinnen',
-                    new Container('Austausch vor Ort oder als Online - Teilnehmerin')
-                    . new Container('Im Seminar werden die Neuentwicklungen in der Schulsoftware vorgestellt und an praktischen Beispielen Anwendungsfälle erläutert.')
-                    . new Container('Es ist gedacht für Sekretärinnen und andere Mitarbeitende in der Verwaltung, die neue Funktionen der Schulsoftware kennenlernen und 
-                    die Möglichkeiten optimal nutzen möchten.')
+                    '06.10.2026 | 16:00 Uhr | Webinar für Fortgeschrittene',
+                    'Dieser Kurs richtet sich an Teilnehmende, die bereits erste Erfahrungen mit Canva gesammelt haben. Sie lernen erweiterte Funktionen kennen,
+                     z. B. die Nutzung von Vorlagen, Gestaltung von Social-Media-Inhalten im Corporate Design, Teamarbeit in Canva sowie Tipps und Tricks für
+                     professionelle Layouts.'
                 ]
             ];
         }
-        if ($today <= new DateTime('21.05.2026')) {
+        if ($today <= new DateTime('27.10.2026')) {
             $contentList[] = [
-                'Title' => 'Best-Practice Schulsoftware | Verwaltung',
+                'Title' => 'Instagram 1',
                 'Content' => [
-                    '21.05.2026 | 10 Uhr | Zusatztermin - Online',
-                    new Container('Im Seminar werden die Neuentwicklungen in der Schulsoftware vorgestellt und an praktischen Beispielen Anwendungsfälle erläutert.')
-                    . new Container('Es ist gedacht für Sekretärinnen und andere Mitarbeitende in der Verwaltung, die neue Funktionen der Schulsoftware kennenlernen und 
-                    die Möglichkeiten optimal nutzen möchten.')
+                    '27.10.2026 | 16:00 Uhr | Webinar für Einsteiger',
+                    'Instagram eignet sich hervorragend, um Einblicke in das Schulleben zu geben und mit verschiedenen Zielgruppen in Kontakt zu treten. Sie
+                     lernen den Aufbau eines Instagram-Profils kennen, erhalten eine Einführung in die Gestaltung von Posts, die Planung von Inhalten
+                     (Redaktionsplan) und erste Schritte für eine Postingstrategie.'
                 ]
             ];
         }
-        if ($today <= new DateTime('03.06.2026')) {
+        if ($today <= new DateTime('10.11.2026')) {
             $contentList[] = [
-                'Title' => 'Zeugniserstellung in der Schulsoftware',
+                'Title' => 'Instagram 2',
                 'Content' => [
-                    '03.06.2026 | 10 Uhr | Webinar für Schulleitungen',
-                    'Im Webinar soll der Ablauf der Zeugniserstellung erläutert werden, sodass Sie als Schulleitung den Prozess gut vorbereiten und 
-                    Ihre Lehrkräfte sicher begleiten können',
+                    '10.11.2026 | 16:00 Uhr | Webinar für Fortgeschrittene',
+                    'Dieser Kurs richtet sich an Nutzer mit ersten Erfahrungen auf Instagram. Im Mittelpunkt stehen die Erstellung von Reels, der gezielte
+                     Einsatz von Stories sowie Tipps zur Planung und Organisation von Inhalten. Außerdem erhalten Sie praktische Hinweise zur Steigerung der
+                     Reichweite und Einbindung der Schulgemeinschaft.'
                 ]
             ];
         }
-        if ($today <= new DateTime('07.07.2026')) {
+
+        if(count($contentList) <= 1){
             $contentList[] = [
-                'Title' => 'Schuljahreswechsel in der Schulsoftware',
-                'Content' => [
-                    '07.07.2026 | 10 Uhr | Webinar für Verwaltung/Schulleitung',
-                    'Im Webinar werden die einzelnen Schritte zum Schuljahreswechsel vorgestellt und an praktischen Beispielen erläutert. Außerdem gibt 
-                    es die Möglichkeit, Fragen zu stellen und sich über Best-Practice-Erfahrungen auszutauschen.',
-                ]
-            ];
-        }
-        if ($today <= new DateTime('08.07.2026')) {
-            $contentList[] = [
-                'Title' => 'Schuljahreswechsel im DLLP',
-                'Content' => [
-                    '08.07.2026 | 10 Uhr | Webinar für Schul-Admins',
-                    'Im Webinar werden wiederkehrende Aufgaben im DLLP vorgestellt und über neue Entwicklungen berichtet. Außerdem wird es Raum für Fragen 
-                    und Austausch geben.',
-                ]
-            ];
-        }
-        if ($today <= new DateTime('13.08.2026')) {
-            $contentList[] = [
-                'Title' => 'Pädagogische Arbeit in der Schulsoftware',
-                'Content' => [
-                    '11.08.2026 und 13.08.2026 | 11 Uhr | 2-teiliges Webinar für Pädagoginnen und Pädagogen',
-                    'An den beiden Webinartagen werden die Prozesse des Schulalltags in der Schulsoftware vorgestellt und an praktischen Beispielen erläutert. 
-                    Außerdem werden Weiterentwicklungen in den Blick genommen und Fragen zum Umgang geklärt.',
-                ]
+                'Title' => (new Link('www.ev-schulen-sachsen.de/veranstaltungen-esdi', 'https://www.ev-schulen-sachsen.de/veranstaltungen-esdi'))->setExternal()
+                .'</br>&nbsp;',
+                'Content' => []
             ];
         }
 

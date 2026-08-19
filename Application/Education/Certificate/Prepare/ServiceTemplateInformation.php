@@ -84,7 +84,7 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                 $tblSchoolType = $tblCertificate->getServiceTblSchoolType();
                 // Wahlbereich gibt es nur bei der Oberschule
                 $showOrientationsInCertificateRemark = $showOrientationsInCertificateRemark
-                    && ($tblSchoolType->getShortName() == 'OS');
+                    &&  $tblSchoolType && ($tblSchoolType->getShortName() == 'OS');
 
                 $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
                 /** @var Certificate $Certificate */

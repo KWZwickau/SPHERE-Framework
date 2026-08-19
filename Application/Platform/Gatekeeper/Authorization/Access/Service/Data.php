@@ -250,6 +250,54 @@ class Data extends AbstractData
 
     /**
      * @param TblRole $tblRole
+     * @param bool $IsIndividual
+     *
+     * @return TblRole
+     */
+    public function updateRoleIndividual(TblRole $tblRole, bool $IsIndividual = false): TblRole
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblRole')->find($tblRole->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setIndividual($IsIndividual);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+        }
+        return $Entity;
+    }
+
+   /**
+    * @param TblRole $tblRole
+    * @param TblConsumer $tblConsumer
+    *
+    * @return TblRoleConsumer
+    */
+    public function createRoleConsumer(TblRole $tblRole, TblConsumer $tblConsumer): TblRoleConsumer
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblRoleConsumer')->findOneBy(
+            array(
+                TblRoleConsumer::ATTR_TBL_ROLE => $tblRole->getId(),
+                TblRoleConsumer::ATTR_SERVICE_TBL_CONSUMER => $tblConsumer->getId(),
+            )
+        );
+        if (null === $Entity) {
+            $Entity = new TblRoleConsumer();
+            $Entity->setTblRole($tblRole);
+            $Entity->setServiceTblConsumer($tblConsumer);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblRole $tblRole
      * @param string $Name
      *
      * @return bool
@@ -475,6 +523,24 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblRoleConsumer $tblRoleConsumer
+     * @return boolean
+     */
+    public function removeRoleConsumer(TblRoleConsumer $tblRoleConsumer): bool
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblLevelPrivilege $Entity */
+        $Entity = $Manager->getEntity('TblRoleConsumer')->find($tblRoleConsumer->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblRight
@@ -671,6 +737,17 @@ class Data extends AbstractData
     /**
      * @return bool|TblRole[]
      */
+    public function getRoleByIsIndividual($isIndividual = true)
+    {
+
+        return $this->getCachedEntityListBy( __METHOD__,$this->getConnection()->getEntityManager(), 'TblRole',array(
+            TblRole::ATTR_IS_INDIVIDUAL => $isIndividual
+        ));
+    }
+
+    /**
+     * @return bool|TblRole[]
+     */
     public function getRoleAll()
     {
 
@@ -712,7 +789,7 @@ class Data extends AbstractData
 
         return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblRoleConsumer', array(
             TblRoleConsumer::ATTR_TBL_ROLE => $tblRole->getId(),
-            TblRoleConsumer::SERVICE_TBL_CONSUMER => $tblConsumer->getId()
+            TblRoleConsumer::ATTR_SERVICE_TBL_CONSUMER => $tblConsumer->getId()
         ));
     }
 }

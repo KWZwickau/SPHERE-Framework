@@ -6,6 +6,7 @@ use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Core\FileSystem\FileSystem;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
@@ -116,20 +117,25 @@ class Task implements IModuleInterface
                 foreach ($tableHeader as $SubjectKey => $Value) {
                     if (strpos($SubjectKey, 'Subject') !== false) {
                         if (isset($tableRow[$SubjectKey . 'Grade']) && $tableRow[$SubjectKey . 'Grade'] != 'f') {
-                            $export->setValue($export->getCell($Column, $Row), $tableRow[$SubjectKey . 'Grade']);
+                            $export->setValue($export->getCell($Column, $Row), $tableRow[$SubjectKey . 'Grade'],
+                                self::isNumericGerman($tableRow[$SubjectKey . 'Grade']) ? DataType::TYPE_NUMERIC : DataType::TYPE_STRING);
                         }
                         // Trennstrich pro Fach
                         $export->setStyle($export->getCell($Column, $Row), $export->getCell($Column, $Row))->setBorderLeft();
                         $Column++;
                         if (isset($tableRow[$SubjectKey . 'Average'])) {
-                            $export->setValue($export->getCell($Column, $Row), $tableRow[$SubjectKey . 'Average']);
+                            $export->setValue($export->getCell($Column, $Row),
+                                self::isNumericGerman($tableRow[$SubjectKey . 'Average']) ? self::convertToEnglishFloat($tableRow[$SubjectKey . 'Average']) : $tableRow[$SubjectKey . 'Average'],
+                                self::isNumericGerman($tableRow[$SubjectKey . 'Average']) ? DataType::TYPE_NUMERIC : DataType::TYPE_STRING);
                         }
                         $Column++;
                     }
                 }
 
                 if (isset($tableHeader['Average'])) {
-                    $export->setValue($export->getCell($Column, $Row), $tableRow['Average']);
+                    $export->setValue($export->getCell($Column, $Row),
+                        self::isNumericGerman($tableRow['Average']) ? self::convertToEnglishFloat($tableRow['Average']) : $tableRow['Average'],
+                        self::isNumericGerman($tableRow['Average']) ? DataType::TYPE_NUMERIC : DataType::TYPE_STRING);
                     // Trennstrich Durchschnitt
                     $export->setStyle($export->getCell($Column, $Row), $export->getCell($Column, $Row))->setBorderLeft();
                 }
@@ -153,6 +159,16 @@ class Task implements IModuleInterface
         }
 
         return false;
+    }
+
+    private static function isNumericGerman(string $value): bool {
+        $normalized = str_replace(['.', ','], ['', '.'], $value);
+
+        return is_numeric($normalized);
+    }
+
+    private static function convertToEnglishFloat(string $value): float {
+        return (float) str_replace(['.', ','], ['', '.'], $value);
     }
 
     /**
