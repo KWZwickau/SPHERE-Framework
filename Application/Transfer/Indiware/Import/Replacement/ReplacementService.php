@@ -496,16 +496,18 @@ class ReplacementService
                                 }
 
                                 // Originalfach aus dem Import benutzen (ist nicht immer gepflegt)
+                                // Nur übernehmen, wenn es auch wirklich zu diesem Stundenplan-Eintrag passt. Sonst wird bei einer
+                                // verschobenen Stunde (Fach bleibt gleich) das verschobene Fach selbst als "Original" erkannt
                                 $tblSubject = false;
                                 if($Row['SubjectOriginal']){
                                     // Mapping
-                                    if(($tblSubject = Subject::useService()->getSubjectByMappingAccronym($Row['SubjectOriginal']))){
+                                    if(($tblSubjectOriginal = Subject::useService()->getSubjectByMappingAccronym($Row['SubjectOriginal']))
+                                        && $Row['Date'] == $DayList[$tblTimeTableNode->getDay()]
+                                        && $tblSubjectOriginal->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
+                                    ) {
+                                        $tblSubject = $tblSubjectOriginal;
                                         $Row['tblSubject'] = $tblSubject;
-                                        if ($Row['Date'] == $DayList[$tblTimeTableNode->getDay()]
-                                            && $tblSubject->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
-                                        ) {
-                                            $tempSubjectListReplacement[$tblTimeTableNode->getServiceTblSubject()->getId()] = true;
-                                        }
+                                        $tempSubjectListReplacement[$tblTimeTableNode->getServiceTblSubject()->getId()] = true;
                                     }
                                 }
                                 // Originalfach anhand des Stundenplans finden (Muss eindeutig sein)
