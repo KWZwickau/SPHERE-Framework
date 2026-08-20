@@ -215,6 +215,8 @@ class KamenzReportService
                                 $Content, $tblPerson, $level, $tblPastYearList, $gender, $isInPreparationDivisionForMigrants, $tblKamenzSchoolType
                             );
 
+                            self::setRepeaters($tblPerson, $level, $tblPastYearList, $Content, $gender, $tblKamenzSchoolType);
+
                             if ($tblStudent) {
                                 self::countForeignLanguages(
                                     $tblStudent, $level, $tblKamenzSchoolType, $Content, $gender, $isInPreparationDivisionForMigrants,
@@ -336,7 +338,7 @@ class KamenzReportService
                                 $Content, $tblPerson, $level, $tblPastYearList, $gender, $isInPreparationDivisionForMigrants, $tblKamenzSchoolType
                             );
 
-                            self::setRepeatersGym($tblPerson, $level, $tblPastYearList, $Content, $gender, $tblKamenzSchoolType);
+                            self::setRepeaters($tblPerson, $level, $tblPastYearList, $Content, $gender, $tblKamenzSchoolType);
 
                             self::countCourses($tblPerson, $level, $tblYear, $gender, $countAdvancedCourseArray, $countBasisCourseArray, $personAdvancedCourseList);
 
@@ -1523,14 +1525,14 @@ class KamenzReportService
      * @param $gender
      * @param TblType $tblSchoolTypeKamenz
      */
-    private static function setRepeatersGym(
+    private static function setRepeaters(
         TblPerson $tblPerson,
         int $level,
         array $tblPastYearList,
         &$Content,
         $gender,
         TblType $tblSchoolTypeKamenz
-    ) {
+    ): void {
         foreach ($tblPastYearList as $tblPastYear) {
             if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblPastYear))
                 && $level == $tblStudentEducation->getLevel()
@@ -1540,6 +1542,7 @@ class KamenzReportService
                 if ($gender) {
                     if (isset($Content['E08']['L' . $level][$gender])) {
                         $Content['E08']['L' . $level][$gender]++;
+
                     } else {
                         $Content['E08']['L' . $level][$gender] = 1;
                     }
