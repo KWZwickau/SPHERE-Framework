@@ -947,9 +947,12 @@ class KamenzReportService
             /**
              * Schüler mit gutachterl. best. Autismus
              */
-            if (($tblSpecialList = Student::useService()->getSpecialByPerson($tblPerson))) {
-
-                $hasAutism = false;
+            $hasAutism = false;
+            if ($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson)) {
+                $hasAutism = $tblSupport->getHasAutism();
+            }
+            // Fallback alte Variante (als Entwicklungsbesonderheit hinterlegt)
+            if (!$hasAutism && ($tblSpecialList = Student::useService()->getSpecialByPerson($tblPerson))) {
                 foreach ($tblSpecialList as $tblSpecial) {
                     if (($tblSpecialDisorderTypeList = Student::useService()->getSpecialDisorderTypeAllBySpecial($tblSpecial))) {
                         foreach ($tblSpecialDisorderTypeList as $tblSpecialDisorderType) {
@@ -964,30 +967,30 @@ class KamenzReportService
                         break;
                     }
                 }
+            }
 
-                if ($hasAutism) {
-                    if (isset($Content[$name][$text]['Autism']['L' . $level][$gender])) {
-                        $Content[$name][$text]['Autism']['L' . $level][$gender]++;
+            if ($hasAutism) {
+                if (isset($Content[$name][$text]['Autism']['L' . $level][$gender])) {
+                    $Content[$name][$text]['Autism']['L' . $level][$gender]++;
+                } else {
+                    $Content[$name][$text]['Autism']['L' . $level][$gender] = 1;
+                }
+                if ($isInPreparationDivisionForMigrants) {
+                    if (isset($Content[$name][$text]['Autism']['IsInPreparationDivisionForMigrants'][$gender])) {
+                        $Content[$name][$text]['Autism']['IsInPreparationDivisionForMigrants'][$gender]++;
                     } else {
-                        $Content[$name][$text]['Autism']['L' . $level][$gender] = 1;
+                        $Content[$name][$text]['Autism']['IsInPreparationDivisionForMigrants'][$gender] = 1;
                     }
-                    if ($isInPreparationDivisionForMigrants) {
-                        if (isset($Content[$name][$text]['Autism']['IsInPreparationDivisionForMigrants'][$gender])) {
-                            $Content[$name][$text]['Autism']['IsInPreparationDivisionForMigrants'][$gender]++;
-                        } else {
-                            $Content[$name][$text]['Autism']['IsInPreparationDivisionForMigrants'][$gender] = 1;
-                        }
-                    }
-                    if (isset($Content[$name][$text]['Autism']['TotalCount'][$gender])) {
-                        $Content[$name][$text]['Autism']['TotalCount'][$gender]++;
-                    } else {
-                        $Content[$name][$text]['Autism']['TotalCount'][$gender] = 1;
-                    }
-                    if (isset($Content[$name]['TotalCount']['Autism']['TotalCount'][$gender])) {
-                        $Content[$name]['TotalCount']['Autism']['TotalCount'][$gender]++;
-                    } else {
-                        $Content[$name]['TotalCount']['Autism']['TotalCount'][$gender] = 1;
-                    }
+                }
+                if (isset($Content[$name][$text]['Autism']['TotalCount'][$gender])) {
+                    $Content[$name][$text]['Autism']['TotalCount'][$gender]++;
+                } else {
+                    $Content[$name][$text]['Autism']['TotalCount'][$gender] = 1;
+                }
+                if (isset($Content[$name]['TotalCount']['Autism']['TotalCount'][$gender])) {
+                    $Content[$name]['TotalCount']['Autism']['TotalCount'][$gender]++;
+                } else {
+                    $Content[$name]['TotalCount']['Autism']['TotalCount'][$gender] = 1;
                 }
             }
         }
