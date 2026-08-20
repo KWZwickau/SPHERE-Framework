@@ -108,7 +108,11 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
                         .new Container('&nbsp;')
                         .new Title('Förderschwerpunkte:');
                     if (($tblFocusPrimary = Student::useService()->getPrimaryFocusBySupport($tblSupport))) {
-                        $WellFocus .= new Container(new Bold($tblFocusPrimary->getName()));
+                        $AutismusString = '';
+                        if($tblSupport->getHasAutism()){
+                            $AutismusString = ' inkl. Autismus';
+                        }
+                        $WellFocus .= new Container(new Bold($tblFocusPrimary->getName()).$AutismusString);
                     }
                     if (($tblFocusList = Student::useService()->getFocusListBySupport($tblSupport))) {
                         foreach ($tblFocusList as $tblFocus) {
