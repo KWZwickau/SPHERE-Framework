@@ -12,7 +12,6 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
-use SPHERE\System\Extension\Extension;
 
 class Service
 {
@@ -57,15 +56,16 @@ class Service
                 $DivisionName = $tblDivisionCourse->getName();
 
                 // todo Jens Ticket Auswahl für den Anzeigenamen erstellen über Formular + Möglichkeit Kennzeichnung "N" zu setzen, steht für nicht drucken
-                // Hintergrund aus Datenschutzgründen wird im Beruflichen Gym als Anzeigename die Schülernummer, statt des Schülernamens verwendet
                 $displayName = $tblPerson->getLastName() . ' : ' . $tblPerson->getFirstSecondName();
                 if (Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')
                     && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
                     && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
                 ) {
-                    if ($tblSchoolType->getShortName() == 'BGy') {
-                        $displayName = $studentNumber;
-                    }
+                    // wird nicht mehr aus Datenschutzgründen benötigt
+//                    if ($tblSchoolType->getShortName() == 'BGy') {
+//                        $displayName = $studentNumber;
+//                    }
+                    // HOGA prüft, ob dies noch benötigt wird
                     if ($tblSchoolType->getShortName() == 'Gy' && $tblStudentEducation->getLevel() == 10) {
                         $mark = "N";
                     }
