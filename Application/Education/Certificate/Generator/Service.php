@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertifi
 use SPHERE\Application\Education\Certificate\Generator\Service\Setup;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Setting\Setting;
+use SPHERE\Application\Education\Competence\SkillGrid\SkillGrid;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -33,7 +34,6 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -337,11 +337,28 @@ class Service extends AbstractService
     }
 
     /**
-     * @return false|TblCertificateType[]
+     * @param bool $hasLeave
+     *
+     * @return array
      */
-    public function getCertificateTypeAll()
+    public function getCertificateTypeAll(bool $hasLeave = true): array
     {
-        return (new Data($this->getBinding()))->getCertificateTypeAll();
+        $tblCertificateTypeList = (new Data($this->getBinding()))->getCertificateTypeAll();
+        $hasCompetence = SkillGrid::useService()->getIsConsumerAvailableForCompetence();
+
+        $resultList = [];
+        foreach ($tblCertificateTypeList as $tblCertificateType) {
+            // Abgangs-Typ herausfiltern
+            if (!$hasLeave && $tblCertificateType->getIdentifier() == 'LEAVE') {
+                continue;
+            }
+            // Kompetenz-Typen herausfiltern
+            if ($hasCompetence || !str_contains($tblCertificateType->getIdentifier(), 'SKILL')) {
+                $resultList[] = $tblCertificateType;
+            }
+        }
+
+        return $resultList;
     }
 
     /**
@@ -377,22 +394,28 @@ class Service extends AbstractService
      * @param null|TblCertificateType $tblCertificateType
      * @param null|TblType $tblSchoolType
      *
-     * @return bool|TblCertificate[]
+     * @return TblCertificate[]
      */
     public function getCertificateAllForAutoSelect(
         TblConsumer $tblConsumer = null,
         TblCertificateType $tblCertificateType = null,
         TblType $tblSchoolType = null
-    ) {
+    ): array {
         // SSW-939 - Noteninformation Zuweisung Vorlage
         // für die Noteninformation ist keine Schulart angegeben, deswegen wird keine Vorlage gefunden
         if ($tblCertificateType && $tblCertificateType->getIdentifier() == 'GRADE_INFORMATION'
             && ($tblCertificate = Setting::useService()->getCertificateByCertificateClassName('GradeInformation'))
         ) {
-            return array(0 => $tblCertificate);
+            $resultList = array(0 => $tblCertificate);
         } else {
-            return (new Data($this->getBinding()))->getCertificateAllForAutoSelect($tblConsumer, $tblCertificateType, $tblSchoolType);
+            $resultList = (new Data($this->getBinding()))->getCertificateAllForAutoSelect($tblConsumer, $tblCertificateType, $tblSchoolType);
+            // suchen allgemeine Zeugnisvorlagen ohne Schulart z.B.: Kompetenzzeugnisse
+            if ($tblSchoolType) {
+                $resultList = array_merge($resultList, (new Data($this->getBinding()))->getCertificateAllForAutoSelect($tblConsumer, $tblCertificateType));
+            }
         }
+
+        return $resultList;
     }
 
     /**

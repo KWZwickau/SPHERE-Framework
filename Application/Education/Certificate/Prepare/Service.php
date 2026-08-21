@@ -1204,6 +1204,33 @@ class Service extends ServiceTemplateInformation
     }
 
     /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     *
+     * @return bool
+     */
+    public function hasPrepareCertificateBehaviorGrades(TblPrepareCertificate $tblPrepareCertificate): bool
+    {
+        $tblCertificateList = [];
+        if (($tblPrepareStudentList = $this->getPrepareStudentAllByPrepare($tblPrepareCertificate))) {
+            foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                    && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                    && !isset($tblCertificateList[$tblCertificate->getId()])
+                ) {
+                    $tblCertificateList[$tblCertificate->getId()] = $tblCertificate;
+                    $hasBehaviorGrades = $this->hasCertificateBehaviorGrades($tblCertificate, $tblPerson);
+
+                    if ($hasBehaviorGrades) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return false|TblPrepareCertificate[]

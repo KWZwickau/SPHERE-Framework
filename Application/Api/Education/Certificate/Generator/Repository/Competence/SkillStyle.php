@@ -477,6 +477,7 @@ abstract class SkillStyle extends Certificate
      */
     protected function setRemark($personId): void
     {
+        // descriptionHead
         $minHeightRequired = 20 + 16;
         // Sperrstrich oder Platz für Arbeitsgemeinschaften
         $minHeightRequired += 20 + 32;
@@ -486,7 +487,8 @@ abstract class SkillStyle extends Certificate
                 $tblPrepareCertificate, $tblPerson, 'Remark'))
         ) {
             // 100 Zeichen entspricht ca. 1 Zeile
-            $minHeightRequired += (strlen($tblPrepareInformation->getValue()) / 100) * 16;
+            $rowCount = (int) (strlen($tblPrepareInformation->getValue()) / 100);
+            $minHeightRequired += max($rowCount, 1)  * 16;
         }
 
         // erstmal nur Platz für 1 Seite bzw. die Seite nach max trennen

@@ -521,4 +521,15 @@ class Service extends AbstractService
         // aktuell sind erstmal nur allgemeinbildende Schulen vorgesehen
         return School::useService()->getConsumerSchoolTypeCommonAll() ?: [];
     }
+
+    /**
+     * @return bool
+     */
+    public function getIsConsumerAvailableForCompetence(): bool
+    {
+        return ($tblRole = Access::useService()->getRoleByName('Bildung: Kompetenzbewertung (Schulleitung)'))
+            && ($tblAccount = Account::useService()->getAccountBySession())
+            && ($tblConsumer = $tblAccount->getServiceTblConsumer())
+            && (Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer));
+    }
 }

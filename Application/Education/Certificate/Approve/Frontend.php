@@ -177,11 +177,12 @@ class Frontend extends Extension implements IFrontendInterface
                         ))
                         . (new External(
                             '',
-                            '/Api/Education/Certificate/Generator/PreviewMultiLeavePdf',
+//                            '/Api/Education/Certificate/Generator/PreviewMultiLeavePdf',
+                            '/Education/Certificate/Download',
                             new Download(),
                             array(
                                 'DivisionId' => $item['DivisionId'],
-                                'Name' => 'Zeugnismuster'
+                                'Name' => 'Musterabgangszeugnisse'
                             ), 'Alle Zeugnisse als Muster herunterladen'))
                         . (new Standard(
                             '',
@@ -291,11 +292,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 ))
                                 . (new External(
                                     '',
-                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
+//                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
+                                    '/Education/Certificate/Download',
                                     new Download(),
                                     array(
                                         'PrepareId' => $tblPrepare->getId(),
-                                        'Name' => 'Zeugnismuster'
+                                        'Name' => 'Musterzeugnisse'
                                     ), 'Alle Zeugnisse als Muster herunterladen'))
                                 . (new Standard(
                                     '',
@@ -402,11 +404,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 ))
                                 . (new External(
                                     '',
-                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
+//                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
+                                    '/Education/Certificate/Download',
                                     new Download(),
                                     array(
                                         'PrepareId' => $tblPrepare->getId(),
-                                        'Name' => 'Zeugnismuster'
+                                        'Name' => 'Musterzeugnisse'
                                     ), 'Alle Zeugnisse als Muster herunterladen'))
                                 . (new Standard(
                                     '',
@@ -653,11 +656,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(array(
                                     new External(
                                         'Alle Zeugnisse als Muster herunterladen',
-                                        '/Api/Education/Certificate/Generator/PreviewMultiLeavePdf',
+//                                        '/Api/Education/Certificate/Generator/PreviewMultiLeavePdf',
+                                        '/Education/Certificate/Download',
                                         new Download(),
                                         array(
                                             'DivisionId' => $tblDivisionCourse->getId(),
-                                            'Name' => 'Zeugnismuster'
+                                            'Name' => 'Musterabgangszeugnisse'
                                         ), 'Alle Zeugnisse als Muster herunterladen'),
                                     new Standard(
                                         'Alle Zeugnisse dieser Klasse freigeben',
@@ -857,11 +861,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(array(
                                     new External(
                                         'Alle Zeugnisse als Muster herunterladen',
-                                        '/Api/Education/Certificate/Generator/PreviewMultiPdf',
+//                                        '/Api/Education/Certificate/Generator/PreviewMultiPdf',
+                                        '/Education/Certificate/Download',
                                         new Download(),
                                         array(
                                             'PrepareId' => $tblPrepare->getId(),
-                                            'Name' => 'Zeugnismuster'
+                                            'Name' => 'Musterzeugnisse'
                                         ), 'Alle Zeugnisse als Muster herunterladen'),
                                     new Standard(
                                         'Alle Zeugnisse dieser Klasse freigeben',

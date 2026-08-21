@@ -254,9 +254,8 @@ class Data extends AbstractData
             $this->tblCertificateTypeLeave = $this->createCertificateType('Abgangszeugnis', 'LEAVE');
             $this->tblCertificateTypeDiploma = $this->createCertificateType('Abschlusszeugnis', 'DIPLOMA');
             $this->tblCertificateTypeMidTermCourse = $this->createCertificateType('Kurshalbjahreszeugnis', 'MID_TERM_COURSE');
-            // ToDo: wieder aktivieren im nächsten release
-//            $this->tblCertificateTypeSkillHalfYear = $this->createCertificateType('Kompetenz Halbjahresinformation', 'SKILL_HALF_YEAR');
-//            $this->tblCertificateTypeSkillYear = $this->createCertificateType('Kompetenz Jahreszeugnis', 'SKILL_YEAR');
+            $this->tblCertificateTypeSkillHalfYear = $this->createCertificateType('Kompetenz Halbjahresinformation', 'SKILL_HALF_YEAR');
+            $this->tblCertificateTypeSkillYear = $this->createCertificateType('Kompetenz Jahreszeugnis', 'SKILL_YEAR');
 
             $this->tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
             $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE);
@@ -439,9 +438,8 @@ class Data extends AbstractData
      */
     private function setCertificatesCompetence(): void
     {
-        // ToDo: wieder aktivieren im nächsten release
-//        $this->createCertificate('Kompetenz Halbjahresinformation', '', 'Competence\SkillHj', null, false, true, false, $this->tblCertificateTypeSkillHalfYear);
-//        $this->createCertificate('Kompetenz Jahreszeugnis', '', 'Competence\SkillJ', null, false, false, false, $this->tblCertificateTypeSkillYear);
+        $this->createCertificate('Kompetenz Halbjahresinformation', '', 'Competence\SkillHj', null, false, true, false, $this->tblCertificateTypeSkillHalfYear);
+        $this->createCertificate('Kompetenz Jahreszeugnis', '', 'Competence\SkillJ', null, false, false, false, $this->tblCertificateTypeSkillYear);
     }
 
     /**
@@ -1001,14 +999,13 @@ class Data extends AbstractData
     }
 
     /**
-     * @return false|TblCertificateType[]
+     * @return TblCertificateType[]
      */
-    public function getCertificateTypeAll()
+    public function getCertificateTypeAll(): array
     {
-
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCertificateType', array(
             TblCertificateType::ATTR_NAME => self::ORDER_ASC
-        ));
+        )) ?: [];
     }
 
     /**
@@ -1335,22 +1332,21 @@ class Data extends AbstractData
      * @param null|TblCertificateType $tblCertificateType
      * @param null|TblType $tblSchoolType
      *
-     * @return bool|Entity\TblCertificate[]
+     * @return TblCertificate[]
      */
     public function getCertificateAllForAutoSelect(
-        TblConsumer $tblConsumer = null,
-        TblCertificateType $tblCertificateType = null,
-        TblType $tblSchoolType = null
-    ) {
-
+        ?TblConsumer $tblConsumer = null,
+        ?TblCertificateType $tblCertificateType = null,
+        ?TblType $tblSchoolType = null
+    ): array {
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblCertificate', array(
-                TblCertificate::SERVICE_TBL_CONSUMER => ($tblConsumer ? $tblConsumer->getId() : null),
-                TblCertificate::ATTR_TBL_CERTIFICATE_TYPE => ($tblCertificateType ? $tblCertificateType->getId() : null),
-                TblCertificate::SERVICE_TBL_SCHOOL_TYPE => ($tblSchoolType ? $tblSchoolType->getId() : null),
+                TblCertificate::SERVICE_TBL_CONSUMER => $tblConsumer?->getId(),
+                TblCertificate::ATTR_TBL_CERTIFICATE_TYPE => $tblCertificateType?->getId(),
+                TblCertificate::SERVICE_TBL_SCHOOL_TYPE => $tblSchoolType?->getId(),
                 TblCertificate::ATTR_IS_IGNORED_FOR_AUTO_SELECT => false
             )
-        );
+        ) ?: [];
     }
 
     /**

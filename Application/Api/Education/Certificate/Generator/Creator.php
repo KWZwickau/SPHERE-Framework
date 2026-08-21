@@ -63,14 +63,14 @@ class Creator extends Extension
         return $File;
     }
 
-    private static function buildMultiDummyFile($Data = array(), $pageList = array(), $certificateList = array()): FilePointer
+    public static function buildMultiDummyFile($Data = array(), $pageList = array(), $certificateList = array(), bool $isDestruct = true): FilePointer
     {
         ini_set('memory_limit', '1G');
 
         $MultiCertificate = new MultiCertificate();
 
         // Create Tmp
-        $File = Storage::createFilePointer('pdf');
+        $File = Storage::createFilePointer('pdf', 'SPHERE-Temporary', $isDestruct);
         /** @var DomPdf $Document */
         $Document = Document::getPdfDocument($File->getFileLocation());
         $Content = $MultiCertificate->createCertificate($Data, $pageList, $certificateList);
@@ -315,6 +315,8 @@ class Creator extends Extension
             if (!empty($FileList)) {
 //                $ZipFile = new FilePointer('zip');
 //                $ZipFile->saveFile();
+
+                // PdfMerger kann keine PNG's sondern nur JPEG
                 $MergeFile = Storage::createFilePointer('pdf');
                 $PdfMerger = new PdfMerge();
 
@@ -329,7 +331,7 @@ class Creator extends Extension
                     $PdfMerger->addPdf($File);
                 }
 
-                // mergen aller hinzugefügten PDF-Datein
+                // mergen aller hinzugefügten PDF-Dateien
                 $PdfMerger->mergePdf($MergeFile);
 
                 // aufräumen der Temp-Files
@@ -355,6 +357,8 @@ class Creator extends Extension
     }
 
     /**
+     * @deprecated
+     *
      * @param null $PrepareId
      * @param string $Name
      * @param bool $Redirect
@@ -425,6 +429,8 @@ class Creator extends Extension
     }
 
     /**
+     * @deprecated
+     *
      * @param null $DivisionId
      * @param string $Name
      * @param bool $Redirect
@@ -491,6 +497,8 @@ class Creator extends Extension
     }
 
     /**
+     * @deprecated
+     *
      * @param null $PrepareId
      * @param string $Name
      * @param bool $Redirect
@@ -608,6 +616,8 @@ class Creator extends Extension
     }
 
     /**
+     * @deprecated
+     *
      * @param null $DivisionId
      * @param string $Name
      * @param bool $Redirect
@@ -849,5 +859,26 @@ class Creator extends Extension
         }
 
         return new Stage($Name, 'Keine Zweitschrift zum Druck bereit.');
+    }
+
+    /**
+     * @param string $FileLocation
+     * @param string $Name
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public static function downloadFileLocation(string $FileLocation = '', string $Name = ''): string
+    {
+        if ($FileLocation) {
+            $filePointer = FilePointer::fromFileLocation($FileLocation, true);
+
+            return FileSystem::getStream(
+                $filePointer->getRealPath(),
+                "$Name " . date("Y-m-d H:i:s") . ".pdf"
+            )->__toString();
+        }
+
+        return "Zeugnis nicht gefunden!";
     }
 }

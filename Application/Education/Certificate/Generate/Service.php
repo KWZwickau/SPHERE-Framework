@@ -430,7 +430,7 @@ class Service extends AbstractService
             // #SSW-1064 Automatische Zuordnung von Zeugnissen ist nicht korrekt in Coswig
             if ($this->getUseCourseForCertificateChoosing()) {
                 if ($tblSchoolType->getShortName() == 'OS'
-                    && preg_match('!(0?(7|8|9)|10)!is', $levelName)
+                    && preg_match('!(0?([789])|10)!is', $levelName)
                 ) {
                     $tblCourse = $tblStudentEducation->getServiceTblCourse();
                 }

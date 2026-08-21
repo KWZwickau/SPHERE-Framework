@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\Competence;
 
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 class SkillHj extends SkillStyle
@@ -45,7 +46,7 @@ class SkillHj extends SkillStyle
         if (false) {
             /** @noinspection PhpUnreachableStatementInspection */
             for ($i = 0; $i < 9; $i++) {
-                $this->setSkillContent($tblPerson);
+                $this->setSkillContent(Person::useService()->getPersonById(972));
             }
         }
 
