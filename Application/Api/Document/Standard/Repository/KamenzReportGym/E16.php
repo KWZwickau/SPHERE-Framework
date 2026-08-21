@@ -12,6 +12,7 @@ use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
+// jetzt EZ01
 class E16
 {
     public static function getContent()
@@ -23,9 +24,9 @@ class E16
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E16. Schüler in Grundkursen an dieser Schule im Schuljahr {{ Content.SchoolYear.Current }} 
+                ->setContent('EZ01. Schüler in Grundkursen an dieser Schule im Schuljahr {{ Content.SchoolYear.Current }} 
                               nach Jahrgangsstufen <br> 
-                              E16.1 Schüler in Grundkursen gemäß § 41 Abs. 1 SOGYA bzw. in fächerverbindenden Grundkursen
+                              EZ01.1 Schüler in Grundkursen und in fächerverbindenden Grundkursen
                               im Schuljahr {{ Content.SchoolYear.Current }} nach Jahrgangsstufen' )
             );
 

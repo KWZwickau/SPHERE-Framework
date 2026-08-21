@@ -159,34 +159,30 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(
             new FormGroup(array(
                 new FormRow(array(
-                    new FormColumn(
-                        (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired()
-                        , 6),
-                    new FormColumn(
-                        new SelectBox('Data[PrimaryFocus]', 'Primär geförderter Schwerpunkt', array('{{ Name }}' => $tblSupportFocusList))
-                        , 6),
-                )),
-                new FormRow(array(
-                    new FormColumn(array(
-                        (new SelectBox('Data[SupportType]', 'Vorgang', array('{{ Name }}' => $SupportTypeList), new Education()))->setRequired(),
-                        new Warning('Nur "Förderbescheid" ist für Lehrer sichtbar')
-                        ), 6),
-                    new FormColumn(array(
+                    new FormColumn(new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn((new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired()),
+                        new LayoutColumn(array(
+                            (new SelectBox('Data[SupportType]', 'Vorgang', array('{{ Name }}' => $SupportTypeList), new Education()))->setRequired(),
+                            new Warning('Nur "Förderbescheid" ist für Lehrer sichtbar')
+                        )),
+                        new LayoutColumn(array(
+                            new TextField('Data[Company]', 'Förderschule', 'Förderschule', new Education()),
+                            new Ruler(),
+                            new TextField('Data[PersonSupport]', 'Schulbegleitung', 'Schulbegleitung', new PersonIcon()),
+                            new Ruler(),
+                            new TextField('Data[SupportTime]', 'Stundenbedarf pro Woche', 'Stundenbedarf pro Woche', new Clock()),
+                        ))
+                    )))), 6),
+                    new FormColumn(new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(new SelectBox('Data[PrimaryFocus]', 'Primär geförderter Schwerpunkt', array('{{ Name }}' => $tblSupportFocusList))),
+                        new LayoutColumn(new Listing(array(new CheckBox('Data[hasAutism]',
+                            '<span style="font-size: 10px; font-weight: bold">in Verbindung mit gutachterlich bestätigter Autismus-Spektrum-Störung</span>', 1)))),
+                        new LayoutColumn(array(
                             new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Bold('Förderschwerpunkte'))))),
                             new Listing($CheckboxList)
-                        ), 6),
-                )),
-                new FormRow(array(
-                    new FormColumn(array(
-                        new TextField('Data[Company]', 'Förderschule', 'Förderschule', new Education()),
-                        new Ruler(),
-                        new TextField('Data[PersonSupport]', 'Schulbegleitung', 'Schulbegleitung', new PersonIcon()),
-                        new Ruler(),
-                        new TextField('Data[SupportTime]', 'Stundenbedarf pro Woche', 'Stundenbedarf pro Woche', new Clock()),
-                    ), 6),
-                    new FormColumn(
-                        (new TextArea('Data[Remark]', 'Bemerkung', 'Bemerkung', new Edit()))
-                        , 6),
+                        )),
+                        new LayoutColumn(new TextArea('Data[Remark]', 'Bemerkung', 'Bemerkung', new Edit()))
+                    )))), 6)
                 )),
                 new FormRow(array(
                     new FormColumn(array(
@@ -217,6 +213,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if(($tblSupportFocusPrimary = Student::useService()->getPrimaryFocusBySupport($tblSupport))){
             $Global->POST['Data']['PrimaryFocus'] = $tblSupportFocusPrimary->getId();
+            $Global->POST['Data']['hasAutism'] = ($tblSupport->getHasAutism() ? 1 : '');
         }
         if(($tblSupportFocusTypeList = Student::useService()->getFocusListBySupport($tblSupport))){
             foreach($tblSupportFocusTypeList as $tblSupportFocusType){
@@ -490,10 +487,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $FocusList = array();
                 $PrimaryFocus = Student::useService()->getPrimaryFocusBySupport($tblSupport);
                 $tblFocusList = Student::useService()->getFocusListBySupport($tblSupport);
+                $hasAutism = $tblSupport->getHasAutism();
                 if($tblFocusList){
                     foreach($tblFocusList as $tblFocus){
                         if($PrimaryFocus && $PrimaryFocus->getId() == $tblFocus->getId()){
-                            $FocusList[] = new Bold($tblFocus->getName().' *');
+                            array_unshift($FocusList, new Bold($tblFocus->getName().' *').($hasAutism ? ' inkl. Autismus': ''));
                         } else {
                             $FocusList[] = $tblFocus->getName();
                         }

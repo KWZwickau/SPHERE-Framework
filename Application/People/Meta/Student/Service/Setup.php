@@ -622,6 +622,7 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'SupportTime', self::FIELD_TYPE_STRING);
         $this->createColumn($table, 'PersonEditor', self::FIELD_TYPE_STRING);
         $this->createColumn($table, 'Remark', self::FIELD_TYPE_TEXT);
+        $this->createColumn($table, 'hasAutism', self::FIELD_TYPE_BOOLEAN, false, false);
 
         return $table;
     }

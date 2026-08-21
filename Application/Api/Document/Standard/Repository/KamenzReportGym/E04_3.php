@@ -1,18 +1,12 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: lehmann
- * Date: 23.06.2017
- * Time: 14:28
- */
 
-namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReport;
+namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym;
 
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
-class E04_1
+class E04_3
 {
     public static function getContent()
     {
@@ -23,8 +17,8 @@ class E04_1
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E04.1 Schüler mit der ersten Fremdsprache im Schuljahr {{Content.SchoolYear.Current}} 
-                    nach Fremdsprachen und Klassenstufen (Bitte <b>nur</b> die erste Fremdsprache angeben!)')
+                ->setContent('E04.3 Schüler mit drei Fremdsprachen im Schuljahr {{Content.SchoolYear.Current}} 
+                    nach Fremdsprachen und Klassenstufen (Bitte <b>nur</b> die dritte Fremdsprache angeben!)')
             );
 
         $sliceList[] = (new Slice())
@@ -40,115 +34,110 @@ class E04_1
                     ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '20%'
+                    ->stylePaddingBottom('8.5px')
+                    , '28%'
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Klassenstufe')
+                            ->setContent('Klassen- bzw. Jahrgangsstufe')
                             ->styleAlignCenter()
-                            ->styleBorderRight()
-                            , '100%'
+                            ->styleBorderRight(), '100%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('5')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('6')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('7')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('8')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('9')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('10')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight(), '12.5%'
                         )
-                    ), '60%'
+                        ->addElementColumn((new Element())
+                            ->setContent('11')
+                            ->styleAlignCenter()
+                            ->styleBorderRight(), '12.5%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('12')
+                            ->styleAlignCenter()
+                            ->styleBorderRight(), '12.5%'
+                        )
+                    )
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Sonderkl.')
-                    ->styleAlignCenter()
-                    ->stylePaddingTop('8.5px')
-                    ->stylePaddingBottom('8.5px')
-                    ->styleBorderRight()
-                    , '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Insgesamt')
+                    ->setContent('Insges.')
                     ->styleAlignCenter()
                     ->styleTextBold()
                     ->stylePaddingTop('8.5px')
-                    ->stylePaddingBottom('8.5px')
-                    , '10%'
+                    ->stylePaddingBottom('8.5px'), '8%'
                 )
             );
 
-        for ($i = 0; $i < 6; $i++) {
+        for ($i = 0; $i < 5; $i++) {
             $section = new Section();
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.E04_1.S' . $i . '.SubjectName is not empty) %}
-                                {{ Content.E04_1.S' . $i . '.SubjectName }}
+                            {% if (Content.E04_3.S' . $i . '.SubjectName is not empty) %}
+                                {{ Content.E04_3.S' . $i . '.SubjectName }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
                         ')
                     ->styleAlignCenter()
-                    ->styleBorderRight(), '20%'
+                    ->styleBorderRight(), '28%'
                 );
-            for ($level = 5; $level <= 10; $level++) {
+            for ($level = 5; $level < 13; $level++) {
                 $section
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if (Content.E04_1.S' . $i . '.L' . $level . ' is not empty) %}
-                                {{ Content.E04_1.S' . $i . '.L' . $level . ' }}
+                            {% if (Content.E04_3.S' . $i . '.L' . $level . ' is not empty) %}
+                                {{ Content.E04_3.S' . $i . '.L' . $level . ' }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
                         ')
                         ->styleAlignCenter()
-                        ->styleBorderRight(), '10%'
+                        ->styleBackgroundColor($level < 11 ? 'white' : 'lightgrey')
+                        ->styleBorderRight(), '8%'
                     );
             }
             $section
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleAlignCenter()
-                    ->styleBorderRight()
-                    , '10%'
-                );
-            $section
-                ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.E04_1.S' . $i . '.TotalCount is not empty) %}
-                                {{ Content.E04_1.S' . $i . '.TotalCount }}
+                            {% if (Content.E04_3.S' . $i . '.TotalCount is not empty) %}
+                                {{ Content.E04_3.S' . $i . '.TotalCount }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
                         ')
                     ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
-                    ->styleTextBold(), '10%'
+                    ->styleTextBold(), '8%'
                 );
 
             $sliceList[] = (new Slice())

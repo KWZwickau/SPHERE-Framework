@@ -1,18 +1,12 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: lehmann
- * Date: 23.06.2017
- * Time: 14:28
- */
 
-namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReport;
+namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS;
 
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
-class E04_1
+class E04_2
 {
     public static function getContent()
     {
@@ -23,8 +17,8 @@ class E04_1
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E04.1 Schüler mit der ersten Fremdsprache im Schuljahr {{Content.SchoolYear.Current}} 
-                    nach Fremdsprachen und Klassenstufen (Bitte <b>nur</b> die erste Fremdsprache angeben!)')
+                ->setContent('E04.2 Schüler mit zwei Fremdsprachen im Schuljahr {{ Content.SchoolYear.Current }} 
+                    nach Fremdsprachen und Klassenstufen (Bitte <b>nur</b> die zweite Fremdsprache angeben!)')
             );
 
         $sliceList[] = (new Slice())
@@ -39,89 +33,82 @@ class E04_1
                     ->setContent('Fremdsprache')
                     ->styleAlignCenter()
                     ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '20%'
+                    ->stylePaddingTop('17.1px')
+                    ->stylePaddingBottom('17.1px'), '50%'
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassenstufe')
                             ->styleAlignCenter()
-                            ->styleBorderRight()
-                            , '100%'
+                            ->styleBorderRight(), '100%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('5')
+                            ->setContent('1')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight()
+                            ->stylePaddingTop('8.6px')
+                            ->stylePaddingBottom('8.6px'), '25%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('6')
+                            ->setContent('2')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight()
+                            ->stylePaddingTop('8.6px')
+                            ->stylePaddingBottom('8.6px'), '25%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('7')
+                            ->setContent('3')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight()
+                            ->stylePaddingTop('8.6px')
+                            ->stylePaddingBottom('8.6px'), '25%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('8')
+                            ->setContent('4')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
+                            ->stylePaddingTop('8.6px')
+                            ->stylePaddingBottom('8.6px')
+                            ->styleBorderRight(), '25%'
                         )
-                        ->addElementColumn((new Element())
-                            ->setContent('9')
-                            ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('10')
-                            ->styleAlignCenter()
-                            ->styleBorderRight(), '20%'
-                        )
-                    ), '60%'
+                    ), '40%'
                 )
-                ->addElementColumn((new Element())
-                    ->setContent('Sonderkl.')
-                    ->styleAlignCenter()
-                    ->stylePaddingTop('8.5px')
-                    ->stylePaddingBottom('8.5px')
-                    ->styleBorderRight()
-                    , '10%'
-                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('Vorb.kl. u.<br/>-gr. f.<br/>Migranten')
+//                    ->styleBorderRight(), '10%'
+//                )
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
                     ->styleAlignCenter()
                     ->styleTextBold()
-                    ->stylePaddingTop('8.5px')
-                    ->stylePaddingBottom('8.5px')
-                    , '10%'
+                    ->stylePaddingTop('17.1px')
+                    ->stylePaddingBottom('17.1px'), '10%'
                 )
             );
 
-        for ($i = 0; $i < 6; $i++) {
+        for ($i = 0; $i < 8; $i++) {
             $section = new Section();
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.E04_1.S' . $i . '.SubjectName is not empty) %}
-                                {{ Content.E04_1.S' . $i . '.SubjectName }}
+                            {% if (Content.E04_2.S' . $i . '.SubjectName is not empty) %}
+                                {{ Content.E04_2.S' . $i . '.SubjectName }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
                         ')
                     ->styleAlignCenter()
-                    ->styleBorderRight(), '20%'
+                    ->styleBorderRight()
+                    ->styleBackgroundColor('lightgrey'), '50%'
                 );
-            for ($level = 5; $level <= 10; $level++) {
+            for ($level = 1; $level < 5; $level++) {
                 $section
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if (Content.E04_1.S' . $i . '.L' . $level . ' is not empty) %}
-                                {{ Content.E04_1.S' . $i . '.L' . $level . ' }}
+                            {% if (Content.E04_2.S' . $i . '.L' . $level . ' is not empty) %}
+                                {{ Content.E04_2.S' . $i . '.L' . $level . ' }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -130,18 +117,22 @@ class E04_1
                         ->styleBorderRight(), '10%'
                     );
             }
-            $section
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleAlignCenter()
-                    ->styleBorderRight()
-                    , '10%'
-                );
+//            $section
+//                ->addElementColumn((new Element())
+//                    ->setContent('
+//                            {% if (Content.E04_2.S' . $i . '.Migration is not empty) %}
+//                                {{ Content.E04_2.S' . $i . '.Migration }}
+//                            {% else %}
+//                                &nbsp;
+//                            {% endif %}
+//                        ')
+//                    ->styleBorderRight(), '10%'
+//                );
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.E04_1.S' . $i . '.TotalCount is not empty) %}
-                                {{ Content.E04_1.S' . $i . '.TotalCount }}
+                            {% if (Content.E04_2.S' . $i . '.TotalCount is not empty) %}
+                                {{ Content.E04_2.S' . $i . '.TotalCount }}
                             {% else %}
                                 &nbsp;
                             {% endif %}

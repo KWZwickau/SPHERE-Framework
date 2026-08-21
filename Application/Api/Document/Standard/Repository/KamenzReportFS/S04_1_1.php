@@ -22,12 +22,12 @@ class S04_1_1
     {
         switch ($name) {
             case 'S04_1_1':
-                $title = 'S04-1.1 Schüler im <u>Vollzeitunterricht</u> im Schuljahr {{ Content.SchoolYear.Current }} nach
+                $title = 'S04.1-1 Schüler im <u>Vollzeitunterricht</u> im Schuljahr {{ Content.SchoolYear.Current }} nach
                     Ausbildungsstatus, der Anzahl der derzeit erlernten Fremdsprachen und Klassenstufen';
                 $maxLevel = 3;
                 break;
-            case 'S04_2_1':
-                $title = 'S04-2.1 Schüler im <u>Teilzeitunterricht</u> im Schuljahr {{ Content.SchoolYear.Current }} nach
+            case 'S04_1_2':
+                $title = 'S04.1-2 Schüler im <u>Teilzeitunterricht</u> im Schuljahr {{ Content.SchoolYear.Current }} nach
                     Ausbildungsstatus, der Anzahl der derzeit erlernten Fremdsprachen und Klassenstufen';
                 $maxLevel = 4;
                 break;

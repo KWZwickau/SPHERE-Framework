@@ -12,6 +12,7 @@ use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
+// jetzt E06
 class E07
 {
     public static function getContent()
@@ -23,8 +24,8 @@ class E07
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E07. Schüler im Schuljahr {{ Content.SchoolYear.Current }} nach Klassenstufen und der im vergangenen Schuljahr besuchten
-                 <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Schulart')
+                ->setContent('E06. Schüler im Schuljahr {{ Content.SchoolYear.Current }} nach der im vergangenen Schuljahr besuchten Schulart und
+                 <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Klassenstufen')
             );
 
         $sliceList[] = (new Slice())

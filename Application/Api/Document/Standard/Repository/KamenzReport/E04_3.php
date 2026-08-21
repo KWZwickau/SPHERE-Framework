@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: lehmann
- * Date: 23.06.2017
- * Time: 14:28
- */
 
 namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReport;
 
@@ -12,7 +6,7 @@ use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
-class E04_1
+class E04_3
 {
     public static function getContent()
     {
@@ -23,8 +17,8 @@ class E04_1
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E04.1 Schüler mit der ersten Fremdsprache im Schuljahr {{Content.SchoolYear.Current}} 
-                    nach Fremdsprachen und Klassenstufen (Bitte <b>nur</b> die erste Fremdsprache angeben!)')
+                ->setContent('E04.3 Schüler mit drei Fremdsprachen im Schuljahr {{Content.SchoolYear.Current}} 
+                    nach Fremdsprachen und Klassenstufen (Bitte <b>nur</b> die dritte Fremdsprache angeben!)')
             );
 
         $sliceList[] = (new Slice())
@@ -107,8 +101,8 @@ class E04_1
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.E04_1.S' . $i . '.SubjectName is not empty) %}
-                                {{ Content.E04_1.S' . $i . '.SubjectName }}
+                            {% if (Content.E04_3.S' . $i . '.SubjectName is not empty) %}
+                                {{ Content.E04_3.S' . $i . '.SubjectName }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -120,8 +114,8 @@ class E04_1
                 $section
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if (Content.E04_1.S' . $i . '.L' . $level . ' is not empty) %}
-                                {{ Content.E04_1.S' . $i . '.L' . $level . ' }}
+                            {% if (Content.E04_3.S' . $i . '.L' . $level . ' is not empty) %}
+                                {{ Content.E04_3.S' . $i . '.L' . $level . ' }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -140,8 +134,8 @@ class E04_1
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.E04_1.S' . $i . '.TotalCount is not empty) %}
-                                {{ Content.E04_1.S' . $i . '.TotalCount }}
+                            {% if (Content.E04_3.S' . $i . '.TotalCount is not empty) %}
+                                {{ Content.E04_3.S' . $i . '.TotalCount }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
