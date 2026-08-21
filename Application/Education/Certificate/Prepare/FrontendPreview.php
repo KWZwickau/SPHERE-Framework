@@ -447,6 +447,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                     "targets" => 2
                 ),
                 array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 1),
+                array('type' => 'natural', 'targets' => 0),
             );
 
             $Stage->setContent(

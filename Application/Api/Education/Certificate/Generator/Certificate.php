@@ -1586,11 +1586,20 @@ abstract class Certificate extends Extension
 
         $SectionList = array();
 
+        $tblSubjectForeignLanguage = $this->getForeignLanguageSubject(2);
         if (!empty($tblCertificateSubjectAll)) {
             $SubjectStructure = array();
             foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
                 $tblSubject = $tblCertificateSubject->getServiceTblSubject();
                 if ($tblSubject) {
+                    // 2. Fremdsprache ignorieren, falls 2. FS extra auf der Zeugnisvorlage eingestellt ist
+                    if ($tblSubjectForeignLanguage
+                        && (!empty($languagesWithStartLevel) || $hasSecondLanguageDiploma || $hasSecondLanguageSecondarySchool)
+                        && $tblSubjectForeignLanguage->getId() == $tblSubject->getId()
+                    ) {
+                        continue;
+                    }
+
                     // Grade Exists? => Add Subject to Certificate
                     if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
