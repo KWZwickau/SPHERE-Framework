@@ -269,7 +269,7 @@ class StudentFilter extends Extension
                             switch ($Label) {
                                 case 'Klassenstufe': $DataPerson['Edit'] = $tblStudentEducation->getLevel(); break;
                                 case 'Schulart': $DataPerson['Edit'] = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType()) ? $tblSchoolType->getName() : ''; break;
-                                case 'Schule': $DataPerson['Edit'] = ($tblCompany = $tblStudentEducation->getServiceTblCompany()) ? $tblCompany->getName() : ''; break;
+                                case 'Schule': $DataPerson['Edit'] = ($tblCompany = $tblStudentEducation->getServiceTblCompany()) ? $tblCompany->getDisplayName() : ''; break;
                                 case 'Bildungsgang': $DataPerson['Edit'] = ($tblCourse = $tblStudentEducation->getServiceTblCourse()) ? $tblCourse->getName() : ''; break;
                             }
                         }
