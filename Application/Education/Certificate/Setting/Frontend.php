@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\Certificate\Setting;
 
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
+use SPHERE\Application\Education\Competence\SkillGrid\SkillGrid;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -788,36 +789,41 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblTemplateAll = array_merge($tblTemplateConsumer, $tblTemplateAll);
             }
 
+            $hasCompetence = SkillGrid::useService()->getIsConsumerAvailableForCompetence();
             $TemplateTable = array();
-            array_walk($tblTemplateAll,
-                function (TblCertificate $tblCertificate) use (&$TemplateTable) {
-                    $hasOption = true;
-                    $name = $tblCertificate->getName();
-                    if ($name == 'Berufliches Gymnasium Abgangszeugnis'
-                        || $name == 'Berufliches Gymnasium Kurshalbjahreszeugnis'
-                    ) {
-                        $hasOption = false;
-                    }
+            foreach ($tblTemplateAll as $tblCertificate) {
+                $hasOption = true;
+                $name = $tblCertificate->getName();
+                if ($name == 'Berufliches Gymnasium Abgangszeugnis'
+                    || $name == 'Berufliches Gymnasium Kurshalbjahreszeugnis'
+                ) {
+                    $hasOption = false;
+                }
 
-                    $TemplateTable[] = array_merge($tblCertificate->__toArray(), array(
-                            'Typ'    => '<div class="text-center">'.( $tblCertificate->getServiceTblConsumer()
-                                    ? new Small(new Muted($tblCertificate->getServiceTblConsumer()->getAcronym())).'<br/>'.new Star()
-                                    : new Document().'<br/>'.new Small(new Muted('Standard'))
-                                ).'</div>',
-                            'Category' => $tblCertificate->getDisplayCategory(),
-                            'CertificateNumber' => $tblCertificate->getCertificateNumber(),
-                            'Option' => $hasOption
-                                ? new Standard(
-                                    '', '/Education/Certificate/Setting/Configuration', new Select(),
-                                    array(
-                                        'Certificate' => $tblCertificate->getId()
-                                    ),
-                                    'Zeugnisvorlage auswählen'
-                                )
-                                : ''
-                        )
-                    );
-                });
+                // Kompetenz-Typen herausfiltern
+                if (!$hasCompetence && str_contains($tblCertificate->getTblCertificateType()->getIdentifier(), 'SKILL')) {
+                    continue;
+                }
+
+                $TemplateTable[] = array_merge($tblCertificate->__toArray(), array(
+                        'Typ' => '<div class="text-center">' . ($tblCertificate->getServiceTblConsumer()
+                                ? new Small(new Muted($tblCertificate->getServiceTblConsumer()->getAcronym())) . '<br/>' . new Star()
+                                : new Document() . '<br/>' . new Small(new Muted('Standard'))
+                            ) . '</div>',
+                        'Category' => $tblCertificate->getDisplayCategory(),
+                        'CertificateNumber' => $tblCertificate->getCertificateNumber(),
+                        'Option' => $hasOption
+                            ? new Standard(
+                                '', '/Education/Certificate/Setting/Configuration', new Select(),
+                                array(
+                                    'Certificate' => $tblCertificate->getId()
+                                ),
+                                'Zeugnisvorlage auswählen'
+                            )
+                            : ''
+                    )
+                );
+            }
 
             $Content = new TableData($TemplateTable, null, array(
                 'Typ'               => 'Typ',

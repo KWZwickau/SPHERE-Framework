@@ -26,7 +26,7 @@ class B01
             ->styleTextBold()
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('B01. Absolventen/Abgänger aus dem Schuljahr {{ Content.Schoolyear.Past }} nach Abschlussarten und Klassen- bzw. Jahrgangsstufen')
+                ->setContent('B01. Absolventen/Abgänger aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Abschlussarten und Klassen- bzw. Jahrgangsstufen')
             );
 
         $sliceList[] = (new Slice())

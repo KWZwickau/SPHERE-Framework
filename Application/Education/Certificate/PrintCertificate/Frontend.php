@@ -18,10 +18,12 @@ use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -257,7 +259,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     'columnDefs' => array(
                                         array('type' => 'natural', 'targets' => 2),
                                         array('searchable' => false, 'targets' => -1),
-                                    )
+                                    ),
+                                    'responsive' => false,
                                 )
                             )
                         ))
@@ -435,7 +438,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     'columnDefs' => array(
                                         array('type' => 'natural', 'targets' => 2),
                                         array('searchable' => false, 'targets' => -1),
-                                    )
+                                    ),
+                                    'responsive' => false,
                                 )
                             )
                         ))
@@ -480,6 +484,8 @@ class Frontend extends Extension implements IFrontendInterface
             'Zurück', $backRoute, new ChevronLeft()
         ));
 
+        Consumer::useService()->createAccountSetting('IsPrintCertificateReload', 'False');
+
         if ($IsLeave) {
             if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionId))) {
                 if (($tblCertificateTypeLeave = Generator::useService()->getCertificateTypeByIdentifier('LEAVE'))
@@ -520,18 +526,22 @@ class Frontend extends Extension implements IFrontendInterface
                             Panel::PANEL_TYPE_DANGER,
                             (new External(
                                 'Ja',
-                                '/Api/Education/Certificate/Generator/DownLoadMultiLeavePdf',
+//                                '/Api/Education/Certificate/Generator/DownLoadMultiLeavePdf',
+                                '/Education/Certificate/Download',
                                 new Ok(),
                                 array(
                                     'DivisionId' => $tblDivisionCourse->getId(),
+                                    'Name' => 'Abgangszeugnisse',
+                                    'IsPreview' => 'false'
                                 ),
                                 'Zeugnisse herunterladen und revisionssicher abspeichern'
-                            ))->setRedirect($backRoute, 60)
+                            ))->setRedirect($backRoute, 120)
                             . new Standard(
                                 'Nein', $backRoute, new Disable()
                             )
                         ),
                     )))))
+                    . ApiPrintCertificate::receiverBlock(ApiPrintCertificate::pipelineReload($backRoute), 'reload')
                 );
 
             } else {
@@ -587,16 +597,22 @@ class Frontend extends Extension implements IFrontendInterface
                             Panel::PANEL_TYPE_DANGER,
                             (new External(
                                 'Ja',
-                                '/Api/Education/Certificate/Generator/DownLoadMultiPdf',
+//                                '/Api/Education/Certificate/Generator/DownLoadMultiPdf',
+                                '/Education/Certificate/Download',
                                 new Ok(),
-                                array('PrepareId'  => $tblPrepare->getId()),
+                                array(
+                                    'PrepareId'  => $tblPrepare->getId(),
+                                    'Name' => 'Zeugnisse',
+                                    'IsPreview' => 'false'
+                                ),
                                 'Zeugnisse herunterladen und revisionssicher abspeichern'
-                            ))->setRedirect($backRoute, 60)
+                            ))->setRedirect($backRoute, 120)
                             . new Standard(
                                 'Nein', $backRoute, new Disable()
                             )
                         ),
                     )))))
+                    . ApiPrintCertificate::receiverBlock(ApiPrintCertificate::pipelineReload($backRoute), 'reload')
                 );
             } else {
                 $Stage->setContent(

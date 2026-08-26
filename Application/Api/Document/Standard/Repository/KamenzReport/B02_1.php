@@ -1,18 +1,12 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: lehmann
- * Date: 27.06.2017
- * Time: 08:57
- */
 
-namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym;
+namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReport;
 
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
-class B02
+class B02_1
 {
     public static function getContent()
     {
@@ -23,7 +17,8 @@ class B02
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('B02. Absolventen/Abgänger aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Geburtsjahren und Abschlussarten')
+                ->setContent('B02.1 <u>Darunter Absolventen/Abgänger , deren Herkunftssprache nicht oder nicht ausschließlich Deutsch ist,</u> 
+                    im Schuljahr {{ Content.SchoolYear.Past }} nach Geburtsjahren und Abschlussarten')
             );
 
         $sliceList[] = (new Slice())
@@ -39,34 +34,36 @@ class B02
                     ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('9.1px')
-                    ->stylePaddingBottom('9px'), '12%'
+                    ->stylePaddingBottom('9px'), '10%'
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Abgangszeugnis<br/><b>ohne</b> Vermerk')
+                            ->setContent('Abgangszeugnis')
                             ->styleAlignCenter()
                             ->styleBorderBottom()
-                            ->styleBorderRight(), '17.6%'
+                            ->styleBorderRight()
+                            ->stylePaddingTop('8.6px')
+                            ->stylePaddingBottom('8.5px'), '18%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('Hauptschul-<br/>abschluss')
                             ->styleAlignCenter()
                             ->styleBorderBottom()
-                            ->styleBorderRight(), '17.6%'
+                            ->styleBorderRight(), '18%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('Qual. Haupt-<br/>schulabschluss')
+                            ->styleAlignCenter()
+                            ->styleBorderBottom()
+                            ->styleBorderRight(), '18%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('Realschul-<br/>abschluss')
                             ->styleAlignCenter()
                             ->styleBorderBottom()
-                            ->styleBorderRight(), '17.6%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('Allgemeine<br/>Hochschulreife')
-                            ->styleAlignCenter()
-                            ->styleBorderBottom()
                             ->styleBorderRight()
-                            , '17.6%'
+                            , '18%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('Insgesamt')
@@ -74,60 +71,60 @@ class B02
                             ->styleTextBold()
                             ->styleBorderBottom()
                             ->stylePaddingTop('8.6px')
-                            ->stylePaddingBottom('8.5px'), '17.6%'
+                            ->stylePaddingBottom('8.5px'), '18%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '8.8%'
+                            ->styleBorderRight(), '9%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '8.8%'
+                            ->styleBorderRight(), '9%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '8.8%'
+                            ->styleBorderRight(), '9%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '8.8%'
+                            ->styleBorderRight(), '9%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '8.8%'
+                            ->styleBorderRight(), '9%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '8.8%'
+                            ->styleBorderRight(), '9%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '8.8%'
+                            ->styleBorderRight(), '9%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '8.8%'
+                            ->styleBorderRight(), '9%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
                             ->styleAlignCenter()
                             ->styleTextBold()
-                            ->styleBorderRight(), '8.8%'
+                            ->styleBorderRight(), '9%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
                             ->styleAlignCenter()
-                            ->styleTextBold(), '8.8%'
+                            ->styleTextBold(), '9%'
                         )
                     )
                 )
@@ -138,14 +135,14 @@ class B02
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B02.Y' . $i . '.YearName is not empty) %}
-                                {{ Content.B02.Y' . $i . '.YearName }}
+                            {% if (Content.B02_1.Y' . $i . '.YearName is not empty) %}
+                                {{ Content.B02_1.Y' . $i . '.YearName }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
                         ')
                     ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
+                    ->styleBorderRight(), '10%'
                 );
 
             for ($j = 0; $j < 4; $j++) {
@@ -154,48 +151,48 @@ class B02
                         $identifier = 'Leave';
                         break;
                     case 1:
-                        $identifier = 'LeaveHS';
+                        $identifier = 'MsAbsHs';
                         break;
                     case 2:
-                        $identifier = 'LeaveRS';
+                        $identifier = 'MsAbsHsQ';
                         break;
                     case 3:
-                        $identifier = 'GymAbitur';
+                        $identifier = 'MsAbsRs';
                         break;
                     default:
-                        $identifier = '';
+                        $identifier = 'Default';
                 }
                 $section
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if (Content.B02.Y' . $i . '.' . $identifier . '.m is not empty) %}
-                                {{ Content.B02.Y' . $i . '.' . $identifier . '.m }}
+                            {% if (Content.B02_1.Y' . $i . '.' . $identifier . '.m is not empty) %}
+                                {{ Content.B02_1.Y' . $i . '.' . $identifier . '.m }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
                         ')
                         ->styleAlignCenter()
-                        ->styleBorderRight(), '8.8%'
+                        ->styleBorderRight(), '9%'
                     );
                 $section
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if (Content.B02.Y' . $i . '.' . $identifier . '.w is not empty) %}
-                                {{ Content.B02.Y' . $i . '.' . $identifier . '.w }}
+                            {% if (Content.B02_1.Y' . $i . '.' . $identifier . '.w is not empty) %}
+                                {{ Content.B02_1.Y' . $i . '.' . $identifier . '.w }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
                         ')
                         ->styleAlignCenter()
-                        ->styleBorderRight(), '8.8%'
+                        ->styleBorderRight(), '9%'
                     );
             }
 
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B02.Y' . $i . '.m is not empty) %}
-                                {{ Content.B02.Y' . $i . '.m }}
+                            {% if (Content.B02_1.Y' . $i . '.m is not empty) %}
+                                {{ Content.B02_1.Y' . $i . '.m }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -203,13 +200,13 @@ class B02
                     ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleTextBold()
-                    ->styleBorderRight(), '8.8%'
+                    ->styleBorderRight(), '9%'
                 );
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B02.Y' . $i . '.w is not empty) %}
-                                {{ Content.B02.Y' . $i . '.w }}
+                            {% if (Content.B02_1.Y' . $i . '.w is not empty) %}
+                                {{ Content.B02_1.Y' . $i . '.w }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -217,7 +214,7 @@ class B02
                     ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleTextBold()
-                    , '8.8%'
+                    , '9%'
                 );
 
             $sliceList[] = (new Slice())
@@ -228,61 +225,96 @@ class B02
                 ->addSection($section);
         }
 
+        /**
+         * TotalCount
+         */
+        $section = new Section();
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('Insgesamt')
+                ->styleAlignCenter()
+                ->styleBorderRight(), '10%'
+            );
+
+        for ($j = 0; $j < 4; $j++) {
+            switch ($j) {
+                case 0:
+                    $identifier = 'Leave';
+                    break;
+                case 1:
+                    $identifier = 'MsAbsHs';
+                    break;
+                case 2:
+                    $identifier = 'MsAbsHsQ';
+                    break;
+                case 3:
+                    $identifier = 'MsAbsRs';
+                    break;
+                default:
+                    $identifier = 'Default';
+            }
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('
+                            {% if (Content.B02_1.TotalCount.' . $identifier . '.m is not empty) %}
+                                {{ Content.B02_1.TotalCount.' . $identifier . '.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '9%'
+                );
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('
+                            {% if (Content.B02_1.TotalCount.' . $identifier . '.w is not empty) %}
+                                {{ Content.B02_1.TotalCount.' . $identifier . '.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '9%'
+                );
+        }
+
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if (Content.B02_1.TotalCount.m is not empty) %}
+                        {{ Content.B02_1.TotalCount.m }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
+                ')
+                ->styleAlignCenter()
+                ->styleTextBold()
+                ->styleBorderRight(), '9%'
+            );
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if (Content.B02_1.TotalCount.w is not empty) %}
+                        {{ Content.B02_1.TotalCount.w }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
+                ')
+                ->styleAlignCenter()
+                ->styleTextBold()
+                , '9%'
+            );
+
         $sliceList[] = (new Slice())
-            ->styleBackgroundColor('lightgrey')
-            ->styleTextBold()
             ->styleAlignCenter()
             ->styleBorderBottom()
             ->styleBorderLeft()
             ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Insgesamt')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '8.8%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '8.8%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '8.8%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '8.8%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '8.8%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '8.8%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '8.8%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '8.8%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '8.8%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;'), '8.8%'
-                )
-            );
+            ->styleBackgroundColor('lightgrey')
+            ->styleTextBold()
+            ->addSection($section);
 
         return $sliceList;
     }
-
 }

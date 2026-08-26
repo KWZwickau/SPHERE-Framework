@@ -667,7 +667,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(array(
                                 new External(
                                     'Alle Noteninformationen herunterladen',
-                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
+//                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
+                                    '/Education/Certificate/Download',
                                     new Download(),
                                     array(
                                         'PrepareId' => $tblPrepare->getId(),

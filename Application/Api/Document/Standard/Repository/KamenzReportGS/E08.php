@@ -1,12 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: lehmann
- * Date: 27.06.2017
- * Time: 10:11
- */
 
-namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym;
+namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS;
 
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
@@ -15,7 +9,7 @@ use SPHERE\Application\Document\Generator\Repository\Slice;
 // jetzt E07
 class E08
 {
-    public static function getContent()
+    public static function getContent(): array
     {
         $sliceList = array();
 
@@ -24,7 +18,7 @@ class E08
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E07. Wiederholer im Schuljahr {{ Content.SchoolYear.Current }} nach Klassen- bzw. Jahrgangsstufen')
+                ->setContent('E07. Wiederholer im Schuljahr {{ Content.SchoolYear.Current }} nach Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -45,141 +39,77 @@ class E08
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Klassen- bzw. Jahrgangsstufe')
+                            ->setContent('Klassenstufe')
                             ->styleAlignCenter()
                             ->styleBorderRight()
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('5')
+                            ->setContent('1')
                             ->styleAlignCenter()
                             ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
+                            ->styleBorderRight(), '20%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('6')
+                            ->setContent('2')
                             ->styleAlignCenter()
                             ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
+                            ->styleBorderRight(), '20%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('7')
+                            ->setContent('3')
                             ->styleAlignCenter()
                             ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
+                            ->styleBorderRight(), '20%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('8')
+                            ->setContent('4')
                             ->styleAlignCenter()
                             ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('9')
-                            ->styleAlignCenter()
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('10')
-                            ->styleAlignCenter()
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('11')
-                            ->styleAlignCenter()
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('12')
-                            ->styleAlignCenter()
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
+                            ->styleBorderRight(), '20%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '5%'
+                            ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '5%'
+                            ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '5%'
+                            ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '5%'
+                            ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '5%'
+                            ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '5%'
+                            ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '5%'
+                            ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
                             ->styleAlignCenter()
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleAlignCenter()
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleAlignCenter()
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleAlignCenter()
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleAlignCenter()
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleAlignCenter()
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleAlignCenter()
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleAlignCenter()
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleAlignCenter()
-                            ->styleBorderRight(), '5%'
+                            ->styleBorderRight(), '10%'
                         )
                     ), '80%'
                 )
@@ -215,7 +145,7 @@ class E08
                 ->styleBackgroundColor('lightgrey')
                 ->styleBorderRight(), '10%'
             );
-        for ($level = 5; $level <13; $level++) {
+        for ($level = 1; $level <5; $level++) {
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
@@ -226,7 +156,7 @@ class E08
                         {% endif %} 
                     ')
                     ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
+                    ->styleBorderRight(), '10%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('
@@ -237,7 +167,7 @@ class E08
                         {% endif %} 
                     ')
                     ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
+                    ->styleBorderRight(), '10%'
                 );
         }
         $section

@@ -82,12 +82,12 @@ class D01
                             ->styleBorderBottom(), '70%'
                         )
                     )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('darunter aus den Kindertageseinrichtungen und der Kindertagespflege')
-                            ->styleBorderBottom(), '70%'
-                        )
-                    )
+//                    ->addSection((new Section())
+//                        ->addElementColumn((new Element())
+//                            ->setContent('darunter aus den Kindertageseinrichtungen und der Kindertagespflege')
+//                            ->styleBorderBottom(), '70%'
+//                        )
+//                    )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('davon')
@@ -173,31 +173,31 @@ class D01
                             ->styleBorderBottom(), '50%'
                         )
                     )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if (Content.D01.Nursery.m is not empty) %}
-                                    {{ Content.D01.Nursery.m }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                            ')
-                            ->styleAlignCenter()
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '50%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if (Content.D01.Nursery.w is not empty) %}
-                                    {{ Content.D01.Nursery.w }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                            ')
-                            ->styleAlignCenter()
-                            ->styleBorderBottom(), '50%'
-                        )
-                    )
+//                    ->addSection((new Section())
+//                        ->addElementColumn((new Element())
+//                            ->setContent('
+//                                {% if (Content.D01.Nursery.m is not empty) %}
+//                                    {{ Content.D01.Nursery.m }}
+//                                {% else %}
+//                                    &nbsp;
+//                                {% endif %}
+//                            ')
+//                            ->styleAlignCenter()
+//                            ->styleBorderBottom()
+//                            ->styleBorderRight(), '50%'
+//                        )
+//                        ->addElementColumn((new Element())
+//                            ->setContent('
+//                                {% if (Content.D01.Nursery.w is not empty) %}
+//                                    {{ Content.D01.Nursery.w }}
+//                                {% else %}
+//                                    &nbsp;
+//                                {% endif %}
+//                            ')
+//                            ->styleAlignCenter()
+//                            ->styleBorderBottom(), '50%'
+//                        )
+//                    )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('

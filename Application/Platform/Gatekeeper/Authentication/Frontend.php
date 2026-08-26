@@ -466,7 +466,9 @@ class Frontend extends Extension implements IFrontendInterface
         if ($CredentialName && $CredentialLock && !$tblAccount) {
             $CredentialNameField->setError('');
             $CredentialLockField->setError('');
-            $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
+            $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig'),
+            new Warning('Bitte wenden Sie sich für den Support der Schulsoftware direkt an die entsprechenden Ansprechpartner in Ihrer Schule')
+            ));
         }
 
         // Create Form
@@ -728,6 +730,10 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $FormError = new Container('');
+        $ErrorContent = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig'),
+            new Warning('Bitte wenden Sie sich für den Support der Schulsoftware direkt an die entsprechenden Ansprechpartner in Ihrer Schule')
+        ));
+
         if ($otpCredentialKey) {
             // App ist immer 6-stellig
             if ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP, true) && strlen($otpCredentialKey) == 6) {
@@ -754,7 +760,7 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         // Error OTP APP invalid
                         $otpCredentialKeyField->setError('');
-                        $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
+                        $FormError = $ErrorContent;
                     }
                 } catch (Exception $Exception) {
 
@@ -763,7 +769,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // Error OTP APP Error
                     $otpCredentialKeyField->setError('');
-                    $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
+                    $FormError = $ErrorContent;
                 }
             } else {
                 // Search for matching Token
@@ -796,7 +802,7 @@ class Frontend extends Extension implements IFrontendInterface
                         } else {
                             // Error Token invalid
                             $otpCredentialKeyField->setError('');
-                            $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
+                            $FormError = $ErrorContent;
                         }
                     } catch (Exception $Exception) {
 
@@ -805,12 +811,12 @@ class Frontend extends Extension implements IFrontendInterface
 
                         // Error Token API Error
                         $otpCredentialKeyField->setError('');
-                        $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
+                        $FormError = $ErrorContent;
                     }
                 } else {
                     // Error Token not registered
                     $otpCredentialKeyField->setError('');
-                    $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
+                    $FormError = $ErrorContent;
                 }
             }
         }

@@ -58,6 +58,20 @@ class FilePointer extends DummyFile
     }
 
     /**
+     * @param string $fileLocation
+     * @param bool $Destruct
+     *
+     * @return $this
+     */
+    public static function fromFileLocation(string $fileLocation, bool $Destruct): self
+    {
+        $obj = new self('document-storage', 'SPHERE-Temporary', $Destruct);
+        $obj->setFileLocation($fileLocation);
+
+        return $obj;
+    }
+
+    /**
      * @param bool $isDestruct
      */
     public function setDestruct($isDestruct = true)

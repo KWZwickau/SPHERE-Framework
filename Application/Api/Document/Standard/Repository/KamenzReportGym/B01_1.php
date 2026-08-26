@@ -23,7 +23,8 @@ class B01_1
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('B01.1 Darunter <u>Absolventen/Abgänger mit Migrationshintergund</u> aus dem Schuljahr {{ Content.Schoolyear.Past }} nach Abschlussarten und Klassen- bzw. Jahrgangsstufen')
+                ->setContent('B01.1 Darunter <u>Absolventen/Abgänger, deren Herkunftssprache nicht oder nicht ausschließlich Deutsch ist,</u> 
+                    aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Abschlussarten und Klassen- bzw. Jahrgangsstufen')
             );
 
         $sliceList[] = (new Slice())

@@ -26,7 +26,7 @@ class E10
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E10. Herkunftssprachlicher Unterricht für <u>Schüler mit Migrationshintergund</u> im Schuljahr {{Content.Schoolyear.Current}} nach Sprachen und Klassen- bzw. Jahrgangsstufen')
+                ->setContent('E10. Herkunftssprachlicher Unterricht für <u>Schüler mit Migrationshintergund</u> im Schuljahr {{Content.SchoolYear.Current}} nach Sprachen und Klassen- bzw. Jahrgangsstufen')
             );
 
         $sliceList[] = (new Slice())

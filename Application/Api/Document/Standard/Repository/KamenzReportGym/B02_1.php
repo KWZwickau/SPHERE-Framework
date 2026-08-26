@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: lehmann
- * Date: 27.06.2017
- * Time: 08:57
- */
 
 namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym;
 
@@ -12,7 +6,7 @@ use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
-class B02
+class B02_1
 {
     public static function getContent()
     {
@@ -23,7 +17,8 @@ class B02
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('B02. Absolventen/Abgänger aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Geburtsjahren und Abschlussarten')
+                ->setContent('B02.1 <u>Darunter Absolventen/Abgänger, deren Herkunftssprache nicht oder nicht ausschließlich Deutsch ist,</u> 
+                    aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Geburtsjahren und Abschlussarten')
             );
 
         $sliceList[] = (new Slice())
@@ -138,8 +133,8 @@ class B02
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B02.Y' . $i . '.YearName is not empty) %}
-                                {{ Content.B02.Y' . $i . '.YearName }}
+                            {% if (Content.B02_1.Y' . $i . '.YearName is not empty) %}
+                                {{ Content.B02_1.Y' . $i . '.YearName }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -168,8 +163,8 @@ class B02
                 $section
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if (Content.B02.Y' . $i . '.' . $identifier . '.m is not empty) %}
-                                {{ Content.B02.Y' . $i . '.' . $identifier . '.m }}
+                            {% if (Content.B02_1.Y' . $i . '.' . $identifier . '.m is not empty) %}
+                                {{ Content.B02_1.Y' . $i . '.' . $identifier . '.m }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -180,8 +175,8 @@ class B02
                 $section
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if (Content.B02.Y' . $i . '.' . $identifier . '.w is not empty) %}
-                                {{ Content.B02.Y' . $i . '.' . $identifier . '.w }}
+                            {% if (Content.B02_1.Y' . $i . '.' . $identifier . '.w is not empty) %}
+                                {{ Content.B02_1.Y' . $i . '.' . $identifier . '.w }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -194,8 +189,8 @@ class B02
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B02.Y' . $i . '.m is not empty) %}
-                                {{ Content.B02.Y' . $i . '.m }}
+                            {% if (Content.B02_1.Y' . $i . '.m is not empty) %}
+                                {{ Content.B02_1.Y' . $i . '.m }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -208,8 +203,8 @@ class B02
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.B02.Y' . $i . '.w is not empty) %}
-                                {{ Content.B02.Y' . $i . '.w }}
+                            {% if (Content.B02_1.Y' . $i . '.w is not empty) %}
+                                {{ Content.B02_1.Y' . $i . '.w }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -284,5 +279,4 @@ class B02
 
         return $sliceList;
     }
-
 }

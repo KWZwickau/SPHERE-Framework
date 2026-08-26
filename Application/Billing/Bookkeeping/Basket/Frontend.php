@@ -266,7 +266,7 @@ class Frontend extends Extension implements IFrontendInterface
             ), array(
                 'columnDefs' => array(
                     array('type' => 'natural', 'targets' => array(0)),
-                    array('type' => 'de_date', 'targets' => array(2)),
+                    array('type' => 'de_date', 'targets' => array(2, 4)),
                     array("orderable" => false, 'width' => '260px', "targets" => -1),
                 ),
                 'order'      => array(

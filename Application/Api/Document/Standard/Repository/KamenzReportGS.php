@@ -17,8 +17,11 @@ use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS\E02_1;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS\E03;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS\E04;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS\E04_1;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS\E04_2;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS\E04_3;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS\E05;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS\E07;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS\E08;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS\F01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS\G01;
 use SPHERE\Application\Document\Generator\Repository\Document;
@@ -65,8 +68,17 @@ class KamenzReportGS extends AbstractDocument
             ->addPage((new Page())
                 ->addSliceArray(E04::getContent())
                 ->addSliceArray(E04_1::getContent())
+                ->addSliceArray(E04_2::getContent())
+                ->addSliceArray(E04_3::getContent())
+            )
+            ->addPage((new Page())
                 ->addSliceArray(E05::getContent())
+                // jetzt E06
                 ->addSliceArray(E07::getContent())
+            )
+            ->addPage((new Page())
+                // jetzt E07
+                ->addSliceArray(E08::getContent())
             )
             ->addPage((new Page())
                 ->addSliceArray(F01::getContent())

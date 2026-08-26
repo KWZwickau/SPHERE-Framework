@@ -169,11 +169,11 @@ class K01
             $isGrey = false;
             switch ($i) {
                 case 0:
-                    $text = 'Auszubildende/Schüler';
+                    $text = 'Anz. Kl. mit Azubi/Schüler';
                     $identifier = 'Student';
                     break;
                 case 1:
-                    $text = 'Umschüler';
+                    $text = 'Anz. Kl. mit Umschüler';
                     $identifier = 'ChangeStudent';
                     break;
                 case 2:

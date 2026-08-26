@@ -97,6 +97,7 @@ abstract class Support extends Subject
      * @param string          $PersonSupport
      * @param string          $SupportTime
      * @param string          $Remark
+     * @param bool            $hasAutism
      *
      * @return TblSupport
      */
@@ -107,7 +108,8 @@ abstract class Support extends Subject
         $Company = '',
         $PersonSupport = '',
         $SupportTime = '',
-        $Remark = '')
+        $Remark = '',
+        bool $hasAutism = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -121,6 +123,7 @@ abstract class Support extends Subject
         $Entity->setPersonSupport($PersonSupport);
         $Entity->setSupportTime($SupportTime);
         $Entity->setRemark($Remark);
+        $Entity->setHasAutism($hasAutism);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;
@@ -277,6 +280,7 @@ abstract class Support extends Subject
      * @param string         $PersonSupport
      * @param string         $SupportTime
      * @param string         $Remark
+     * @param bool           $hasAutism
      *
      * @return bool
      */
@@ -287,7 +291,8 @@ abstract class Support extends Subject
         $Company = '',
         $PersonSupport = '',
         $SupportTime = '',
-        $Remark = '')
+        $Remark = '',
+        bool $hasAutism = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -303,6 +308,7 @@ abstract class Support extends Subject
             $Entity->setPersonSupport($PersonSupport);
             $Entity->setSupportTime($SupportTime);
             $Entity->setRemark($Remark);
+            $Entity->setHasAutism($hasAutism);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,

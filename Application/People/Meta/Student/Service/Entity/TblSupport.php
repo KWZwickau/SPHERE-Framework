@@ -54,6 +54,10 @@ class TblSupport extends Element
      * @Column(type="string")
      */
     protected $Remark;
+    /**
+     * @Column(type="boolean")
+     */
+    protected bool $hasAutism;
 
 
 
@@ -229,5 +233,21 @@ class TblSupport extends Element
     {
 
         $this->Remark = $Remark;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getHasAutism():bool
+    {
+        return (bool)$this->hasAutism;
+    }
+
+    /**
+     * @param bool $hasAutism
+     */
+    public function setHasAutism($hasAutism): void
+    {
+        $this->hasAutism = $hasAutism;
     }
 }

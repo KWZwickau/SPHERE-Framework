@@ -62,7 +62,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
      */
     public function frontendPreparePreview(
         $PrepareId = null,
-        string $Route = 'Teacher'
+        string $Route = 'Teacher',
     ) {
         $Stage = new Stage('Zeugnisvorbereitung', 'Vorschau');
         $isDiploma = $Route == 'Diploma';
@@ -73,6 +73,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
         $isSekII = false;
         $hasColumnAbsence = false;
         $hasColumnBehaviorGrades = false;
+        $hasColumnSubjectGrades = false;
 
         $tblProfileSubject  = false;
         if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
@@ -196,6 +197,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                     }
 
                     if ($tblPrepare->getServiceTblAppointedDateTask()) {
+                        $hasColumnSubjectGrades = true;
                         $subjectGradesText = $countSubjectGrades . ' von ' . $countSubjects; // . ' Zensuren&nbsp;';
                     } else {
                         $subjectGradesText = 'Kein Stichtagsnotenauftrag ausgewählt';
@@ -220,6 +222,13 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                         } else {
                             $hasBehaviorGrades = Prepare::useService()->hasCertificateBehaviorGrades($tblCertificate, $tblPerson);
                             $certificateList[$tblCertificate->getId()]['BehaviorGrades'] = $hasBehaviorGrades;
+                        }
+
+                        // Kompetenzzeugnisse können keine Fachnoten haben
+                        if (!$hasColumnSubjectGrades
+                            && !str_contains($tblCertificate->getTblCertificateType()->getIdentifier(), 'SKILL')
+                        ) {
+                            $hasColumnSubjectGrades = true;
                         }
 
                         if ($hasCertificateAbsence) {
@@ -401,6 +410,11 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                 unset($columnTable['BehaviorGrades']);
             }
 
+            // Kompetenzzeugnisse können keine Fachnoten haben
+            if (!$hasColumnSubjectGrades) {
+                unset($columnTable['SubjectGrades']);
+            }
+
             if (!$hasColumnAbsence) {
                 unset($columnTable['ExcusedAbsence']);
                 unset($columnTable['UnexcusedAbsence']);
@@ -447,6 +461,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                     "targets" => 2
                 ),
                 array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 1),
+                array('type' => 'natural', 'targets' => 0),
             );
 
             $Stage->setContent(
@@ -477,11 +492,12 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                                 ) : null,
                                 new External(
                                     'Alle Zeugnisse als Muster herunterladen',
-                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
+//                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
+                                    '/Education/Certificate/Download',
                                     new Download(),
                                     array(
                                         'PrepareId' => $tblPrepare->getId(),
-                                        'Name' => 'Musterzeugnis'
+                                        'Name' => 'Musterzeugnisse'
                                     ),
                                     false
                                 ),
