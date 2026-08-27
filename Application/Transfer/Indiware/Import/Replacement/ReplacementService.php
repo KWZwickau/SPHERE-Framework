@@ -794,7 +794,7 @@ class ReplacementService
             $Date = $read['Date'];
             $DateTime = new DateTime($Date);
             if(($DateTo = $read['DateTo'])){
-                $DateToTime = new DateTime($Date);
+                $DateToTime = new DateTime($DateTo);
             }
             $Hour = $read['Hour'];
             $HourTo = $read['HourTo'];
@@ -900,7 +900,7 @@ class ReplacementService
                 $resultList[] = $item;
                 // neuer Eintrag an der Zielstunde
                 if($HourTo){
-                    // // neu er Eintrag ander Zielstunde && Datum (beim schieben auf ein anderes Datum gehe ich davon aus, das HourTo gepflegt ist)
+                    // neu er Eintrag ander Zielstunde && Datum (beim schieben auf ein anderes Datum gehe ich davon aus, das HourTo gepflegt ist)
                     if($DateTo){
                         $item['Date'] = $DateToTime;
                         $item['DateString'] = $DateTo;
