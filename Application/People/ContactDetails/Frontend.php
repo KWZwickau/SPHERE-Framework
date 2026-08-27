@@ -32,6 +32,7 @@ class Frontend extends Extension implements IFrontendInterface
 {
     /**
      * @return Stage
+     * @noinspection PhpUnused
      */
     public function frontendContactDetails(): Stage
     {
@@ -45,7 +46,13 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $stage->setMessage('Die Online Kontakt-Daten Änderungswünsche für Eltern/Schüler sind für die folgenden Schularten freigeschaltet: ' . implode(', ', $names));
 
-            $stage->setContent(ApiContactDetails::receiverBlock($this->loadContactDetailsStageContent(), 'ContactDetailsStageContent'));
+            $stage->setContent(
+                ApiContactDetails::receiverModal()
+                . ApiPhoneToPerson::receiverModal()
+                . ApiAddressToPerson::receiverModal()
+                . ApiMailToPerson::receiverModal()
+                . ApiContactDetails::receiverBlock($this->loadContactDetailsStageContent(), 'ContactDetailsStageContent')
+            );
         } else {
             $stage->setContent((new Warning('Die Online Kontakt-Daten Änderungswünsche für Eltern/Schüler sind für keine Schulart freigeschaltet!', new Exclamation())));
         }
@@ -127,8 +134,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Options' => ''
             );
 
-            return ApiContactDetails::receiverModal() . ApiPhoneToPerson::receiverModal() . ApiAddressToPerson::receiverModal() . ApiMailToPerson::receiverModal()
-                . new TableData($dataList, null, $columns,
+            return new TableData($dataList, null, $columns,
                     array(
                         'order' => array(
                             array(0, 'desc'),
