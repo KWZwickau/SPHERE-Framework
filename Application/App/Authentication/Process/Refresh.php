@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\App\Authentication\Process;
 
+use MOC\V\Core\HttpKernel\HttpKernel;
 use SPHERE\Application\App\AppException;
 use SPHERE\Application\App\Authentication\Authentication;
 use SPHERE\Application\App\Dispatcher;
@@ -14,6 +15,8 @@ use SPHERE\Application\App\Response\Code\Response422;
 use SPHERE\Application\App\Response\RequestMethod;
 use SPHERE\Application\App\Response\ResponseInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Common\Main;
 
 /**
@@ -32,8 +35,17 @@ class Refresh implements ModuleInterface
         $dispatcher::registerRoute($route, true);
     }
 
+    /**
+     * @return \MOC\V\Core\HttpKernel\Component\IBridgeInterface
+     */
+    public static function getRequest()
+    {
+
+        return HttpKernel::getRequest();
+    }
+
     public static function handleRequest(
-        ?string $deviceIdentifier = null,
+//        ?string $deviceIdentifier = null,
         ?string $authenticationToken = null,
     ): ResponseInterface {
         // -----
@@ -42,6 +54,12 @@ class Refresh implements ModuleInterface
         if (!RequestMethod::wasPostMethod()) {
             return RequestMethod::wasWrong();
         }
+
+        // read from header
+        $headerArray = self::getRequest()->getHeaderArray();
+        $deviceIdentifier = $headerArray['x-device-key'][0] ?? null;
+//        return new Response201($deviceIdentifier);
+
         // -----
         // Validate user input
         // -----
@@ -65,8 +83,25 @@ class Refresh implements ModuleInterface
         if (!$tblDevice) {
             return new Response401('Invalid authentication token');
         }
+        // find consumer on account
+        if(!($tblAccount = $tblDevice->getServiceTblAccount())
+        || !($tblConsumer = $tblAccount->getServiceTblConsumer())){
+            return new Response401('Invalid credentials');
+        }
+        if(!($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_APP))){
+            return new Response401('Consumer is disabled');
+        }
+
         if ($tblDevice->getDeviceIdentifier() !== $deviceIdentifier) {
             return new Response409('Wrong device identifier');
+        }
+        // Device disabled by user?
+        if (false === $tblDevice->getIsActive()) {
+            return new Response401('Device is disabled');
+        }
+        // Await device activation by user
+        if (null === $tblDevice->getIsActive()) {
+            return new Response409('Activation needed');
         }
 
         // Timeout Session

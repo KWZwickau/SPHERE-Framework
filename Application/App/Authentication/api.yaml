@@ -9,6 +9,7 @@ info:
 
 servers:
     -   url: 'https://ssw.hgs29.synology.me/app'
+#    -   url: 'http://192.168.145.131/app'
         description: Development environment
 
 tags:

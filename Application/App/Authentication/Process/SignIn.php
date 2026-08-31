@@ -16,6 +16,8 @@ use SPHERE\Application\App\Response\Code\Response502;
 use SPHERE\Application\App\Response\RequestMethod;
 use SPHERE\Application\App\Response\ResponseInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Common\Main;
 
 /**
@@ -87,6 +89,14 @@ class SignIn implements ModuleInterface
         if (!$tblAccount) {
             return new Response401('Invalid credentials');
         }
+        // find consumer on account
+        if(!($tblConsumer = $tblAccount->getServiceTblConsumer())){
+            return new Response401('Invalid credentials');
+        }
+        if(!($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_APP))){
+            return new Response401('Consumer is disabled');
+        }
+
         // Find device or create new device
         $tblDevice = Authentication::useService()->getDeviceByIdentifier($tblAccount, $deviceIdentifier);
         if (!$tblDevice) {
@@ -99,6 +109,10 @@ class SignIn implements ModuleInterface
         // Device disabled by user?
         if (false === $tblDevice->getIsActive()) {
             return new Response401('Device is disabled');
+        }
+        // Await device activation by user
+        if (null === $tblDevice->getIsActive()) {
+            return new Response409('Activation needed');
         }
 
         // Determine if activation is necessary for this account
@@ -118,11 +132,6 @@ class SignIn implements ModuleInterface
             $return = self::createTokens($tblDevice);
             Authentication::useService()->modifyIsActive($tblDevice, true);
             return $return;
-        }
-
-        // Await device activation by user
-        if (null === $tblDevice->getIsActive()) {
-            return new Response409('Activation needed');
         }
 
         // All tests passed, connect device and give tokens :-)

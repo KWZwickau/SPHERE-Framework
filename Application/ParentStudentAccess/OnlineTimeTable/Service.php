@@ -25,7 +25,9 @@ class Service
             }
         } else {
             // Mitarbeiter oder Eltern-Zugang
-            $tblPersonList = $this->getPersonListFromCustodyLogin();
+            if(($tblPersonListTemp = $this->getPersonListFromCustodyLogin())){
+                $tblPersonList = $tblPersonListTemp;
+            }
         }
 
         return $tblPersonList;

@@ -21,6 +21,7 @@ class TblConsumerLogin extends Element
 
     const VALUE_SYSTEM_DLLP = 'Univention';
     const VALUE_SYSTEM_SSW_STOP = 'SSWStop';
+    const VALUE_SYSTEM_SSW_APP = 'SSWApp';
 
     /**
      * @Column(type="string")

@@ -1,7 +1,5 @@
 <?php
-
 namespace SPHERE\Application\App\Education\ClassRegister;
-
 
 use DateTime;
 use DateTimeInterface;
@@ -9,10 +7,13 @@ use SPHERE\Application\App\AppException;
 use SPHERE\Application\App\Dispatcher;
 use SPHERE\Application\App\ModuleInterface;
 use SPHERE\Application\App\Response\Code\Response200;
+use SPHERE\Application\App\Response\Code\Response422;
 use SPHERE\Application\App\Response\ResponseInterface;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableNode;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\ParentStudentAccess\OnlineTimeTable\OnlineTimeTable;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Main;
 
@@ -30,10 +31,22 @@ class ClassRegister implements ModuleInterface
         $dispatcher = Main::getDispatcher();
         $route = $dispatcher::createRoute(__NAMESPACE__ . '/Digital/Load', __CLASS__ . '::getDigitalLoad');
         $dispatcher::registerRoute($route);
-        $route = $dispatcher::createRoute(__NAMESPACE__ . '/Digital/Nuff', __CLASS__ . '::getDigitalLoad');
+        $route = $dispatcher::createRoute(__NAMESPACE__ . '/Digital/TimeTable', __CLASS__ . '::getTimeTableLoad');
         $dispatcher::registerRoute($route);
     }
 
+    public static function useService()
+    {
+        // TODO: Implement useService() method.
+    }
+
+    /**
+     * @param string|null $Date
+     * @param string      $Type // Timetable, TeacherLectureship
+     *
+     * @return ResponseInterface
+     * @throws \DateMalformedStringException
+     */
     public static function getDigitalLoad(?string $Date = null, string $Type = ''): ResponseInterface
     {
         $route = '/RestApi/Education/ClassRegister/Digital/Content/Load';
@@ -57,6 +70,7 @@ class ClassRegister implements ModuleInterface
 
             if (!$dateTime) {
                 $result['Error'] = $Date . ' konnte nicht in ein korrektes Datum umgewandelt werden';
+                return new Response422($result);
             }
         } else {
             $dateTime = new DateTime('today');
@@ -97,12 +111,12 @@ class ClassRegister implements ModuleInterface
                         'DivisionCourse' => $item['DivisionCourse'] ?? null,
                         'Subject' => null,
                         'Room' => null,
-                        'Link' => [
+                        'Links' => [
                             'loadContent' => [
                                 'Method' => 'GET',
                                 'Url' => 'https://' . $_SERVER['HTTP_HOST'] . $route,
                                 'Parameters' => $paramsItem
-                        ]]
+                            ]]
                     );
                 }
             }
@@ -111,9 +125,55 @@ class ClassRegister implements ModuleInterface
         return new Response200($result);
     }
 
-    public static function useService()
+    public static function getTimeTableLoad(?string $Date = null): ResponseInterface
     {
-        // TODO: Implement useService() method.
+        // $route = '/RestApi/Education/ClassRegister/Digital/Content/Load'; // ToDO Welche Routen mitgeben?
+
+        $result = array();
+
+        if (!($dateTime = DateTime::createFromFormat(\DateTimeInterface::ISO8601, $Date))) {
+            if (str_contains($Date, '-') && strlen($Date) >= 10) {
+                $dateTime = DateTime::createFromFormat('Y-m-d', substr($Date, 0, 10));
+            } elseif (str_contains($Date, '.') && strlen($Date) >= 10) {
+                $dateTime = DateTime::createFromFormat('d.m.Y', substr($Date, 0, 10));
+            }
+        }
+
+        if (!$dateTime) {
+            $result['Error'] = $Date . ' konnte nicht in ein korrektes Datum umgewandelt werden';
+            return new Response422($result);
+        }
+
+        if ($dateTime
+            && ($tblPersonList = OnlineTimeTable::useService()->getPersonListFromAccountBySession())
+        ) {
+            // Uhrzeit entfernen
+            $dateTime = new DateTime($dateTime->format('d.m.Y'));
+
+            foreach ($tblPersonList as $tblPerson) {
+                $timeTable = Timetable::useService()->getTimeTableByStudentAndDate($tblPerson, $dateTime);
+                if((!$tblDivisionCourse = DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson))){
+                    $tblDivisionCourse = null;
+                }
+
+                $result[] = array(
+                    'Person' => $tblPerson->getLastFirstName(),
+                    'DivisionCourse' => $tblDivisionCourse,
+                    'Date' => $dateTime->format('c'),
+                    'FullDay' => $timeTable['FullDay'] ?? null,
+                    'TimeTableList' => $timeTable['TimeTableList'] ?? [],
+                    'Links' => [
+//                        'loadContent' => [
+//                            'Method' => 'GET',
+//                            'Url' => 'https://' . $_SERVER['HTTP_HOST'] . $route,
+//                            'Parameters' => $paramsItem
+//                        ]
+                    ]
+                );
+            }
+        }
+
+        return new Response200($result);
     }
 
 }
