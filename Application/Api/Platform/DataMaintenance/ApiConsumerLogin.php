@@ -65,10 +65,12 @@ class ApiConsumerLogin extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('openRoleModal');
         $Dispatcher->registerMethod('openDllpModal');
+        $Dispatcher->registerMethod('openSswAppModal');
         $Dispatcher->registerMethod('openSswStopModal');
         $Dispatcher->registerMethod('openIndiwareModal');
         $Dispatcher->registerMethod('saveRoleModal');
         $Dispatcher->registerMethod('saveDllpModal');
+        $Dispatcher->registerMethod('saveSswAppModal');
         $Dispatcher->registerMethod('saveSswStopModal');
         $Dispatcher->registerMethod('saveIndiwareModal');
         $Dispatcher->registerMethod('reloadTable');
@@ -128,6 +130,25 @@ class ApiConsumerLogin extends Extension implements IApiInterface
         $ModalEmitter = new ServerEmitter(self::receiverModal('Modal'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'openDllpModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'ConsumerId' => $ConsumerId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $ConsumerId
+     * @return Pipeline
+     */
+    public static function pipelineOpenSswAppModal($ConsumerId): Pipeline
+    {
+        $Pipeline = new Pipeline(true);
+        $ModalEmitter = new ServerEmitter(self::receiverModal('Modal'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openSswAppModal',
         ));
         $ModalEmitter->setPostPayload(array(
             'ConsumerId' => $ConsumerId
@@ -206,6 +227,25 @@ class ApiConsumerLogin extends Extension implements IApiInterface
         $ModalEmitter = new ServerEmitter(self::receiverModal('Modal'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'saveDllpModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'ConsumerId' => $ConsumerId,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $ConsumerId
+     * @return Pipeline
+     */
+    public static function pipelineSaveSswAppModal($ConsumerId): Pipeline
+    {
+        $Pipeline = new Pipeline(true);
+        $ModalEmitter = new ServerEmitter(self::receiverModal('Modal'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveSswAppModal',
         ));
         $ModalEmitter->setPostPayload(array(
             'ConsumerId' => $ConsumerId,
@@ -381,6 +421,70 @@ class ApiConsumerLogin extends Extension implements IApiInterface
     /**
      * @return string
      */
+    public function openSswAppModal($ConsumerId): string
+    {
+
+        $tblConsumer = Consumer::useService()->getConsumerById($ConsumerId);
+        $tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_APP);
+        if($tblConsumerLogin){
+            $_POST['Data']['Active'] = 1;
+//            $_POST['Data']['ActiveButton'] = $tblConsumerLogin->getIsActiveAPI();
+            $SelectBoxActive = array(1 => 'Aktiv', 2 => 'Deaktivieren');
+        } else {
+            $_POST['Data']['Active'] = 2;
+            $SelectBoxActive = array(1 => 'Aktivieren', 2 => 'Inaktiv');
+        }
+
+//        $CountAccountList = AccountAuthorization::useService()->getAccountCountByConsumer($tblConsumer); // ToDO Geräte / Nutzer zählen?
+        $CountArray = array();
+        $isSystem = false;
+//        foreach($CountAccountList as $CountAccount){
+//            $Name = $CountAccount['Name'];
+//            $Anzahl = $CountAccount['countAccount'];
+//            if($Name == 'System'){
+//                $isSystem = true;
+////                continue;
+//            }
+//            $CountArray[] = new Layout(new LayoutGroup(new LayoutRow(array(
+//                new LayoutColumn($Name.': ', 3),
+//                new LayoutColumn($Anzahl, 9),
+//            ))));
+//        }
+
+        return new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(
+                    new Headline('Schulsoftware APP')
+                    , 4),
+                new LayoutColumn(
+                    new PullRight(new Headline(new Bold(new DangerText($tblConsumer->getAcronym())), $tblConsumer->getName()))
+                    , 8),
+            ))))
+            .new Well(
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Form(
+                            new FormGroup(array(new FormRow(array(
+                                new FormColumn(array(
+                                    new Muted('<div style="height: 13px"></div>'),
+                                    new SelectBox('Data[Active]', TblConsumerLogin::VALUE_SYSTEM_SSW_APP.' Status', $SelectBoxActive)
+                                ), 12),
+                            ))))
+                            , (new Primary('Speichern','#'))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineSaveSswAppModal($ConsumerId))
+                        )
+                        , 4),
+                    new LayoutColumn(($CountArray
+                        ? new Title('Benutzer nach Identification:')
+                        .new Listing($CountArray)
+                        : ''
+                    )
+                        , 8),
+                ))))
+            );
+    }
+
+    /**
+     * @return string
+     */
     public function openSswStopModal($ConsumerId): string
     {
 
@@ -397,17 +501,19 @@ class ApiConsumerLogin extends Extension implements IApiInterface
         $CountAccountList = AccountAuthorization::useService()->getAccountCountByConsumer($tblConsumer);
         $CountArray = array();
         $isSystem = false;
-        foreach($CountAccountList as $CountAccount){
-            $Name = $CountAccount['Name'];
-            $Anzahl = $CountAccount['countAccount'];
-            if($Name == 'System'){
-                $isSystem = true;
+        if(!empty($CountAccountList)){
+            foreach($CountAccountList as $CountAccount){
+                $Name = $CountAccount['Name'];
+                $Anzahl = $CountAccount['countAccount'];
+                if($Name == 'System'){
+                    $isSystem = true;
 //                continue;
+                }
+                $CountArray[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn($Name.': ', 3),
+                    new LayoutColumn($Anzahl, 9),
+                ))));
             }
-            $CountArray[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn($Name.': ', 3),
-                new LayoutColumn($Anzahl, 9),
-            ))));
         }
 
         return new Layout(new LayoutGroup(new LayoutRow(array(
@@ -547,6 +653,31 @@ class ApiConsumerLogin extends Extension implements IApiInterface
         } else {
             if ($IsActive) {
                 Consumer::useService()->updateConsumerLogin($tblConsumerLogin, $isButtonActive);
+            } else {
+                Consumer::useService()->removeConsumerLogin($tblConsumerLogin);
+            }
+        }
+        return new Success('Einstellung wurde gespeichert')
+            .ApiConsumerLogin::pipelinereload();
+    }
+
+    /**
+     * @return string
+     */
+    public function saveSswAppModal($ConsumerId, $Data): string
+    {
+
+        $tblConsumer = Consumer::useService()->getConsumerById($ConsumerId);
+        $IsActive = $Data['Active'] == 1;
+//        $isButtonActive = isset($Data['ActiveButton']);
+        $tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_APP);
+        if (!$tblConsumerLogin) {
+            if ($IsActive) {
+                Consumer::useService()->createConsumerLogin($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_APP, false);
+            }
+        } else {
+            if ($IsActive) {
+                Consumer::useService()->updateConsumerLogin($tblConsumerLogin, false);
             } else {
                 Consumer::useService()->removeConsumerLogin($tblConsumerLogin);
             }

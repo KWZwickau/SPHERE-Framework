@@ -34,7 +34,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
-use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -67,6 +66,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Code;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
@@ -659,9 +659,12 @@ class Frontend extends Extension implements IFrontendInterface
 //        $tblRoleList = (new Sorter($tblRoleList))->sortObjectBy('Name');
         foreach ($tblConsumerAll as $tblConsumer) {
             $item = array();
-            $item['Acronym'] = $tblConsumer->getAcronym();
-            $item['Name'] = $tblConsumer->getName();
-            $item['Type'] = $tblConsumer->getType();
+            $item['Acronym'] = $tblConsumer->getAcronym().' '.(new Tooltip(new InfoIcon(),htmlspecialchars(new Small(new Small($tblConsumer->getName())).
+                    '<br/>'.$tblConsumer->getType())))->enableHtml().
+                // Suche aus Tooltip nicht möglich, deswegen nochmal hidden angehangen
+                '<span hidden>'.$tblConsumer->getName().' '.$tblConsumer->getType().'</span>';
+//            $item['Name'] = new Small(new Small($tblConsumer->getName()));
+//            $item['Type'] = $tblConsumer->getType();
             if($tblRoleList){
                 foreach($tblRoleList as $tblRole){
                     $item[$tblRole->getId().'Id'] = '<span hidden>1'.$tblConsumer->getAcronym().'</span>'.(new Link(new Unchecked(), ''))
@@ -677,6 +680,8 @@ class Frontend extends Extension implements IFrontendInterface
                 ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenIndiwareModal($tblConsumer->getId()));
             $item['DLLP'] = '<span hidden>1'.$tblConsumer->getAcronym().'</span>'.(new Link(new Unchecked(), ApiConsumerLogin::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenDllpModal($tblConsumer->getId()));
+            $item['SSWApp'] = '<span hidden>1'.$tblConsumer->getAcronym().'</span>'.(new Link(new DangerText(new Disable()), ApiConsumerLogin::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenSswAppModal($tblConsumer->getId()));
             $item['SSWStop'] = '<span hidden>1'.$tblConsumer->getAcronym().'</span>'.(new Link(new SuccessText(new Check()), ApiConsumerLogin::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenSswStopModal($tblConsumer->getId()));
             if(($tblAccount = AccountAuthorization::useService()->getAccountByUsername($tblConsumer->getAcronym().'-Indiware'))
@@ -693,6 +698,10 @@ class Frontend extends Extension implements IFrontendInterface
                         , ApiConsumerLogin::getEndpoint()))
                     ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenDllpModal($tblConsumer->getId()));
             }
+            if(GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_APP)){
+                $item['SSWApp'] = '<span hidden>0'.$tblConsumer->getAcronym().'</span>'.(new Link(new SuccessText(new Check()).'', ApiConsumerLogin::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenSswAppModal($tblConsumer->getId()));
+            }
             if(GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP)){
                 $item['SSWStop'] = '<span hidden>0'.$tblConsumer->getAcronym().'</span>'.(new Link(new DangerText(new Disable()).'', ApiConsumerLogin::getEndpoint()))
                     ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenSswStopModal($tblConsumer->getId()));
@@ -702,14 +711,20 @@ class Frontend extends Extension implements IFrontendInterface
 
         $HeadList = array();
         $HeadList['Acronym'] = 'Kürzel';
-        $HeadList['Name'] = 'Name';
-        $HeadList['Type'] = 'Bundesland';
+//        $HeadList['Name'] = 'Name';
+//        $HeadList['Type'] = 'Bundesland';
         if($tblRoleList) {
             foreach ($tblRoleList as $tblRole) {
                 if ($tblRole->getName() == 'Auswertung: Kamenz-Statistik') {
                     $Titel = 'Recht Kamenz '.new ToolTip(new InfoIcon(), 'Auswertung: Kamenz-Statistik', false);
                 } elseif ($tblRole->getName() == 'Bildung: Berechnungsvorschrift Kopfnoten') {
                     $Titel = 'Recht Kopfnoten '.new ToolTip(new InfoIcon(), 'Bildung: Berechnungsvorschrift Kopfnoten', false);
+                } elseif ($tblRole->getName() == 'Bildung: Kompetenzbewertung (Lehrer mit Lehrauftrag)') {
+                    $Titel = 'Recht KB Lehrer '.new ToolTip(new InfoIcon(), $tblRole->getName(), false);
+                } elseif ($tblRole->getName() == 'Bildung: Kompetenzbewertung (Inklusionsbeauftragte)') {
+                    $Titel = 'Recht KB Inkl. '.new ToolTip(new InfoIcon(), $tblRole->getName(), false);
+                } elseif ($tblRole->getName() == 'Bildung: Kompetenzbewertung (Schulleitung)') {
+                    $Titel = 'Recht KB Leitung. '.new ToolTip(new InfoIcon(), $tblRole->getName(), false);
                 } else {
                     $Titel = 'Recht '.$tblRole->getName();
                 }
@@ -718,6 +733,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $HeadList['Indiware'] = 'Indiware API';
         $HeadList['DLLP'] = 'DLLP';
+        $HeadList['SSWApp'] = 'SSW App';
         $HeadList['SSWStop'] = 'Zugang SSW';
 
         return
@@ -725,8 +741,12 @@ class Frontend extends Extension implements IFrontendInterface
             array(
                 'columnDefs' => array(
                     array('width' => '80px', 'targets' => 0),
-                    array('width' => '400px', 'targets' => 1),
-                    array('width' => '100px', 'targets' => 2),
+//                    array('width' => '400px', 'targets' => 1),
+//                    array('width' => '100px', 'targets' => 2),
+                    // Suche für Spalten entfernen
+                    // Spalte erweitert sich, deswegen logik gedreht
+                    array('targets' => array(0/**, 1*/), 'searchable' => true),   // Ausnahme zuerst
+                    array('targets' => '_all', 'searchable' => false),        // generelle Regel danach
                 ),
                 'order'      => array(array(0, 'asc')),
                 'pageLength' => -1,

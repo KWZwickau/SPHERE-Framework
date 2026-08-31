@@ -1520,7 +1520,7 @@ class Data extends AbstractData
     /**
      * @param TblConsumer $tblConsumer
      *
-     * @return array<int, array{Name: string, countAccount: int}>
+     * @return array
      * Name = tblIdentification->Name
      */
     public function getAccountCountByConsumer(TblConsumer $tblConsumer): array
@@ -1541,8 +1541,6 @@ class Data extends AbstractData
             ->groupBy('tI.Name')
             ->getQuery();
 
-        $resultList = $query->getResult();
-
-        return empty($resultList) ? false : $resultList;
+        return $query->getResult();
     }
 }
