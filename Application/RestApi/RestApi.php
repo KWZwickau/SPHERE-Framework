@@ -23,11 +23,12 @@ class RestApi implements IApiInterface
         ApiIndiware::registerApi();
 
         // other
+        // disable before delete
 //        ApiPerson::registerApi();
-        ApiMenu::registerApi();
-        ApiAbsence::registerApi();
-        ApiGrade::registerApi();
-        ApiTimeTable::registerApi();
-        ApiDigital::registerApi();
+//        ApiMenu::registerApi();
+//        ApiAbsence::registerApi();
+//        ApiGrade::registerApi();
+//        ApiTimeTable::registerApi();
+//        ApiDigital::registerApi();
     }
 }
