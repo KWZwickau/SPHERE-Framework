@@ -47,4 +47,4 @@ SELECT DISTINCT
     from {{ ConsumerAcronym }}_SettingConsumer.viewGroupStudent vGS
         JOIN {{ ConsumerAcronym }}_SettingConsumer.viewGroup vG ON vG.TblPerson_Id = vGS.TblPerson_Id
 
-    where vG.TblGroup_MetaTable = 'STUDENT'
+    where vG.TblGroup_MetaTable IN ('STUDENT', 'ARCHIVE')
