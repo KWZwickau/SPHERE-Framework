@@ -1,4 +1,4 @@
-select
+select distinct
     tP.Id AS TblPerson_Id,
     -- Person S1
     -- Definition S1 Id
@@ -211,5 +211,5 @@ select
 
 from {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP
     JOIN {{ ConsumerAcronym }}_SettingConsumer.viewGroup vG ON vG.TblPerson_Id = tP.Id
-where vG.TblGroup_MetaTable = 'STUDENT'
+where vG.TblGroup_MetaTable IN ('STUDENT', 'ARCHIVE')
 AND tP.EntityRemove IS NULL
