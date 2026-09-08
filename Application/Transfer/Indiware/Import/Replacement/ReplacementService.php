@@ -486,7 +486,8 @@ class ReplacementService
                             foreach($ReplaceList[$DayCount][$HourCount][$CourseId] as &$Row) {
                                 if ($Row['Date'] == $DayList[$tblTimeTableNode->getDay()]
 //                                && $Row['Room'] == $tblTimeTableNode->getRoom()
-                                    && $Row['SubjectGroup'] == $tblTimeTableNode->getSubjectGroup()
+//                                     Subjectgroup kann im Stundenplan gepflegt sein und kommt beim Vertretungsplan nicht mit -> Ergibt immer eine neue Stunde, das ist nicht gewollt!
+//                                    && $Row['SubjectGroup'] == $tblTimeTableNode->getSubjectGroup()
                                     && $Row['tblSubstituteSubject']->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
                                     && $Row['tblCourse']->getId() == $tblTimeTableNode->getServiceTblCourse()->getId()
                                     && isset($Row['tblPerson']) && $tblTimeTableNode->getServiceTblPerson()
