@@ -165,17 +165,8 @@ class MultiPassword extends AbstractDocument
                         $this->pageList[] = $this->buildPageTwo($tblAccount->getId());
                     }
                 }
-                // set flag IsExport
-                $isExportFlag = true;
-                // IsExport only by non System Accounts (Support) soll keine einträge
-                if (($tblAccount = AccountGatekeeper::useService()->getAccountBySession())
-                    && (AccountGatekeeper::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_SYSTEM))
-                ) {
-                    $isExportFlag = false;
-                }
-                if($isExportFlag){
-                    Account::useService()->updateDownloadBulk($tblUserAccountList);
-                }
+                // set flag IsExport (without System Accounts)
+                Account::useService()->updateDownloadBulk($tblUserAccountList);
             }
         }
 
