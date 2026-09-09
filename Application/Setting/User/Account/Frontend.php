@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Setting\User\Account;
 
 use DateTime;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use SPHERE\Application\Api\Contact\ApiContactAddress;
 use SPHERE\Application\Api\Setting\UserAccount\ApiUserAccount;
 use SPHERE\Application\Api\Setting\UserAccount\ApiUserDelete;
@@ -16,6 +17,8 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Authorization\Account\Account as AccountAuthorization;
@@ -914,15 +917,29 @@ class Frontend extends Extension implements IFrontendInterface
                     if(!isset($LastDownload)){
                         $LastDownload = Account::useService()->getLastExport($tblUserAccountList);
                     }
+                    $HiddenSearch = '';
+                    $tblAccount = AccountGatekeeper::useService()->getAccountBySession();
+                    if ($tblAccount) {
+                        if(AccountGatekeeper::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_SYSTEM)){
+                            $HiddenSearch = '<span hidden>';
+                            foreach($tblUserAccountList as $tblUserAccount){
+                                /** @var $tblUserAccount TblUserAccount */
+                                if(($tblAccount = $tblUserAccount->getServiceTblAccount()))
+                                    $HiddenSearch .= $tblAccount->getUsername();
+                            }
+                            $HiddenSearch.= '</span>';
+                        }
+                    }
 
                     // Success Entry if linked
                     if ($Time && $Time == $GroupByTime) {
+
                         $item['GroupByTime'] = new Success(new Bold($GroupByTime).' Aktuell erstellte Benutzer', null, false, '5', '3');
                         $item['UserAccountCount'] = new Success(count($tblUserAccountList), null, false, '5', '3');
-                        $item['ExportInfo'] = new Success('&nbsp;', null, false, '5', '3');
+                        $item['ExportInfo'] = new Success('&nbsp;', null, false, '5', '3').$HiddenSearch;
                         if ($tblUserAccountTarget->getExportDate()) {
                             $item['ExportInfo'] = new Success($tblUserAccountTarget->getLastDownloadAccount()
-                                .' ('.$tblUserAccountTarget->getExportDate().')', null, false, '5', '3');
+                                .' ('.$tblUserAccountTarget->getExportDate().')', null, false, '5', '3').$HiddenSearch;
                         }
 
                         if ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_STUDENT) {
@@ -933,13 +950,13 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         $item['GroupByTime'] = $GroupByTime;
                         $item['UserAccountCount'] = count($tblUserAccountList);
-                        $item['ExportInfo'] = '';
+                        $item['ExportInfo'] = ''.$HiddenSearch;
                         if($LastDownload){
                             //ToDO better performance with Querybuilder
                             $tblLastUserAccountList = Account::useService()->getUserAccountByLastExport(new DateTime($GroupByTime), new DateTime($LastDownload));
                             if($tblLastUserAccountList && ($tblLastUserAccount = $tblLastUserAccountList[0])){
                                 $item['ExportInfo'] = $tblLastUserAccount->getLastDownloadAccount()
-                                    .' ('.$tblLastUserAccount->getExportDate().')';
+                                    .' ('.$tblLastUserAccount->getExportDate().')'.$HiddenSearch;
                             }
                         }
 
@@ -987,6 +1004,9 @@ class Frontend extends Extension implements IFrontendInterface
                             array(
                                 'columnDefs' => array(
                                     array('type' => 'de_date', 'targets' => 0),
+                                    array('orderable' => false, 'targets' => -1),
+                                    array('width' => '100px', 'targets' => -1),
+                                    array("searchable" => false, "targets" => -1),
                                 )
                             )
                         )
