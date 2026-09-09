@@ -151,9 +151,16 @@ class SignIn implements ModuleInterface
         Authentication::useService()->modifyAccessToken(
             $tblDevice, Authentication::produceAccessToken(), Authentication::ACCESS_TOKEN_TIMEOUT
         );
+        $AccountType = 'Student_Custody';
+        if(($tblAccount = $tblDevice->getServiceTblAccount())){
+            if($tblAccount->getServiceTblToken() || $tblAccount->getAuthenticatorAppSecret()){
+                $AccountType = 'Teacher_Staff';
+            }
+        }
         return new Response201([
             'authenticationToken' => $tblDevice->getAuthenticationToken(),
-            'accessToken' => $tblDevice->getAccessToken()
+            'accessToken' => $tblDevice->getAccessToken(),
+            'AccountType' => $AccountType
         ]);
     }
 }
