@@ -59,8 +59,8 @@ class Absence implements ModuleInterface
                 ) {
                     foreach ($tableData as $item) {
                         $temp = [
-                            'FromDate' => (new DateTime($item['FromDate']))->format('c'),
-                            'ToDate' => $item['ToDate'] === false ? null : (new DateTime($item['ToDate']))->format('c'),
+                            'FromDate' => (new \DateTime($item['FromDate']))->format('c'),
+                            'ToDate' => $item['ToDate'] === false ? null : (new \DateTime($item['ToDate']))->format('c'),
                             'DaysCount' => $item['DaysCount'],
 //                            'LessonsCount' => $item['LessonsCount'],
                             'Lessons' => $item['Lessons'],
