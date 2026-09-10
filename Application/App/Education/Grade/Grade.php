@@ -14,6 +14,7 @@ use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use SPHERE\Application\App\Education\Grade\Grade as GradeApplication;
 
 class Grade implements ModuleInterface
 {
@@ -103,7 +104,7 @@ class Grade implements ModuleInterface
                     $result[] = array(
                         'Person' => $tblPerson->getLastFirstName(),
                         'Division' => DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson),
-                        'SubjectList' => \SPHERE\Application\Education\Graduation\Grade\Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, true, false, true),
+                        'SubjectList' => GradeApplication::useService()->useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, true, false, true),
                         'Links' => [],
                     );
                 }
@@ -134,7 +135,7 @@ class Grade implements ModuleInterface
                     $result[] = array(
                         'Person' => $tblPerson->getLastFirstName(),
                         'Division' => DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson),
-                        'GradeList' => Grade::useService()->getRecentGrades($tblPerson, $tblYear, true, $MaxCount),
+                        'GradeList' => GradeApplication::useService()->getRecentGrades($tblPerson, $tblYear, true, $MaxCount),
                         'Links' => [],
                     );
                 }

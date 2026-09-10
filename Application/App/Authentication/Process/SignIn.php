@@ -110,10 +110,6 @@ class SignIn implements ModuleInterface
         if (false === $tblDevice->getIsActive()) {
             return new Response401('Device is disabled');
         }
-        // Await device activation by user
-        if (null === $tblDevice->getIsActive()) {
-            return new Response409('Activation needed');
-        }
 
         // Determine if activation is necessary for this account
         $useActivation = false;
@@ -132,6 +128,11 @@ class SignIn implements ModuleInterface
             $return = self::createTokens($tblDevice);
             Authentication::useService()->modifyIsActive($tblDevice, true);
             return $return;
+        }
+
+        // Await device activation by user
+        if (null === $tblDevice->getIsActive()) {
+            return new Response409('Activation needed');
         }
 
         // All tests passed, connect device and give tokens :-)
