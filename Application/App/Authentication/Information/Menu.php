@@ -1,8 +1,6 @@
 <?php
-namespace SPHERE\Application\App\Menu;
+namespace SPHERE\Application\App\Authentication\Information;
 
-use SPHERE\Application\App\AppException;
-use SPHERE\Application\App\ApplicationInterface;
 use SPHERE\Application\App\Dispatcher;
 use SPHERE\Application\App\ModuleInterface;
 use SPHERE\Application\App\Response\Code\Response200;
@@ -13,17 +11,8 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Main;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-class Menu implements ApplicationInterface, ModuleInterface
+class Menu implements ModuleInterface
 {
-
-    /**
-     * @throws AppException
-     */
-    public static function registerApplication()
-    {
-
-        self::registerModule();
-    }
 
     /**
      * @return void
@@ -33,7 +22,7 @@ class Menu implements ApplicationInterface, ModuleInterface
 
         /** @var Dispatcher $dispatcher */
         $dispatcher = Main::getDispatcher();
-        $route = $dispatcher::createRoute(__NAMESPACE__ . '/Load', __CLASS__ . '::getMenu');
+        $route = $dispatcher::createRoute(__NAMESPACE__ . '/Menu/Load', __CLASS__ . '::getMenu');
         $dispatcher::registerRoute($route);
     }
 
@@ -112,7 +101,7 @@ class Menu implements ApplicationInterface, ModuleInterface
             return array(
                 'Type' => $type,
                 'Name' => $name,
-                'Link' => 'https://' . $_SERVER['HTTP_HOST'] . $route,
+                'Link' => 'https://' . $_SERVER['HTTP_HOST'] . strtolower($route),
                 'Parameters' => $params
             );
         }

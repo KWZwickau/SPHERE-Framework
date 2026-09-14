@@ -3,6 +3,8 @@
 namespace SPHERE\Application\App\Authentication;
 
 use SPHERE\Application\App\ApplicationInterface;
+use SPHERE\Application\App\Authentication\Information\Menu;
+use SPHERE\Application\App\Authentication\Information\Person;
 use SPHERE\Application\App\Authentication\Process\Refresh;
 use SPHERE\Application\App\Authentication\Process\Service;
 use SPHERE\Application\App\Authentication\Process\Service\Entity\TblDevice;
@@ -28,6 +30,9 @@ class Authentication implements ApplicationInterface
         SignIn::registerModule();
         Refresh::registerModule();
         SignOut::registerModule();
+
+        Menu::registerModule();
+        Person::registerModule();
     }
 
     public static function produceAuthenticationToken(): string
