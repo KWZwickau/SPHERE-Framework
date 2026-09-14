@@ -43,7 +43,7 @@ class Person implements ModuleInterface
         $tblPerson = false;
         $Person = array();
         $Type = array();
-        $searchStudent = false;
+        $isStudent = $searchStudent = false;
         $PersonList = array();
         if (($tblAccount = Account::useService()->getAccountBySession())) {
             if(($tblPersonList = Account::useService()->getPersonALlByAccount($tblAccount)))  {
@@ -77,34 +77,18 @@ class Person implements ModuleInterface
             if($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT)){
                 if(Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup)){
                     $Type[TblGroup::META_TABLE_STUDENT] = 'Schüler';
+                    // get Data years
+                    $isStudent = true;
                 }
-
             }
             if($searchStudent && ($tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))){
                 foreach($tblToPersonList as $tblToPerson){
                     if(($tblPersonStudent = $tblToPerson->getServiceTblPersonTo())){
-                        $YearList = array();
-                        $YearCurrentList = array();
-                        if(($tblStudentEducationList =  DivisionCourse::useService()->getStudentEducationListByPerson($tblPersonStudent))){
-                            foreach($tblStudentEducationList as $tblStudentEducation){
-                                if(($tblYear = $tblStudentEducation->getServiceTblYear())){
-                                    $YearList[$tblYear->getId()] = $tblYear->getYear()
-                                        .($tblYear->getDescription() ? ' '.$tblYear->getDescription() : '');
-                                }
-                            }
-                        }
-                        if(($tblYearCurrentList = Term::useService()->getYearByNow())){
-                            foreach($tblYearCurrentList as $tblYearCurrent){
-                                $YearCurrentList[$tblYearCurrent->getId()] = $tblYearCurrent->getYear()
-                                    .($tblYearCurrent->getDescription() ? ' '.$tblYearCurrent->getDescription() : '');
-                            }
-                        }
-                        $PersonList['id'] = $tblPersonStudent->getId();
-                        $PersonList['name'] = $tblPersonStudent->getFirstName().' '.$tblPersonStudent->getLastName();
-                        $PersonList['years'] = $YearList;
-                        $PersonList['currentyears'] = $YearCurrentList;
+                        $PersonList[] = self::getPersonList($tblPersonStudent);
                     }
                 }
+            } elseif($isStudent) {
+                $PersonList[] = self::getPersonList($tblPerson);
             }
 
             $result['account'] = array(
@@ -115,5 +99,35 @@ class Person implements ModuleInterface
         }
 
         return new Response200($result);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @return array
+     */
+    private static function getPersonList(TblPerson $tblPerson): array
+    {
+
+        $YearList = array();
+        $YearCurrentList = array();
+        if(($tblStudentEducationList =  DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson))){
+            foreach($tblStudentEducationList as $tblStudentEducation){
+                if(($tblYear = $tblStudentEducation->getServiceTblYear())){
+                    $YearList[$tblYear->getId()] = $tblYear->getYear()
+                        .($tblYear->getDescription() ? ' '.$tblYear->getDescription() : '');
+                }
+            }
+        }
+        if(($tblYearCurrentList = Term::useService()->getYearByNow())){
+            foreach($tblYearCurrentList as $tblYearCurrent){
+                $YearCurrentList[$tblYearCurrent->getId()] = $tblYearCurrent->getYear()
+                    .($tblYearCurrent->getDescription() ? ' '.$tblYearCurrent->getDescription() : '');
+            }
+        }
+        $PersonList['id'] = $tblPerson->getId();
+        $PersonList['name'] = $tblPerson->getFirstName().' '.$tblPerson->getLastName();
+        $PersonList['years'] = $YearList;
+        $PersonList['currentyears'] = $YearCurrentList;
+        return $PersonList;
     }
 }
