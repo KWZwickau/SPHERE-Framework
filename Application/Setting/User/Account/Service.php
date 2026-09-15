@@ -590,7 +590,7 @@ class Service extends AbstractService
         $result = array();
         if (!empty($tblUserAccountList)) {
 
-            // set flag IsExport
+            // set flag IsExport (without System Accounts)
             $this->updateDownloadBulk($tblUserAccountList);
 
             array_walk($tblUserAccountList, function (TblUserAccount $tblUserAccount) use (&$result) {
@@ -1227,7 +1227,11 @@ class Service extends AbstractService
         $UserName = '';
         $tblAccount = AccountGatekeeper::useService()->getAccountBySession();
         if ($tblAccount) {
-            $UserName = $tblAccount->getUsername();
+            if(AccountGatekeeper::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_SYSTEM)){
+                return false;
+            } else {
+                $UserName = $tblAccount->getUsername();
+            }
         }
         return (new Data($this->getBinding()))->updateDownloadBulk($tblUserAccountList, $ExportDate, $UserName);
     }
