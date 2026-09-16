@@ -85,7 +85,7 @@ class Absence implements ModuleInterface
                         'loadContent' => [
                             'Method' => 'GET',
 //                            'Name' => 'Fehlzeit hinzufügen',
-                            'Url' => 'https://' . $_SERVER['HTTP_HOST'] . '/RestApi/Education/Absence/Add',
+                            'Url' => strtolower('https://' . $_SERVER['HTTP_HOST'] . '/RestApi/Education/Absence/Add'),
                             'Parameters' => [
                                 'AccountId' => ($tblAccount = Account::useService()->getAccountBySession()) ? $tblAccount->getId() : null,
                                 'PersonId' => $tblPerson->getId()

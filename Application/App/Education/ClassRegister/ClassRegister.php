@@ -101,7 +101,7 @@ class ClassRegister implements ModuleInterface
                         'DivisionCourse' => $item->getServiceTblCourse() ? $item->getServiceTblCourse()->getName() : null,
                         'Subject' => $item->getServiceTblSubject() ? $item->getServiceTblSubject()->getAcronym() : null,
                         'Room' => $item->getRoom() ?: null,
-                        'Link' => 'https://' . $_SERVER['HTTP_HOST'] . $route,
+                        'Link' => strtolower('https://' . $_SERVER['HTTP_HOST'] . $route),
                         'Parameters' => $paramsItem
                     );
                 } else {
@@ -114,7 +114,7 @@ class ClassRegister implements ModuleInterface
                         'Links' => [
                             'loadContent' => [
                                 'Method' => 'GET',
-                                'Url' => 'https://' . $_SERVER['HTTP_HOST'] . $route,
+                                'Url' => strtolower('https://' . $_SERVER['HTTP_HOST'] . $route),
                                 'Parameters' => $paramsItem
                             ]]
                     );

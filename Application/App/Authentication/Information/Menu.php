@@ -101,7 +101,7 @@ class Menu implements ModuleInterface
             return array(
                 'Type' => $type,
                 'Name' => $name,
-                'Link' => 'https://' . $_SERVER['HTTP_HOST'] . strtolower($route),
+                'Link' => strtolower('https://' . $_SERVER['HTTP_HOST'] . $route),
                 'Parameters' => $params
             );
         }
