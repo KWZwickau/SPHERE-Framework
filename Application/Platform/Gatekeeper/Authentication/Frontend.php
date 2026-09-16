@@ -710,10 +710,14 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP, true)
             && ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM, true) || $tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN, true))
         ) {
-            // SSW-2129 OTP direkt aus Passwort-Manager funktioniert nicht in diesem Fall (beide Authentifizierungsverfahren aktiv)
-            $otpCredentialKeyField = (new PasswordField('otpCredentialKey', '', 'YubiKey oder Authenticator App'))
+            // SSW-2129 OTP direkt aus Passwort-Manager: kein PasswordField verwenden, da Passwort-Manager
+            // in ein type="password" immer das Passwort eintragen und den OTP nur in die Zwischenablage legen.
+            // Die Eingabe wird stattdessen per setTextSecurity() optisch maskiert.
+            $otpCredentialKeyField = (new TextField('otpCredentialKey', '', 'YubiKey oder Authenticator App'))
                 ->setRequired()
-                ->setAutoFocus();
+                ->setAutoFocus()
+                ->setAutoComplete()
+                ->setTextSecurity();
         } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP, true)) {
             // Field Definition
             // SSW-2129 OTP direkt aus Passwort-Manager

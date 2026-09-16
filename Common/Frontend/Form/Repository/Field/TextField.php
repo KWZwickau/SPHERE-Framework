@@ -86,6 +86,19 @@ class TextField extends AbstractTextField implements IFieldInterface
     }
 
     /**
+     * Maskiert die Eingabe optisch (Punkte statt Klartext), ohne type="password" zu verwenden.
+     * Passwort-Manager (z.B. Bitwarden) erkennen das Feld dadurch weiterhin als OTP-Feld und
+     * tragen den Einmalcode ein, statt das Passwort einzufügen (SSW-2129).
+     *
+     * @return $this
+     */
+    public function setTextSecurity(){
+
+        $this->Template->setVariable('ElementTextSecurity', true);
+        return $this;
+    }
+
+    /**
      * @return string
      */
     public function getLabel()

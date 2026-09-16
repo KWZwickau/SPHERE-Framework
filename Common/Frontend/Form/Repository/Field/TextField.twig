@@ -15,7 +15,9 @@
                 </span>
         {% endif %}
     {% endif %}
-        <input type="{{ ElementType }}" class="form-control{% if( ElementClass is not empty ) %} {{ ElementClass }}{% endif %}"
+        <input type="{{ ElementType }}" class="form-control
+            {% if( ElementClass is not empty ) %} {{ ElementClass }}{% endif %}
+            {% if( ElementTextSecurity is not empty ) %} TextSecurity{% endif %}"
            name="{{ ElementName }}" placeholder="{{ ElementPlaceholder }}" maxlength="{{ ElementMaxLength }}"
                 {% if( ElementAutoComplete is not empty ) %}
                     autocomplete="{{ ElementAutoComplete }}"
@@ -35,6 +37,14 @@
         {% endif %}
     {{ ElementFeedbackMessage }}
 </div>
+
+{% if( ElementTextSecurity is not empty ) %}
+<style>
+    {# Maskierung per CSS statt type="password", damit Passwort-Manager das Feld weiterhin
+       als OTP-Feld erkennen und den Einmalcode statt des Passworts eintragen (SSW-2129)#}
+    input.TextSecurity:valid { -webkit-text-security: disc; }
+</style>
+{% endif %}
 
 {% if( ElementMask is not empty ) %}
 <script type="text/javascript">
