@@ -51,7 +51,7 @@ class Service extends Extension
                 $item['Salutation'] = $tblPerson->getSalutation();
                 $item['FirstName'] = $tblPerson->getFirstSecondName();
                 $item['LastName'] = $tblPerson->getLastName();
-                $item['StreetName'] = $item['StreetNumber'] = $item['City'] = $item['Address'] = $item['District'] = '';
+                $item['StreetName'] = $item['StreetNumber'] = $item['Code'] = $item['City'] = $item['Address'] = $item['District'] = '';
                 $item['Denomination'] = $tblPerson->getDenominationString();
                 $item['Birthday'] = $tblPerson->getBirthday();
                 $item['Birthplace'] = $tblPerson->getBirthplaceString();
