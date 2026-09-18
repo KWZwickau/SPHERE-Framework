@@ -113,10 +113,22 @@ class Refresh implements ModuleInterface
         // -----
         // All steps are solved
         // -----
+
+        $isNewAuth = false;
+        // 59 left -> new AuthenticationToken
+        if($tblDevice->getAuthenticationTimeout() - time() <= (60*60*24*59)){
+            Authentication::useService()->modifyAuthenticationToken(
+                $tblDevice, Authentication::produceAuthenticationToken(), Authentication::AUTHENTICATION_TOKEN_TIMEOUT
+            );
+            $isNewAuth = true;
+        }
+
         Authentication::useService()->modifyAccessToken(
             $tblDevice, Authentication::produceAccessToken(), Authentication::ACCESS_TOKEN_TIMEOUT
         );
+
         return new Response201([
+            'authenticationToken' => ($isNewAuth ? $tblDevice->getAuthenticationToken() : null),
             'accessToken' => $tblDevice->getAccessToken()
         ]);
     }
