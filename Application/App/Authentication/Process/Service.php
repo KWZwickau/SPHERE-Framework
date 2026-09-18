@@ -1,12 +1,10 @@
 <?php
-
 namespace SPHERE\Application\App\Authentication\Process;
 
 use SPHERE\Application\App\AppException;
 use SPHERE\Application\App\Authentication\Process\Service\Data;
 use SPHERE\Application\App\Authentication\Process\Service\Entity\TblDevice;
 use SPHERE\Application\App\Authentication\Process\Service\Setup;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -101,6 +99,16 @@ class Service extends AbstractService
     ): ?bool {
         return (new Data($this->getBinding()))->modifyIsActive(
             $tblDevice, $isActive
+        );
+    }
+
+    public function modifyAppVersion(
+        TblDevice $tblDevice,
+        string $appVersion
+    ): ?bool {
+
+        return (new Data($this->getBinding()))->modifyAppVersion(
+            $tblDevice, $appVersion
         );
     }
 }

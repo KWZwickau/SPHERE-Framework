@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\App\Authentication\Process\Service\Entity;
 
 use Doctrine\ORM\Mapping\Column;
@@ -52,6 +51,10 @@ class TblDevice extends Element
      * @Column(type="boolean", nullable=true)
      */
     protected ?bool $isActive = null;
+    /**
+     * @Column(type="string", nullable=true)
+     */
+    protected ?string $appVersion = null;
 
     public function getServiceTblAccount(): ?TblAccount
     {
@@ -140,5 +143,15 @@ class TblDevice extends Element
     public function setIsActive(?bool $isActive): void
     {
         $this->isActive = $isActive;
+    }
+
+    public function getAppVersion(): ?string
+    {
+        return $this->appVersion;
+    }
+
+    public function setAppVersion(string $appVersion): void
+    {
+        $this->appVersion = $appVersion;
     }
 }

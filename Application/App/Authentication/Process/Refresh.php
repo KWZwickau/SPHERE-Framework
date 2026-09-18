@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\App\Authentication\Process;
 
 use MOC\V\Core\HttpKernel\HttpKernel;
@@ -58,6 +57,7 @@ class Refresh implements ModuleInterface
         // read from header
         $headerArray = self::getRequest()->getHeaderArray();
         $deviceIdentifier = $headerArray['x-device-key'][0] ?? null;
+        $appVersion = $headerArray['x-app-version'][0] ?? null;
 //        return new Response201($deviceIdentifier);
 
         // -----
@@ -126,6 +126,8 @@ class Refresh implements ModuleInterface
         Authentication::useService()->modifyAccessToken(
             $tblDevice, Authentication::produceAccessToken(), Authentication::ACCESS_TOKEN_TIMEOUT
         );
+        // notice AppVersion
+        Authentication::useService()->modifyAppVersion($tblDevice, $appVersion);
 
         return new Response201([
             'authenticationToken' => ($isNewAuth ? $tblDevice->getAuthenticationToken() : null),

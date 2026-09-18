@@ -1,12 +1,10 @@
 <?php
-
 namespace SPHERE\Application\App\Authentication\Process\Service;
 
 use SPHERE\Application\App\Authentication\Process\Service\Entity\TblDevice;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  *
@@ -307,6 +305,31 @@ class Data extends AbstractData
         Protocol::useService()->createUpdateEntry($connection->getDatabase(), $protocol, $entity);
         // Writeback
         $tblDevice->setIsActive($isActive);
+        return true;
+    }
+
+    public function modifyAppVersion(
+        TblDevice $tblDevice,
+        string $appVersion
+    ): ?bool {
+        $connection = $this->getConnection();
+        if (null === $connection) {
+            return null;
+        }
+        $manager = $connection->getEntityManager();
+        /** @var TblDevice|null $entity */
+        $entity = $manager->getEntity('TblDevice')->find($tblDevice->getId());
+        if (null === $entity) {
+            return false;
+        }
+        // Persist
+        /** @var TblDevice $protocol */
+        $protocol = clone $entity;
+        $entity->setAppVersion($appVersion);
+        $manager->updateEntity($entity);
+        Protocol::useService()->createUpdateEntry($connection->getDatabase(), $protocol, $entity);
+        // Writeback
+        $tblDevice->setAppVersion($appVersion);
         return true;
     }
 }

@@ -1,7 +1,7 @@
 <?php
-
 namespace SPHERE\Application\App\Authentication\Process;
 
+use MOC\V\Core\HttpKernel\HttpKernel;
 use SPHERE\Application\App\AppException;
 use SPHERE\Application\App\Authentication\Authentication;
 use SPHERE\Application\App\Authentication\Process\Service\Entity\TblDevice;
@@ -42,6 +42,15 @@ class SignIn implements ModuleInterface
         $dispatcher::registerRoute($route, true);
     }
 
+    /**
+     * @return \MOC\V\Core\HttpKernel\Component\IBridgeInterface
+     */
+    public static function getRequest()
+    {
+
+        return HttpKernel::getRequest();
+    }
+
     public static function handleRequest(
         ?string $deviceIdentifier = null,
         ?string $deviceName = null,
@@ -54,6 +63,11 @@ class SignIn implements ModuleInterface
         if (!RequestMethod::wasPostMethod()) {
             return RequestMethod::wasWrong();
         }
+
+        // read from header
+        $headerArray = self::getRequest()->getHeaderArray();
+        $appVersion = $headerArray['x-app-version'][0] ?? null;
+
         // -----
         // Validate user input
         // -----
@@ -110,6 +124,8 @@ class SignIn implements ModuleInterface
         if (false === $tblDevice->getIsActive()) {
             return new Response401('Device is disabled');
         }
+        // notice AppVersion
+        Authentication::useService()->modifyAppVersion($tblDevice, $appVersion);
 
         // Determine if activation is necessary for this account
         $useActivation = false;
