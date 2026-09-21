@@ -64,7 +64,7 @@ class Menu implements ModuleInterface
 
             if (OnlineTimeTable::useService()->getPersonListFromAccountBySession()
                 && ($item = self::getMenuItem(
-                    '/app/education/classregister/onlinetimetable/load',
+                    '/app/education/classregister/digital/timetable',
                     'OnlineTimeTable',
                     'Stundenplan',
                     $params
