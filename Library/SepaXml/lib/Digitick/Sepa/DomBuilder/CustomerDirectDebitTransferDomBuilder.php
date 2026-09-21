@@ -102,7 +102,7 @@ class CustomerDirectDebitTransferDomBuilder extends BaseDomBuilder
         $creditorAccount->appendChild($id);
         $this->currentPayment->appendChild($creditorAccount);
 
-        // <CdtrAgt>
+        // <CdtrAgt> ist in pain.008.001.08 auf PmtInf-Ebene Pflicht (auch ohne BIC)
         $creditorAgent = $this->createElement('CdtrAgt');
         $creditorAgent->appendChild($this->getFinancialInstitutionElement($paymentInformation->getOriginAgentBIC()));
         $this->currentPayment->appendChild($creditorAgent);
@@ -162,6 +162,7 @@ class CustomerDirectDebitTransferDomBuilder extends BaseDomBuilder
 
         // TODO add the possibility to add CreditorSchemeId on transfer level
 
+        // <DbtrAgt> ist in pain.008.001.08 auf Transaktionsebene Pflicht (auch ohne BIC)
         $debtorAgent = $this->createElement('DbtrAgt');
         $debtorAgent->appendChild($this->getFinancialInstitutionElement($transactionInformation->getBic()));
         $directDebitTransactionInformation->appendChild($debtorAgent);
@@ -247,7 +248,7 @@ class CustomerDirectDebitTransferDomBuilder extends BaseDomBuilder
     {
         parent::visitGroupHeader($groupHeader);
 
-        if ($groupHeader->getInitiatingPartyId() !== null && in_array($this->painFormat , array('pain.008.001.02','pain.008.003.02'))) {
+        if ($groupHeader->getInitiatingPartyId() !== null && in_array($this->painFormat , array('pain.008.001.02','pain.008.001.08','pain.008.003.02'))) {
             $newId = $this->createElement('Id');
             $orgId = $this->createElement('OrgId');
             $othr  = $this->createElement('Othr');
