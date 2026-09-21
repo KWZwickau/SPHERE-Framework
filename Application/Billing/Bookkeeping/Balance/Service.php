@@ -7,10 +7,8 @@ use Digitick\Sepa\TransferFile\Facade\CustomerCreditFacade;
 use Digitick\Sepa\TransferFile\Facade\CustomerDirectDebitFacade;
 use Digitick\Sepa\TransferFile\Factory\TransferFileFacadeFactory;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
-use MOC\V\Component\Document\Component\Exception\Repository\TypeFileException;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
-use MOC\V\Component\Document\Exception\DocumentTypeException;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Setup;
@@ -1223,7 +1221,7 @@ class Service extends AbstractService
             $header = new GroupHeader($tblBasket->getId().' '.date('Y-m-d-H-i-s'), $tblInvoiceCreditor->getOwner());
             $header->setInitiatingPartyId($tblInvoiceCreditor->getIBAN());
 
-            $directDebit = TransferFileFacadeFactory::createDirectDebitWithGroupHeader($header, 'pain.008.001.02');
+            $directDebit = TransferFileFacadeFactory::createDirectDebitWithGroupHeader($header, 'pain.008.001.08');
 
             $combinedItemDebtorList = array();
 
@@ -1644,7 +1642,7 @@ class Service extends AbstractService
             $tblInvoiceCreditor = $currentTblInvoice->getTblInvoiceCreditor();
 
             //Set the initial information
-            $customerCredit = TransferFileFacadeFactory::createCustomerCredit($tblBasket->getId().' '.date('Y-m-d-H-i-s'), $tblInvoiceCreditor->getOwner());
+            $customerCredit = TransferFileFacadeFactory::createCustomerCredit($tblBasket->getId().' '.date('Y-m-d-H-i-s'), $tblInvoiceCreditor->getOwner(), 'pain.001.001.09');
 
             // Bearbeitung der in der Abrechnung liegenden Posten
             foreach($tblInvoiceList as $tblInvoice){

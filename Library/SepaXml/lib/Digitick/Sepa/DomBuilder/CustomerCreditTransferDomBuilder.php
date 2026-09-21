@@ -101,12 +101,20 @@ class CustomerCreditTransferDomBuilder extends BaseDomBuilder
             $this->currentPayment->appendChild($localInstrument);
         }
 
-        $this->currentPayment->appendChild($this->createElement('ReqdExctnDt', $paymentInformation->getDueDate()));
+        if ($this->painFormat === 'pain.001.001.09') {
+            // Ab pain.001.001.09 ist ReqdExctnDt vom Typ DateAndDateTime2Choice und
+            // erwartet ein Kindelement Dt (oder DtTm) statt eines reinen Datumstexts.
+            $reqdExecutionDate = $this->createElement('ReqdExctnDt');
+            $reqdExecutionDate->appendChild($this->createElement('Dt', $paymentInformation->getDueDate()));
+            $this->currentPayment->appendChild($reqdExecutionDate);
+        } else {
+            $this->currentPayment->appendChild($this->createElement('ReqdExctnDt', $paymentInformation->getDueDate()));
+        }
         $debtor = $this->createElement('Dbtr');
         $debtor->appendChild($this->createElement('Nm', $paymentInformation->getOriginName()));
         $this->currentPayment->appendChild($debtor);
 
-        if ($paymentInformation->getOriginBankPartyIdentification() !== null && $this->painFormat === 'pain.001.001.03') {
+        if ($paymentInformation->getOriginBankPartyIdentification() !== null && in_array($this->painFormat, array('pain.001.001.03', 'pain.001.001.09'))) {
             $organizationId = $this->getOrganizationIdentificationElement(
                 $paymentInformation->getOriginBankPartyIdentification(),
                 $paymentInformation->getOriginBankPartyIdentificationScheme());
@@ -123,9 +131,9 @@ class CustomerCreditTransferDomBuilder extends BaseDomBuilder
         }
         $this->currentPayment->appendChild($debtorAccount);
 
+        // <DbtrAgt> ist auf PmtInf-Ebene sowohl in pain.001.001.03/.09 Pflicht (auch ohne BIC)
         $debtorAgent = $this->createElement('DbtrAgt');
-        $financialInstitutionId = $this->getFinancialInstitutionElement($paymentInformation->getOriginAgentBIC());
-        $debtorAgent->appendChild($financialInstitutionId);
+        $debtorAgent->appendChild($this->getFinancialInstitutionElement($paymentInformation->getOriginAgentBIC()));
         $this->currentPayment->appendChild($debtorAgent);
 
         $this->currentPayment->appendChild($this->createElement('ChrgBr', 'SLEV'));
@@ -161,12 +169,11 @@ class CustomerCreditTransferDomBuilder extends BaseDomBuilder
         $amount->appendChild($instructedAmount);
         $CdtTrfTxInf->appendChild($amount);
 
-        //Creditor Agent 2.77
+        // Creditor Agent 2.77 - auf Transaktionsebene optional (minOccurs="0"), daher nur
+        // anhängen, wenn eine BIC vorliegt; ohne BIC wird der Block hier komplett weggelassen.
         if ($transactionInformation->getBic()) {
             $creditorAgent = $this->createElement('CdtrAgt');
-            $financialInstitution = $this->createElement('FinInstnId');
-            $financialInstitution->appendChild($this->createElement('BIC', $transactionInformation->getBic()));
-            $creditorAgent->appendChild($financialInstitution);
+            $creditorAgent->appendChild($this->getFinancialInstitutionElement($transactionInformation->getBic()));
             $CdtTrfTxInf->appendChild($creditorAgent);
         }
 
@@ -205,7 +212,7 @@ class CustomerCreditTransferDomBuilder extends BaseDomBuilder
     {
         parent::visitGroupHeader($groupHeader);
 
-        if ($groupHeader->getInitiatingPartyId() !== null && $this->painFormat === 'pain.001.001.03') {
+        if ($groupHeader->getInitiatingPartyId() !== null && in_array($this->painFormat, array('pain.001.001.03', 'pain.001.001.09'))) {
             $organizationId = $this->getOrganizationIdentificationElement(
                 $groupHeader->getInitiatingPartyId(),
                 $groupHeader->getInitiatingPartyIdentificationScheme(),

@@ -134,20 +134,30 @@ abstract class BaseDomBuilder implements DomBuilderInterface
     }
 
     /**
-     * @param string $bic
+     * Ab der ISO-20022-Generation 2019 (z.B. pain.008.001.08 / pain.001.001.09) wurde
+     * das Element BIC in BICFI umbenannt.
+     *
+     * Wichtig: Laut XSD ist FinInstnId innerhalb von CdtrAgt/DbtrAgt zwar immer vorhanden
+     * (der CdtrAgt/DbtrAgt-Block selbst darf daher NICHT entfallen, wenn er an der
+     * jeweiligen Stelle Pflicht ist - siehe Aufrufer: bei pain.008.001.08 sind sowohl
+     * CdtrAgt als auch DbtrAgt Pflichtfelder, bei pain.001.001.09 ist nur DbtrAgt auf
+     * PmtInf-Ebene Pflicht, CdtrAgt auf Transaktionsebene ist dort optional). Seine
+     * Kindelemente (BICFI, ClrSysMmbId, LEI, Nm, PstlAdr, Othr) sind aber alle optional
+     * (minOccurs="0"). Ohne BIC bleibt FinInstnId deshalb einfach leer - kein
+     * "NOTPROVIDED"-Platzhalter mehr, da er syntaktisch keine gültige BIC ist.
+     *
+     * @param string|null $bic
      * @return \DOMElement
      */
     protected function getFinancialInstitutionElement($bic)
     {
         $finInstitution = $this->createElement('FinInstnId');
 
-        if ($bic === null) {
-            $other = $this->createElement('Othr');
-            $id = $this->createElement('Id', 'NOTPROVIDED');
-            $other->appendChild($id);
-            $finInstitution->appendChild($other);
-        } else {
-            $finInstitution->appendChild($this->createElement('BIC', $bic));
+        // BIC-Spalten sind in der Datenbank NOT NULL, ein fehlender Wert kommt daher meist
+        // als Leerstring '' statt null an - beides muss als "keine BIC" behandelt werden,
+        // sonst entsteht ein ungueltiges leeres <BICFI></BICFI>.
+        if ($bic !== null && $bic !== '') {
+            $finInstitution->appendChild($this->createElement('BICFI', $bic));
         }
 
         return $finInstitution;
