@@ -1,7 +1,7 @@
 <?php
+
 namespace SPHERE\Application\App\Authentication\Process;
 
-use MOC\V\Core\HttpKernel\HttpKernel;
 use SPHERE\Application\App\AppException;
 use SPHERE\Application\App\Authentication\Authentication;
 use SPHERE\Application\App\Dispatcher;
@@ -17,11 +17,12 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Common\Main;
+use SPHERE\System\Extension\Extension;
 
 /**
  *
  */
-class Refresh implements ModuleInterface
+class Refresh extends Extension implements ModuleInterface
 {
     /**
      * @throws AppException
@@ -32,15 +33,6 @@ class Refresh implements ModuleInterface
         $dispatcher = Main::getDispatcher();
         $route = $dispatcher::createRoute(__NAMESPACE__ . '/refresh', __CLASS__ . '::handleRequest');
         $dispatcher::registerRoute($route, true);
-    }
-
-    /**
-     * @return \MOC\V\Core\HttpKernel\Component\IBridgeInterface
-     */
-    public static function getRequest()
-    {
-
-        return HttpKernel::getRequest();
     }
 
     public static function handleRequest(
@@ -84,11 +76,17 @@ class Refresh implements ModuleInterface
             return new Response401('Invalid authentication token');
         }
         // find consumer on account
-        if(!($tblAccount = $tblDevice->getServiceTblAccount())
-        || !($tblConsumer = $tblAccount->getServiceTblConsumer())){
+        $tblAccount = $tblDevice->getServiceTblAccount();
+        if (!$tblAccount) {
             return new Response401('Invalid credentials');
         }
-        if(!($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_APP))){
+        $tblConsumer = $tblAccount->getServiceTblConsumer();
+        if (!$tblConsumer) {
+            return new Response401('Invalid credentials');
+        }
+        if (!Consumer::useService()->getConsumerLoginByConsumerAndSystem(
+            $tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_APP
+        )) {
             return new Response401('Consumer is disabled');
         }
 
@@ -114,25 +112,35 @@ class Refresh implements ModuleInterface
         // All steps are solved
         // -----
 
-        $isNewAuth = false;
-        // 59 left -> new AuthenticationToken
-        if($tblDevice->getAuthenticationTimeout() - time() <= (60*60*24*59)){
+        // notice AppVersion
+        Authentication::useService()->modifyAppVersion($tblDevice, $appVersion);
+
+        // Refresh authentication token?
+        /** @noinspection PhpArrayIndexImmediatelyRewrittenInspection */
+        $response = [
+            'authenticationToken' => null,
+            'accessToken' => null
+        ];
+
+        if ((
+                // Start at 0 ((issued at + token timeout) - token timeout)
+                ($tblDevice->getAuthenticationTimeout() - Authentication::AUTHENTICATION_TOKEN_TIMEOUT)
+                // + (0 + issued at + refresh timeout)
+                + Authentication::AUTHENTICATION_TOKEN_REFRESH
+            ) <= time() // refresh after refresh timeout counting from issued at
+        ) {
             Authentication::useService()->modifyAuthenticationToken(
                 $tblDevice, Authentication::produceAuthenticationToken(), Authentication::AUTHENTICATION_TOKEN_TIMEOUT
             );
-            $isNewAuth = true;
+            $response['authenticationToken'] = $tblDevice->getAuthenticationToken();
         }
 
         Authentication::useService()->modifyAccessToken(
             $tblDevice, Authentication::produceAccessToken(), Authentication::ACCESS_TOKEN_TIMEOUT
         );
-        // notice AppVersion
-        Authentication::useService()->modifyAppVersion($tblDevice, $appVersion);
+        $response['accessToken'] = $tblDevice->getAccessToken();
 
-        return new Response201([
-            'authenticationToken' => ($isNewAuth ? $tblDevice->getAuthenticationToken() : null),
-            'accessToken' => $tblDevice->getAccessToken()
-        ]);
+        return new Response201($response);
     }
 
     public static function useService(): Service
