@@ -1,12 +1,14 @@
 <?php return array(
     'root' => array(
         'name' => 'sphere-framework/schulsoftware',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => NULL,
+        'pretty_version' => 'dev-master',
+        'version' => 'dev-master',
+        'reference' => 'cc9666e06cdb2c5bfbd2fa05fd2aae72f0499152',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
-        'aliases' => array(),
+        'aliases' => array(
+            0 => '1.0.x-dev',
+        ),
         'dev' => true,
     ),
     'versions' => array(
@@ -202,6 +204,15 @@
                 0 => '1.0|2.0|3.0',
             ),
         ),
+        'rbdwllr/reallysimplejwt' => array(
+            'pretty_version' => '5.0.0',
+            'version' => '5.0.0.0',
+            'reference' => 'd7e1014ccbfba43420866fd3dc3f18a521883868',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../rbdwllr/reallysimplejwt',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'sabberworm/php-css-parser' => array(
             'pretty_version' => '8.4.0',
             'version' => '8.4.0.0',
@@ -221,12 +232,14 @@
             'dev_requirement' => false,
         ),
         'sphere-framework/schulsoftware' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => NULL,
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => 'cc9666e06cdb2c5bfbd2fa05fd2aae72f0499152',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
-            'aliases' => array(),
+            'aliases' => array(
+                0 => '1.0.x-dev',
+            ),
             'dev_requirement' => false,
         ),
         'symfony/console' => array(

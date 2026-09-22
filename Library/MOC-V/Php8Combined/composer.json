@@ -17,7 +17,8 @@
         "smarty/smarty": "v4.3.4",
         "symfony/http-kernel": "v6.3.4",
         "symfony/finder": "v6.3.*",
-        "dompdf/dompdf": "v2.0.3"
+        "dompdf/dompdf": "v2.0.3",
+        "rbdwllr/reallysimplejwt": "^5.0"
     },
     "autoload": {
         "psr-4": { "Library\\MOCV\\": "src" }

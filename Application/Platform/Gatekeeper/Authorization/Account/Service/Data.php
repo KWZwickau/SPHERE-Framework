@@ -731,20 +731,26 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string            $Username
-     * @param string            $Password
-     * @param TblIdentification $tblIdentification
+     * @param string                 $Username
+     * @param string                 $Password
+     * @param TblIdentification|null $tblIdentification
+     * @param bool                   $isHashedPassword
      *
      * @return bool|TblAccount
      */
-    public function getAccountByCredential($Username, $Password, TblIdentification $tblIdentification = null)
+    public function getAccountByCredential(
+        $Username,
+        $Password,
+        TblIdentification $tblIdentification = null,
+        bool $isHashedPassword = false
+    )
     {
 
         /** @var TblAccount $tblAccount */
         $tblAccount = $this->getConnection()->getEntityManager()->getEntity('TblAccount')
             ->findOneBy(array(
                 TblAccount::ATTR_USERNAME => $Username,
-                TblAccount::ATTR_PASSWORD => hash('sha256', $Password)
+                TblAccount::ATTR_PASSWORD => ($isHashedPassword ? $Password : hash('sha256', $Password))
             ));
         // Account not available
         if (null === $tblAccount) {

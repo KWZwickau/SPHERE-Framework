@@ -14,7 +14,8 @@
         "php": ">=8.1",
         "ext-curl": "*",
         "ext-json": "*",
-        "ext-intl": "*"
+        "ext-intl": "*",
+        "ext-openssl": "*"
     },
     "require-dev": {
         "codeclimate/php-test-reporter": "dev-master"

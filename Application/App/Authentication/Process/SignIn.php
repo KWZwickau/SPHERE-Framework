@@ -19,11 +19,13 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Common\Main;
+use SPHERE\System\Extension\Extension;
+use SPHERE\System\Token\Jwt\TokenGenerator;
 
 /**
  *
  */
-class SignIn implements ModuleInterface
+class SignIn extends Extension implements ModuleInterface
 {
     // Identifications without activation
     public const SKIP_ACTIVATION = [
@@ -38,8 +40,42 @@ class SignIn implements ModuleInterface
     {
         /** @var Dispatcher $dispatcher */
         $dispatcher = Main::getDispatcher();
+        $route = $dispatcher::createRoute(__NAMESPACE__ . '/sign-in/qr-code', __CLASS__ . '::handleRequestJwt');
+        $dispatcher::registerRoute($route, true);
         $route = $dispatcher::createRoute(__NAMESPACE__ . '/sign-in', __CLASS__ . '::handleRequest');
         $dispatcher::registerRoute($route, true);
+    }
+
+    public static function handleRequestJwt(
+        ?string $deviceIdentifier = null,
+        ?string $deviceName = null,
+        ?string $credentialJwt = null,
+    ): ResponseInterface {
+
+        if (null === $credentialJwt) {
+            return new Response400('Invalid JWT');
+        }
+
+        if (!TokenGenerator::validateToken($credentialJwt)) {
+            return new Response401('Invalid credentials');
+        }
+
+        $payload = TokenGenerator::readToken($credentialJwt);
+        if (null === $payload) {
+            return new Response400('Invalid payload');
+        }
+
+        if (!isset($payload['credentialIdentifier'], $payload['credentialPassword'])) {
+            return new Response400('Invalid payload');
+        }
+
+        if (self::getRequest()->getHost() !== $payload['iss']) {
+            return new Response400('Invalid payload');
+        }
+
+        return self::handleRequest(
+            $deviceIdentifier, $deviceName, $payload['credentialIdentifier'], $payload['credentialPassword']
+        );
     }
 
     public static function handleRequest(
@@ -87,13 +123,21 @@ class SignIn implements ModuleInterface
         // Find Account
         $tblAccount = Account::useService()->getAccountByCredential($credentialIdentifier, $credentialPassword);
         if (!$tblAccount) {
+            $tblAccount = Account::useService()->getAccountByCredential(
+                $credentialIdentifier, $credentialPassword, null, true
+            );
+        }
+        if (!$tblAccount) {
             return new Response401('Invalid credentials');
         }
         // find consumer on account
-        if(!($tblConsumer = $tblAccount->getServiceTblConsumer())){
+        $tblConsumer = $tblAccount->getServiceTblConsumer();
+        if (!$tblConsumer) {
             return new Response401('Invalid credentials');
         }
-        if(!($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_APP))){
+        if (!Consumer::useService()->getConsumerLoginByConsumerAndSystem(
+            $tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_APP
+        )) {
             return new Response401('Consumer is disabled');
         }
 
