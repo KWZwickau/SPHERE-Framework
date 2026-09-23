@@ -56,6 +56,11 @@ class Frontend extends Extension implements IFrontendInterface
         $DeviceReceiver = ApiDevice::receiverDevice(self::getDevicePanelLayout());
         $ServiceReceiver = ApiDevice::receiverService();
         // ToDO Empfehlung die Geräte zu benennen? -> müsste wahrscheinlich immer angezeigt werden
+
+        $info = new Container('- Nicht mehr genutzte Geräte entfernen')
+        .new Container('- Gerät sperren, um zukünftige Login von diesem Gerät zu unterbinden');
+        $Stage->setMessage($info);
+
         $Stage->setContent(
             // ToDO Warnung für alle mit 2 fach Auth. die ein Gerät in der liste haben, das nicht aktiv geschalten ist
             //  if create && no update && isActive == false -> Initial also warnung anzeigen

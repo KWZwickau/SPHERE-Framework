@@ -81,8 +81,8 @@ class ApiDevice extends Extension implements IApiInterface
     public static function receiverQrCodeModal(): ModalReceiver
     {
         return (new ModalReceiver('Geräte Login über QR-Code',
-            (new Primary('Geräte-Seite aktualisieren', '#', new Repeat()))->ajaxPipelineOnClick(self::pipelineShowDevice())
-            .new Close()))->setIdentifier('DeviceQrCodeReceiver');
+            (new Primary('Geräte aktualisieren & Schließen', '#', new Repeat()))->ajaxPipelineOnClick(self::pipelineReloadDevice())
+        ))->setIdentifier('QRModal');
     }
 
     public static function pipelineShowDevice(): Pipeline
@@ -107,8 +107,8 @@ class ApiDevice extends Extension implements IApiInterface
         $Emitter = new ServerEmitter(self::receiverDevice(), self::getEndpoint());
         $Emitter->setPostPayload(array(self::API_TARGET => 'getDeviceView',));
         $Pipeline->appendEmitter($Emitter);
-        // close modal
-        $Pipeline->appendEmitter((new CloseModal(self::receiverQrCodeModal()))->getEmitter());
+        // close modal (Identifier statt Receiver-Objekt, sonst Endlosrekursion über receiverQrCodeModal())
+        $Pipeline->appendEmitter((new CloseModal('QRModal'))->getEmitter());
 
         return $Pipeline;
     }
@@ -254,8 +254,7 @@ class ApiDevice extends Extension implements IApiInterface
             return new Danger('Fehler bei dem Aufrufen Ihrer Accountinformationen');
         }
 
-        $info = new Container('- Nicht mehr genutzte Geräte entfernen')
-            .new Container('- Gerät sperren, um zukünftige Login zu unterbinden');
+        $info = '';
         if(Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_TOKEN)
          || Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_AUTHENTICATOR_APP)){
             $info .= new Container('- Nach dem Scannen bitte die '.new Bold('Seite aktualisieren').' und das gewünschte Gerät unter „Meine Geräte" '
