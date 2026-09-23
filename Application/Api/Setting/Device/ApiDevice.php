@@ -265,7 +265,7 @@ class ApiDevice extends Extension implements IApiInterface
 
         // use without builder:
         $writer = new PngWriter();
-        $size = 500; // a lot of data -> recommended size
+        $size = 350; // a lot of data -> recommended size 500px
         // Create QR code
         $qrCode = QrCode::create($qrCodeString)
             ->setEncoding(new Encoding('UTF-8'))
