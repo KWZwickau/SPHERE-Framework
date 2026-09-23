@@ -1,7 +1,7 @@
 <?php
-
 namespace SPHERE\Application\App\Authentication\Process;
 
+use MOC\V\Core\HttpKernel\HttpKernel;
 use SPHERE\Application\App\AppException;
 use SPHERE\Application\App\Authentication\Authentication;
 use SPHERE\Application\App\Authentication\Process\Service\Entity\TblDevice;
@@ -82,7 +82,8 @@ class SignIn extends Extension implements ModuleInterface
         ?string $deviceIdentifier = null,
         ?string $deviceName = null,
         ?string $credentialIdentifier = null,
-        ?string $credentialPassword = null
+        ?string $credentialPassword = null,
+        ?string $appVersion = null,
     ): ResponseInterface {
         // -----
         // Validate request input
@@ -90,6 +91,7 @@ class SignIn extends Extension implements ModuleInterface
         if (!RequestMethod::wasPostMethod()) {
             return RequestMethod::wasWrong();
         }
+
         // -----
         // Validate user input
         // -----
@@ -154,6 +156,8 @@ class SignIn extends Extension implements ModuleInterface
         if (false === $tblDevice->getIsActive()) {
             return new Response401('Device is disabled');
         }
+        // notice AppVersion
+        Authentication::useService()->modifyAppVersion($tblDevice, $appVersion);
 
         // Determine if activation is necessary for this account
         $useActivation = false;

@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\App\Authentication\Process\Service;
 
 use Doctrine\DBAL\Schema\Schema;
@@ -57,5 +56,6 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'accessToken', self::FIELD_TYPE_STRING, true);
         $this->createColumn($table, 'accessTimeout', self::FIELD_TYPE_INTEGER, true);
         $this->createColumn($table, 'isActive', self::FIELD_TYPE_BOOLEAN, true);
+        $this->createColumn($table, 'appVersion', self::FIELD_TYPE_STRING, true);
     }
 }
