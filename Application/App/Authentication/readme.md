@@ -15,6 +15,23 @@ Bei BC (Backward Compatibility) Breaks
 
 Ansonsten, wenn abwärtskompatibel, Versionierung unnötig
 
+# Versionierung
+
+App: Version 
+    - im Header field: x-app-version
+    - IMMER mitschicken
+Server:
+    - WENN Versionsabhängige route
+    - Werte Header Feld aus und "if-fe" entsprechend
+
+Bei BC (Backward Compatibility) Breaks
+    - im Controller
+    - if Version 1 -> Code A 
+    - if Version 2 -> Code B
+    - if Version nicht verfügbar -> 410 Gone -> Pflichtupdate der App
+
+Ansonsten, wenn abwärtskompatibel, Versionierung unnötig
+
 # Rewrite 2
 
 App: Feste "GUID" erzeugen

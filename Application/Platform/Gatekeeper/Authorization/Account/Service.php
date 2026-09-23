@@ -334,15 +334,23 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $Username
-     * @param string $Password
-     * @param TblIdentification $tblIdentification
+     * @param string                 $Username
+     * @param string                 $Password
+     * @param TblIdentification|null $tblIdentification
+     * @param bool                   $isHashedPassword
      *
      * @return bool|TblAccount
      */
-    public function getAccountByCredential(string $Username, string $Password, TblIdentification $tblIdentification = null)
+    public function getAccountByCredential(
+        string $Username,
+        string $Password,
+        TblIdentification $tblIdentification = null,
+        bool $isHashedPassword = false
+    )
     {
-        return (new Data($this->getBinding()))->getAccountByCredential($Username, $Password, $tblIdentification);
+        return (new Data($this->getBinding()))->getAccountByCredential(
+            $Username, $Password, $tblIdentification, $isHashedPassword
+        );
     }
 
     /**

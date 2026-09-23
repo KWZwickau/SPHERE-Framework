@@ -7,6 +7,8 @@ use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
+use SPHERE\Common\Frontend\Icon\Repository\QrCode as QrCodeIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -18,6 +20,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\Success as SuccessLink;
 use SPHERE\Common\Frontend\Link\Repository\Warning as WarningLink;
@@ -45,14 +48,19 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblAccount = Account::useService()->getAccountBySession();
         $Stage = new Stage($tblAccount->getUsername().' - Meine Geräte', 'Übersicht');
-        $DeviceReceiver = ApiDevice::receiverDevice(self::getDevicePanelLayout());
+        $Stage->addButton((new Standard('QR-Code für Login erzeugen', '#', new QrCodeIcon()))->ajaxPipelineOnClick(ApiDevice::pipelineQrModal()));
+        $Stage->addButton((new Primary('', '#', new Repeat(), array(), 'Geräte aktualisieren'))->ajaxPipelineOnClick(ApiDevice::pipelineShowDevice()));
+
         $DeviceModalReceiver = ApiDevice::receiverDeviceModal();
+        $QrCodeModalReceiver = ApiDevice::receiverQrCodeModal();
+        $DeviceReceiver = ApiDevice::receiverDevice(self::getDevicePanelLayout());
         $ServiceReceiver = ApiDevice::receiverService();
         // ToDO Empfehlung die Geräte zu benennen? -> müsste wahrscheinlich immer angezeigt werden
         $Stage->setContent(
             // ToDO Warnung für alle mit 2 fach Auth. die ein Gerät in der liste haben, das nicht aktiv geschalten ist
             //  if create && no update && isActive == false -> Initial also warnung anzeigen
             $DeviceModalReceiver
+            .$QrCodeModalReceiver
             .$DeviceReceiver
             .$ServiceReceiver
         );
@@ -141,16 +149,5 @@ class Frontend extends Extension implements IFrontendInterface
 
         return new Layout(new LayoutGroup($LayoutRowList));
     }
-
-//    /**
-//     * @return Stage
-//     */
-//    public static function frontendDeviceTwo()
-//    {
-//
-//        $Stage = new Stage('Meine Geräte', 'Vertieft');
-//        $Stage->addButton(new Standard('Zurück', '/Setting/Device', new ChevronLeft()));
-//        return $Stage;
-//    }
 
 }
