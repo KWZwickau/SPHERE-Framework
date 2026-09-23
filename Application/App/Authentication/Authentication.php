@@ -21,7 +21,7 @@ class Authentication implements ApplicationInterface
     // 60 * 60 * 24 * 30 => 30 Days
     // get new authentication token every ...
     public const AUTHENTICATION_TOKEN_REFRESH = 60 * 60 * 24 * 30;
-    // 60 * 60 * 24 * 60 => 90 Days
+    // 60 * 60 * 24 * 90 => 90 Days
     // maximum time to get a new authentication token, happens between refresh and timeout
     // 0d-fix-30d-new[30d-90d]-90d-logout
     public const AUTHENTICATION_TOKEN_TIMEOUT = 60 * 60 * 24 * 90;
