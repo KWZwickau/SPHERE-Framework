@@ -42,20 +42,12 @@ class SignIn implements ModuleInterface
         $dispatcher::registerRoute($route, true);
     }
 
-    /**
-     * @return \MOC\V\Core\HttpKernel\Component\IBridgeInterface
-     */
-    public static function getRequest()
-    {
-
-        return HttpKernel::getRequest();
-    }
-
     public static function handleRequest(
         ?string $deviceIdentifier = null,
         ?string $deviceName = null,
         ?string $credentialIdentifier = null,
-        ?string $credentialPassword = null
+        ?string $credentialPassword = null,
+        ?string $appVersion = null,
     ): ResponseInterface {
         // -----
         // Validate request input
@@ -63,10 +55,6 @@ class SignIn implements ModuleInterface
         if (!RequestMethod::wasPostMethod()) {
             return RequestMethod::wasWrong();
         }
-
-        // read from header
-        $headerArray = self::getRequest()->getHeaderArray();
-        $appVersion = $headerArray['x-app-version'][0] ?? null;
 
         // -----
         // Validate user input

@@ -36,8 +36,9 @@ class Refresh extends Extension implements ModuleInterface
     }
 
     public static function handleRequest(
-//        ?string $deviceIdentifier = null,
+        ?string $deviceIdentifier = null,
         ?string $authenticationToken = null,
+        ?string $appVersion = null,
     ): ResponseInterface {
         // -----
         // Validate request input
@@ -47,9 +48,9 @@ class Refresh extends Extension implements ModuleInterface
         }
 
         // read from header
-        $headerArray = self::getRequest()->getHeaderArray();
-        $deviceIdentifier = $headerArray['x-device-key'][0] ?? null;
-        $appVersion = $headerArray['x-app-version'][0] ?? null;
+//        $headerArray = self::getRequest()->getHeaderArray();
+//        $deviceIdentifier = $headerArray['x-device-key'][0] ?? null;
+//        $appVersion = $headerArray['x-app-version'][0] ?? null;
 //        return new Response201($deviceIdentifier);
 
         // -----
