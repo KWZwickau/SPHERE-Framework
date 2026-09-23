@@ -49,6 +49,7 @@ class SignIn extends Extension implements ModuleInterface
     public static function handleRequestJwt(
         ?string $deviceIdentifier = null,
         ?string $deviceName = null,
+        ?string $appVersion = null,
         ?string $credentialJwt = null,
     ): ResponseInterface {
 
@@ -74,7 +75,7 @@ class SignIn extends Extension implements ModuleInterface
         }
 
         return self::handleRequest(
-            $deviceIdentifier, $deviceName, $payload['credentialIdentifier'], $payload['credentialPassword']
+            $deviceIdentifier, $deviceName, $payload['credentialIdentifier'], $payload['credentialPassword'], $appVersion
         );
     }
 
@@ -157,7 +158,9 @@ class SignIn extends Extension implements ModuleInterface
             return new Response401('Device is disabled');
         }
         // notice AppVersion
-        Authentication::useService()->modifyAppVersion($tblDevice, $appVersion);
+        if($appVersion){
+            Authentication::useService()->modifyAppVersion($tblDevice, $appVersion);
+        }
 
         // Determine if activation is necessary for this account
         $useActivation = false;

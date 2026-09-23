@@ -23,6 +23,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -262,6 +263,16 @@ class ApiDevice extends Extension implements IApiInterface
             $info .= new Container(' '.new Bold(new ChevronRight().' Scannen Sie den QR-Code anschließend erneut für einen erlaubten Login.'));
         }
 
+        if(Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_SYSTEM)){
+            $info .= new Container('&nbsp;');
+            $info .= new Container('folgende Anzeige nur für System Admin: '.new Panel('<div style="word-break: break-all;">'.$qrCodeString.'</div>', ''));
+        }
+
+        $LayoutColumnInfo = '';
+        if(!empty($info)){
+            $LayoutColumnInfo = new LayoutColumn(new Center(new Info($info)));
+        }
+
         // use without builder:
         $writer = new PngWriter();
         $size = 350; // a lot of data -> recommended size 500px
@@ -280,13 +291,15 @@ class ApiDevice extends Extension implements IApiInterface
 
         return new Layout(new LayoutGroup(array(
             new LayoutRow(array(
-                new LayoutColumn(new Center('<h2> QR-Code läuft in 5 Minuten ab </h2>'))
+                new LayoutColumn(new Center('<h2> QR-Code läuft in 5 Minuten ab </h2>')),
+                new LayoutColumn('<div style="height: 20px"></div>')
             )),
             new LayoutRow(array(
                 new LayoutColumn(new Center($qrCode))
             )),
             new LayoutRow(array(
-                new LayoutColumn(new Center(new Info($info)))
+                new LayoutColumn('<div style="height: 40px"></div>'),
+                $LayoutColumnInfo
             )),
         )));
     }
