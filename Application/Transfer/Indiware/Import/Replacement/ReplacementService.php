@@ -642,6 +642,8 @@ class ReplacementService
             if(($ReplacementList = $ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
                 $readList = $this->readReplacement($ReplacementList);
                 $importList = $this->getObjectList($readList);
+                // Sicherheitsnetz: einzelne Vergangenheits-Zeilen (z.B. Verl.-Ursprung) nicht anfassen
+                $importList = $this->filterPastRows($importList);
                 $DateArray = $this->getDateArray($importList);
             }
         } else {
@@ -659,6 +661,8 @@ class ReplacementService
             && ($ReplacementList = $ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
                 $readList = $this->readReplacement($ReplacementList);
                 $importList = $this->getObjectList($readList);
+                // Sicherheitsnetz: einzelne Vergangenheits-Zeilen (z.B. Verl.-Ursprung) nicht anfassen
+                $importList = $this->filterPastRows($importList);
                 $DateArray = $this->getDateArray($importList);
             }
         }
@@ -710,6 +714,8 @@ class ReplacementService
                 $ReplacementEntryList = array_unique($ReplacementEntryList, SORT_REGULAR);
                 foreach($ReplacementEntryList as $ReplacementEntry){
                     $item = array();
+                    // Kopf-Datum des Tagesplans mitführen (unterscheidet bewusst alten Plan vs. Verlegung-Spillover)
+                    $item['PlanDate'] = $Replacement['Kopf']['Datum'] ?? '';
                     $item['Art'] = $ReplacementEntry['Ak_Art']?:'';
                     $item['Date'] = $ReplacementEntry['Ak_DatumVon']?:'';
                     $item['DateTo'] = isset($ReplacementEntry['Ak_DatumNach'])?$ReplacementEntry['Ak_DatumNach']:'';
@@ -875,6 +881,7 @@ class ReplacementService
 
 //            $item['SchoolName'] = $schoolName;
 //            $item['ReplacementId'] = '';
+            $item['PlanDate'] = $read['PlanDate'] ?? '';
             $item['Art'] = $Art;
             $item['Date'] = $DateTime;
             $item['DateString'] = $Date;
@@ -947,6 +954,32 @@ class ReplacementService
             $ArrayDateList = array_unique($ArrayDateList);
         }
         return $ArrayDateList;
+    }
+
+    /**
+     * Verwirft Zeilen, deren Datum vor dem Plan-Datum (Kopf-Datum) liegt.
+     * Maßgeblich ist das PlanDate der Zeile: alles davor (Vergangenheit, z.B. Verl.-Ursprung)
+     * fällt weg, der Rest bleibt und wird eingespielt.
+     *
+     * @param array $importList
+     * @return array
+     */
+    private function filterPastRows(array $importList): array
+    {
+        $resultList = array();
+        foreach($importList as $import){
+            $planDate = (!empty($import['PlanDate']))
+                ? DateTime::createFromFormat('d.m.Y', $import['PlanDate']) : false;
+            if($planDate){
+                $planDate->setTime(0, 0, 0);
+            }
+            // Nur Zeilen vor dem Plan-Datum verwerfen; alles andere unverändert übernehmen
+            if($planDate && isset($import['Date']) && $import['Date'] instanceof DateTime && $import['Date'] < $planDate){
+                continue;
+            }
+            $resultList[] = $import;
+        }
+        return $resultList;
     }
 
     /**
