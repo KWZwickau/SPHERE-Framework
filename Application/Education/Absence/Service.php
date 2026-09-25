@@ -960,16 +960,16 @@ class Service extends AbstractService
                 $tblAbsenceList = $this->getSorter($tblAbsenceList)->sortObjectBy('FromDateTime', new DateTimeSorter(), Sorter::ORDER_DESC);
                 /** @var TblAbsence $tblAbsence */
                 foreach ($tblAbsenceList as $tblAbsence) {
-                    $status = '';
+                    $status = $tblAbsence->getStatusDisplayName();
                     $statusShort = '';
                     if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
-                        $status = new Success('entschuldigt');
+//                        $status = new Success('entschuldigt');
                         $statusShort = 'E';
                     } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
-                        $status = new \SPHERE\Common\Frontend\Text\Repository\Warning('unentschuldigt');
+//                        $status = new \SPHERE\Common\Frontend\Text\Repository\Warning('unentschuldigt');
                         $statusShort = 'U';
                     } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR) {
-                        $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unklar');
+//                        $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unklar');
                         $statusShort = 'U';
                     }
 

@@ -48,7 +48,6 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -184,19 +183,7 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
             }
 
             foreach ($tblAbsenceList as $tblAbsence) {
-                $status = '';
-                if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
-                    if (!$tblAbsence->getIsCertificateRelevant()) {
-                        $status = new Muted('entschuldigt');
-                    } else {
-                        $status = new Success('entschuldigt');
-                    }
-                } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
-                    $status = new \SPHERE\Common\Frontend\Text\Repository\Warning('unentschuldigt');
-                } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR) {
-                    $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unklar');
-                }
-
+                $status = $tblAbsence->getStatusDisplayName();
                 $isOnlineAbsence = $tblAbsence->getIsOnlineAbsence();
 
                 $item = array(
@@ -767,7 +754,14 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
             $backgroundColor = '#cda03d';
             $isWhiteLink = true;
         } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
-            $backgroundColor = $tblAbsence->getIsCertificateRelevant() ? '#5cb85c' : '#777777';
+            // für Personen mit Rot-Grün-Schwäche → kann aktuell nur über DB gesetzt werden
+            if (Consumer::useService()->getAccountSettingValue("AbsenceStatusExcusedColor") == 'Blue') {
+                $excusedColor = '#337ab7';
+            } else {
+                $excusedColor = '#5cb85c';
+            }
+
+            $backgroundColor = $tblAbsence->getIsCertificateRelevant() ? $excusedColor : '#777777';
 
             $isWhiteLink = true;
         } else {
