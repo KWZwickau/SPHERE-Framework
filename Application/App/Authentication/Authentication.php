@@ -50,10 +50,6 @@ class Authentication implements ApplicationInterface
         if (null === $tblDevice) {
             return false;
         }
-        // Timeout in seconds from now
-        Account::useService()->createSession(
-            $tblDevice->getServiceTblAccount(), $accessToken, $tblDevice->getAccessTimeout() - time()
-        );
         // Connect app session to ssw session
         if (session_status() === PHP_SESSION_ACTIVE) {
             session_destroy();
@@ -61,6 +57,10 @@ class Authentication implements ApplicationInterface
         session_id($accessToken);
         session_start();
         session_write_close();
+        // Timeout in seconds from now
+        Account::useService()->createSession(
+            $tblDevice->getServiceTblAccount(), $accessToken, $tblDevice->getAccessTimeout() - time()
+        );
         // Re-/Check session
         return self::hasSession($deviceIdentifier, $accessToken);
     }
