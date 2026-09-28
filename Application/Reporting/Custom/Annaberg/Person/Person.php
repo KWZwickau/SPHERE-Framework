@@ -14,16 +14,27 @@ use SPHERE\Common\Window\Navigation\Link;
  */
 class Person extends AbstractModule implements IModuleInterface
 {
-    public static function registerModule()
+    /**
+     * @return void
+     */
+    public static function registerModule(): void
     {
         Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__ . '/PrintClassList'), new Link\Name('Druckbare Klassenlisten')));
         Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__ . '/Export'), new Link\Name('SchulAPP')));
+        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__ . '/StudentExport'), new Link\Name('SchulApp - Schüler')));
+        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__ . '/StudentCustodyExport'), new Link\Name('SchulApp - Schüler und Sorgeberechtigte')));
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/PrintClassList', __NAMESPACE__ . '\Frontend::frontendPrintClassList'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Export', __NAMESPACE__ . '\Frontend::frontendExport'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/StudentExport', __NAMESPACE__ . '\Frontend::frontendExportStudent'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/StudentCustodyExport', __NAMESPACE__ . '\Frontend::frontendExportStudentCustody'
         ));
     }
 
