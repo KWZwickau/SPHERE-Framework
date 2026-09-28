@@ -755,20 +755,23 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
 
                         if ($tblTestGradeList) {
                             list ($average, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $tblTestGradeList, $tblScoreRule ?: null, $tblPeriod ?: null);
-                            $contentSubject = '&#216; '
+                            $prefix = $average !== '' ? '&#216; ' : '';
+                            $contentSubject = $prefix
                                 . ($isPdf
                                     ? $average
                                     : Grade::useService()->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error));
                             $average = Grade::useService()->getGradeNumberValue($average);
-                            if (isset($averageSumList[$tblSubject->getId()])) {
-                                $averageSumList[$tblSubject->getId()] += $average;
-                            } else {
-                                $averageSumList[$tblSubject->getId()] = $average;
-                            }
-                            if (isset($averageCountList[$tblSubject->getId()])) {
-                                $averageCountList[$tblSubject->getId()]++;
-                            } else {
-                                $averageCountList[$tblSubject->getId()] = 1;
+                            if ($average !== null) {
+                                if (isset($averageSumList[$tblSubject->getId()])) {
+                                    $averageSumList[$tblSubject->getId()] += $average;
+                                } else {
+                                    $averageSumList[$tblSubject->getId()] = $average;
+                                }
+                                if (isset($averageCountList[$tblSubject->getId()])) {
+                                    $averageCountList[$tblSubject->getId()]++;
+                                } else {
+                                    $averageCountList[$tblSubject->getId()] = 1;
+                                }
                             }
                         } else {
                             $contentSubject = '';
