@@ -1,0 +1,34 @@
+<button type="button" id="{{ ElementHash }}" class="{{ ElementType }}" data-container="body"
+        data-copy="{{ ElementValue|e('html_attr') }}">{{ ElementIcon }} {{ ElementName }}</button>
+<script language=javascript>
+    //noinspection JSUnresolvedFunction
+    executeScript(function()
+    {
+        Client.Use("ModAlways", function()
+        {
+            var Content = jQuery("button#{{ ElementHash }}").html();
+            jQuery("button#{{ ElementHash }}").on("click", function(Event) {
+                Event.preventDefault();
+                var Button = this,
+                    Value = Button.getAttribute('data-copy'),
+                    Done = function() {
+                        Button.textContent = 'Kopiert!';
+                        setTimeout(function() { Button.innerHTML = Content; }, 3000);
+                    };
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(Value).then(Done);
+                } else {
+                    // fallback for http, textarea inside the button parent (bootstrap modal focus trap)
+                    var TextArea = document.createElement('textarea');
+                    TextArea.value = Value;
+                    TextArea.style.position = 'fixed';
+                    TextArea.style.opacity = '0';
+                    Button.parentNode.appendChild(TextArea);
+                    TextArea.select();
+                    if (document.execCommand('copy')) { Done(); }
+                    TextArea.remove();
+                }
+            });
+        });
+    });
+</script>
