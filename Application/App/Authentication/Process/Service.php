@@ -4,9 +4,11 @@ namespace SPHERE\Application\App\Authentication\Process;
 use SPHERE\Application\App\AppException;
 use SPHERE\Application\App\Authentication\Process\Service\Data;
 use SPHERE\Application\App\Authentication\Process\Service\Entity\TblDevice;
+use SPHERE\Application\App\Authentication\Process\Service\Entity\TblLoginToken;
 use SPHERE\Application\App\Authentication\Process\Service\Setup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Token\Jwt\TokenGenerator;
 
 /**
  *
@@ -42,10 +44,34 @@ class Service extends AbstractService
     {
         return (new Data($this->getBinding()))->getDeviceByIdentifier($tblAccount, $deviceIdentifier);
     }
+    public function getLoginTokenByAccount(TblAccount $tblAccount): ?TblLoginToken
+    {
+        return (new Data($this->getBinding()))->getLoginTokenByAccount($tblAccount);
+    }
+    public function getLoginTokenByCredentialJwt(string $credentialJwt): ?TblLoginToken
+    {
+        return (new Data($this->getBinding()))->getLoginTokenByCredentialJwt($credentialJwt);
+    }
+    public function getAccountByCredentialJwt(string $credentialJwt, string $credentialHash): ?TblAccount
+    {
+        $tblLoginToken = (new Data($this->getBinding()))->getLoginTokenByCredentialJwt($credentialJwt);
+        if($tblLoginToken){
+            $payload = TokenGenerator::readToken($tblLoginToken->getCredentialJwt());
+            if($payload['credentialHash'] == $credentialHash){
+                return $tblLoginToken->getServiceTblAccount();
+            }
+        }
+        return null;
+    }
 
     public function createDevice(TblAccount $tblAccount, string $deviceIdentifier, string $deviceName): ?TblDevice
     {
         return (new Data($this->getBinding()))->createDevice($tblAccount, $deviceIdentifier, $deviceName);
+    }
+
+    public function createLoginToken(TblAccount $tblAccount, string $token): ?TblLoginToken
+    {
+        return (new Data($this->getBinding()))->createLoginToken($tblAccount, $token);
     }
 
     public function updateDevice(TblDevice $tblDevice, string $deviceName, string $isActive = ''): ?TblDevice

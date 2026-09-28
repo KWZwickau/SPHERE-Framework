@@ -33,6 +33,7 @@ class Setup extends AbstractSetup
         $schema = clone $connection->getSchema();
 
         $this->setTableDevice($schema);
+        $this->setTableLoginToken($schema);
         /**
          * Migration & Protocol
          */
@@ -57,5 +58,12 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'accessTimeout', self::FIELD_TYPE_INTEGER, true);
         $this->createColumn($table, 'isActive', self::FIELD_TYPE_BOOLEAN, true);
         $this->createColumn($table, 'appVersion', self::FIELD_TYPE_STRING, true);
+    }
+
+    private function setTableLoginToken(Schema $Schema): void
+    {
+        $table = $this->createTable($Schema, 'tblLoginToken');
+        $this->createColumn($table, 'serviceTblAccount', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'credentialJwt', self::FIELD_TYPE_TEXT);
     }
 }

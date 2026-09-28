@@ -2,6 +2,7 @@
 namespace SPHERE\Application\App\Authentication\Process\Service;
 
 use SPHERE\Application\App\Authentication\Process\Service\Entity\TblDevice;
+use SPHERE\Application\App\Authentication\Process\Service\Entity\TblLoginToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -54,6 +55,31 @@ class Data extends AbstractData
             $entity->setDeviceName($deviceName);
             $manager->saveEntity($entity);
             Protocol::useService()->createInsertEntry($connection->getDatabase(), $entity);
+        }
+        return $entity;
+    }
+
+    public function createLoginToken(TblAccount $tblAccount, string $credentialJwt): ?TblLoginToken
+    {
+        $entity = $this->getLoginTokenByAccount($tblAccount);
+
+        $connection = $this->getConnection();
+        if (null === $connection) {
+            return null;
+        }
+        $manager = $connection->getEntityManager();
+
+        if (null === $entity) {
+            $entity = new TblLoginToken();
+            $entity->setServiceTblAccount($tblAccount);
+            $entity->setCredentialJwt($credentialJwt);
+            $manager->saveEntity($entity);
+            Protocol::useService()->createInsertEntry($connection->getDatabase(), $entity);
+        } else {
+            $entityTemp = clone $entity;
+            $entity->setCredentialJwt($credentialJwt);
+            $manager->saveEntity($entity);
+            Protocol::useService()->createUpdateEntry($connection->getDatabase(), $entityTemp, $entity);
         }
         return $entity;
     }
@@ -140,6 +166,40 @@ class Data extends AbstractData
         $entity = $manager->getEntity('TblDevice')->findOneBy([
             TblDevice::SERVICE_TBL_ACCOUNT => $tblAccount->getId(),
             TblDevice::ATTR_DEVICE_IDENTIFIER => $deviceIdentifier
+        ]);
+        if (!$entity) {
+            return null;
+        }
+        return $entity;
+    }
+
+    public function getLoginTokenByAccount(TblAccount $tblAccount): ?TblLoginToken
+    {
+        $connection = $this->getConnection();
+        if (null === $connection) {
+            return null;
+        }
+        $manager = $connection->getEntityManager();
+        /** @var TblLoginToken|null $entity */
+        $entity = $manager->getEntity('TblLoginToken')->findOneBy([
+            TblLoginToken::SERVICE_TBL_ACCOUNT => $tblAccount->getId(),
+        ]);
+        if (!$entity) {
+            return null;
+        }
+        return $entity;
+    }
+
+    public function getLoginTokenByCredentialJwt($credentialJwt): ?TblLoginToken
+    {
+        $connection = $this->getConnection();
+        if (null === $connection) {
+            return null;
+        }
+        $manager = $connection->getEntityManager();
+        /** @var TblLoginToken|null $entity */
+        $entity = $manager->getEntity('TblLoginToken')->findOneBy([
+            TblLoginToken::ATTR_CREDENTIAL_JWT => $credentialJwt,
         ]);
         if (!$entity) {
             return null;

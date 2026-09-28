@@ -10,6 +10,7 @@ use Endroid\QrCode\RoundBlockSizeMode;
 use Endroid\QrCode\Writer\PngWriter;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\App\Authentication\Authentication;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
@@ -20,20 +21,19 @@ use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
-use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\CopyButton;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Italic;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Token\Jwt\TokenGenerator;
 
@@ -239,7 +239,7 @@ class ApiDevice extends Extension implements IApiInterface
 
     public function getQrModal(): string
     {
-        $timeToActivate = 300; // second
+        $timeToActivate = 60; // second
 
         $qrCodeString = '';
         $tblAccount = Account::useService()->getAccountBySession();
@@ -247,30 +247,21 @@ class ApiDevice extends Extension implements IApiInterface
             // QR-Login
             $qrCodeString = TokenGenerator::createToken(
                 self::getRequest()->getHost(), $timeToActivate, [
-                    'credentialIdentifier' => $tblAccount->getUsername(),
-                    'credentialPassword' => $tblAccount->getPassword(),
+//                    'credentialIdentifier' => $tblAccount->getUsername(),
+//                    'credentialPassword' => $tblAccount->getPassword(),
+                    'credentialHash' => hash('sha512',uniqid('app',true))
                 ]
             );
+            Authentication::useService()->createLoginToken($tblAccount, $qrCodeString);
         } else {
             return new Danger('Fehler bei dem Aufrufen Ihrer Accountinformationen');
         }
 
-        $info = '';
-        if(Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_TOKEN)
-         || Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_AUTHENTICATOR_APP)){
-            $info .= new Container('- Nach dem Scannen bitte die '.new Bold('Seite aktualisieren').' und das gewünschte Gerät unter „Meine Geräte" '
-                .new Bold('aktivieren'));
-            $info .= new Container(' '.new Bold(new ChevronRight().' Scannen Sie den QR-Code anschließend erneut für einen erlaubten Login.'));
-        }
-
-        if(Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_SYSTEM)){
-            $info .= new Container('&nbsp;');
-            $info .= new Container('folgende Anzeige nur für System Admin: '.new Panel('<div style="word-break: break-all;">'.$qrCodeString.'</div>', ''));
-        }
-
         $LayoutColumnInfo = '';
-        if(!empty($info)){
-            $LayoutColumnInfo = new LayoutColumn(new Center(new Info($info)));
+        if(Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_SYSTEM)){
+            $LayoutColumnInfo = new LayoutColumn(new Center(
+                new Container(new Small(new Italic('Kopieren nur für System Admin')).new Container(new CopyButton($qrCodeString)))
+            ));
         }
 
         // use without builder:
@@ -289,9 +280,14 @@ class ApiDevice extends Extension implements IApiInterface
 
         $qrCode = '<img src="data:image/png;base64, ' . base64_encode($result->getString()) . '" />';
 
+        $countdownId = 'QrCountdown'.uniqid();
+        $timeToActivate--; // neugenerierung 1.sec früher als abgelaufen
+        $countdown = '<h2 id="'.$countdownId.'">QR-Code läuft in <span>'.$timeToActivate.'</span> Sekunden ab</h2>'
+            .self::getCountdownScript($countdownId, $timeToActivate);
+
         return new Layout(new LayoutGroup(array(
             new LayoutRow(array(
-                new LayoutColumn(new Center('<h2> QR-Code läuft in 5 Minuten ab </h2>')),
+                new LayoutColumn(new Center($countdown)),
                 new LayoutColumn('<div style="height: 20px"></div>')
             )),
             new LayoutRow(array(
@@ -302,5 +298,32 @@ class ApiDevice extends Extension implements IApiInterface
                 $LayoutColumnInfo
             )),
         )));
+    }
+
+    /**
+     * Countdown for element $countdownId (expects a <span> for the seconds)
+     * stops itself when the element is gone or hidden (modal closed / reloaded)
+     * on expiry the modal content is reloaded with a new QR code
+     */
+    private static function getCountdownScript(string $countdownId, int $seconds): string
+    {
+        $reloadScript = self::pipelineQrModal()->parseScript();
+
+        return <<<JS
+            <script>(function(){
+                var s = {$seconds},
+                    h = document.getElementById("{$countdownId}"),
+                    i = setInterval(function(){
+                        if (!document.body.contains(h) || !jQuery(h).is(":visible")) { clearInterval(i); return; }
+                        if (--s <= 0) {
+                            clearInterval(i);
+                            h.textContent = "QR-Code wird erneuert ...";
+                            Client.Use("ModAjax", function(){ {$reloadScript} });
+                            return;
+                        }
+                        h.querySelector("span").textContent = s;
+                    }, 1000);
+            })();</script>
+        JS;
     }
 }
