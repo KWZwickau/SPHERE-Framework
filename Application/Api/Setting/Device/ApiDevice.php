@@ -76,7 +76,7 @@ class ApiDevice extends Extension implements IApiInterface
 
     public static function receiverDeviceModal(): ModalReceiver
     {
-        return (new ModalReceiver('Gerät', new Close()))->setIdentifier('DeviceModalReceiver');
+        return (new ModalReceiver('', new Close()))->setIdentifier('DeviceModalReceiver');
     }
 
     public static function receiverQrCodeModal(): ModalReceiver
@@ -223,13 +223,13 @@ class ApiDevice extends Extension implements IApiInterface
 
         $tblDevice = Device::useService()->getDeviceById($deviceId);
         $DeviceName = $Device['Name'];
-        $DeviceStatus = '';
-        if(isset($Device['Status'])){
-            $DeviceStatus = $Device['Status'];
-        }
+//        $DeviceStatus = '';
+//        if(isset($Device['Status'])){
+//            $DeviceStatus = $Device['Status'];
+//        }
 
 
-        $tblDevice = Device::useService()->updateDevice($tblDevice, $DeviceName, $DeviceStatus);
+        $tblDevice = Device::useService()->updateDevice($tblDevice, $DeviceName);
 
         return ($tblDevice
             ? new Success('Änderung gespeichert')

@@ -73,7 +73,7 @@ class SignIn extends Extension implements ModuleInterface
         if (self::getRequest()->getHost() !== $payload['iss']) {
             return new Response400('Invalid payload');
         }
-        $tblAccount = Authentication::useService()->getAccountByCredentialJwt($credentialJwt, $payload['credentialHash']);
+        $tblAccount = Authentication::useService()->getAccountByCredentialJwt($credentialJwt);
         if(!$tblAccount){
             return new Response400('Invalid payload');
         }

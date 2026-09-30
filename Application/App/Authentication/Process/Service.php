@@ -44,24 +44,21 @@ class Service extends AbstractService
     {
         return (new Data($this->getBinding()))->getDeviceByIdentifier($tblAccount, $deviceIdentifier);
     }
+
     public function getLoginTokenByAccount(TblAccount $tblAccount): ?TblLoginToken
     {
         return (new Data($this->getBinding()))->getLoginTokenByAccount($tblAccount);
     }
+
     public function getLoginTokenByCredentialJwt(string $credentialJwt): ?TblLoginToken
     {
         return (new Data($this->getBinding()))->getLoginTokenByCredentialJwt($credentialJwt);
     }
-    public function getAccountByCredentialJwt(string $credentialJwt, string $credentialHash): ?TblAccount
+
+    public function getAccountByCredentialJwt(string $credentialJwt): ?TblAccount
     {
         $tblLoginToken = (new Data($this->getBinding()))->getLoginTokenByCredentialJwt($credentialJwt);
-        if($tblLoginToken){
-            $payload = TokenGenerator::readToken($tblLoginToken->getCredentialJwt());
-            if($payload['credentialHash'] == $credentialHash){
-                return $tblLoginToken->getServiceTblAccount();
-            }
-        }
-        return null;
+        return $tblLoginToken?->getServiceTblAccount();
     }
 
     public function createDevice(TblAccount $tblAccount, string $deviceIdentifier, string $deviceName): ?TblDevice

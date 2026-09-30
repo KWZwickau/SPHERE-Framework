@@ -49,39 +49,39 @@ class Service extends \SPHERE\Application\App\Authentication\Process\Service
         if(!isset($_POST['Device']['Name'])){
             $_POST['Device']['Name'] = $tblDevice->getDeviceName();
         }
-        if(!isset($_POST['Device']['Status'])){
-            $isActive = $tblDevice->getIsActive();
-            if($isActive === true){
-                $_POST['Device']['Status'] = 1;
-            } elseif($isActive === false){
-                $_POST['Device']['Status'] = 2;
-            }
-        }
+//        if(!isset($_POST['Device']['Status'])){
+//            $isActive = $tblDevice->getIsActive();
+//            if($isActive === true){
+//                $_POST['Device']['Status'] = 1;
+//            } elseif($isActive === false){
+//                $_POST['Device']['Status'] = 2;
+//            }
+//        }
 
         return new Well(new Form(new FormGroup(array(
             new FormRow(new FormColumn(
                 new TextField('Device[Name]', '', 'Name des Gerätes', new PhoneMobil(), null, 42)
             )),
-            new FormRow(array(
-                new FormColumn(
-                    new RadioBox('Device[Status]', 'Aktiv '
-                        .(new ToolTip(new Info(), htmlspecialchars('Das Gerät darf sich in die App einloggen'), false))
-                            ->enableHtml()
-                        , '1', RadioBox::RADIO_BOX_TYPE_SUCCESS)
-                , 2),
-                new FormColumn(
-                    new RadioBox('Device[Status]', 'Blockiert '
-                        .(new ToolTip(new Info(), htmlspecialchars('Das Gerät ist für die App gesperrt'), false))
-                            ->enableHtml()
-                        , '2', RadioBox::RADIO_BOX_TYPE_WARNING)
-                , 2),
-                new FormColumn(
-                    new RadioBox('Device[Status]', 'Löschen '
-                        .(new ToolTip(new Info(), htmlspecialchars('Geräteanfrage entfernen.<br/>Kann mit erneutem Login wieder Anfrage stellen'), false))
-                            ->enableHtml()
-                        , '3', RadioBox::RADIO_BOX_TYPE_DANGER)
-                , 2),
-            )),
+//            new FormRow(array(
+//                new FormColumn(
+//                    new RadioBox('Device[Status]', 'Aktiv '
+//                        .(new ToolTip(new Info(), htmlspecialchars('Das Gerät darf sich in die App einloggen'), false))
+//                            ->enableHtml()
+//                        , '1', RadioBox::RADIO_BOX_TYPE_SUCCESS)
+//                , 2),
+//                new FormColumn(
+//                    new RadioBox('Device[Status]', 'Blockiert '
+//                        .(new ToolTip(new Info(), htmlspecialchars('Das Gerät ist für die App gesperrt'), false))
+//                            ->enableHtml()
+//                        , '2', RadioBox::RADIO_BOX_TYPE_WARNING)
+//                , 2),
+//                new FormColumn(
+//                    new RadioBox('Device[Status]', 'Löschen '
+//                        .(new ToolTip(new Info(), htmlspecialchars('Geräteanfrage entfernen.<br/>Kann mit erneutem Login wieder Anfrage stellen'), false))
+//                            ->enableHtml()
+//                        , '3', RadioBox::RADIO_BOX_TYPE_DANGER)
+//                , 2),
+//            )),
             new FormRow(new FormColumn(
                 (new Primary('Speichern', '#', new Save()))->ajaxPipelineOnClick(ApiDevice::pipelineSaveModalDevice($tblDevice->getId()))
             ))
