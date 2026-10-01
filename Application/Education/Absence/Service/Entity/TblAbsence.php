@@ -16,8 +16,11 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Primary;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Database\Fitting\Element;
@@ -356,7 +359,13 @@ class TblAbsence extends Element
                 $text = 'entschuldigt';
                 return $isOnlineAbsence
                     ? '<span style="color:darkorange">' . $text . '</span>'
-                    : new Success($text);
+                    : ($this->getIsCertificateRelevant()
+                        ? (Consumer::useService()->getAccountSettingValue("AbsenceStatusExcusedColor") == 'Blue'
+                            ? new Primary($text)
+                            : new Success($text))
+                        : new Muted($text)
+                    );
+
             case self::VALUE_STATUS_UNEXCUSED:
                 $text = 'unentschuldigt';
                 return $isOnlineAbsence
@@ -584,7 +593,12 @@ class TblAbsence extends Element
         } elseif ($this->getStatus() == self::VALUE_STATUS_EXCUSED && !$this->getIsCertificateRelevant()) {
             return AbstractLink::TYPE_MUTED_LINK;
         } elseif ($this->getStatus() == self::VALUE_STATUS_EXCUSED) {
-            return AbstractLink::TYPE_SUCCESS_LINK;
+            // für Personen mit Rot-Grün-Schwäche → kann aktuell nur über DB gesetzt werden
+            if (Consumer::useService()->getAccountSettingValue("AbsenceStatusExcusedColor") == 'Blue') {
+                return AbstractLink::TYPE_LINK;
+            } else {
+                return AbstractLink::TYPE_SUCCESS_LINK;
+            }
         } else {
             return AbstractLink::TYPE_LINK;
         }
