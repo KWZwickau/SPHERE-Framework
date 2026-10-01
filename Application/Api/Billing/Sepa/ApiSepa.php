@@ -72,10 +72,12 @@ class ApiSepa extends Extension implements IApiInterface
 
     /**
      * @param string $BasketId
+     * @param bool   $IsLegacy Kompatibilitätsmodus für Banken, die das aktuelle Format
+     *                         (SEPA-Formatversion 3.7) noch nicht annehmen.
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCauserModal($BasketId = '')
+    public static function pipelineOpenCauserModal($BasketId = '', $IsLegacy = false)
     {
 
         $Receiver = self::receiverModal();
@@ -85,7 +87,10 @@ class ApiSepa extends Extension implements IApiInterface
             self::API_TARGET => 'showOpenInvoice'
         ));
         $Emitter->setPostPayload(array(
-            'BasketId' => $BasketId
+            'BasketId' => $BasketId,
+            // als String statt bool übergeben: bool "false" könnte beim Transport über die
+            // Ajax-Pipeline als nicht-leerer String "false" ankommen und wäre damit in PHP wahr
+            'IsLegacy' => $IsLegacy ? '1' : ''
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -118,10 +123,12 @@ class ApiSepa extends Extension implements IApiInterface
 
     /**
      * @param string $BasketId
+     * @param bool   $IsLegacy Kompatibilitätsmodus für Banken, die das aktuelle Format
+     *                         (SEPA-Formatversion 3.7) noch nicht annehmen.
      *
      * @return string
      */
-    public function showOpenInvoice($BasketId = '')
+    public function showOpenInvoice($BasketId = '', $IsLegacy = false)
     {
 
         if(Basket::useService()->getBasketById($BasketId)){
@@ -219,10 +226,11 @@ class ApiSepa extends Extension implements IApiInterface
                     new FormRow(array(
                         new FormColumn(array(
                             new HiddenField('Invoice[BasketId]'),
+                            new HiddenField('Invoice[Legacy]'),
                         )),
                         $FormColumnTable,
                     ))
-                ), new PrimaryForm('&nbsp;SEPA Download', new Download(), true), '\Api\Billing\Sepa\Download'
+                ), new PrimaryForm('&nbsp;SEPA Download'.($IsLegacy ? ' (Kompatibilitätsmodus)' : ''), new Download(), true), '\Api\Billing\Sepa\Download'
             );
             $toggleCheckbox = new ToggleCheckbox( 'Alle wählen/abwählen', $form );
         } else {
@@ -231,19 +239,21 @@ class ApiSepa extends Extension implements IApiInterface
                     new FormRow(array(
                         new FormColumn(array(
                             new HiddenField('Invoice[BasketId]'),
+                            new HiddenField('Invoice[Legacy]'),
                         )),
                         new FormColumn(
                             new Success('Es sind keine Offenen Posten vorhanden, die in die SEPA-Lastschrift XML aufgenommen
                             werden könnten.')
                         ),
                     ))
-                ), new PrimaryForm('&nbsp;SEPA Download', new Download(), true), '\Api\Billing\Sepa\Download'
+                ), new PrimaryForm('&nbsp;SEPA Download'.($IsLegacy ? ' (Kompatibilitätsmodus)' : ''), new Download(), true), '\Api\Billing\Sepa\Download'
             );
         }
 
 
         // set hidden POST
         $_POST['Invoice']['BasketId'] = $BasketId;
+        $_POST['Invoice']['Legacy'] = $IsLegacy ? '1' : '';
 
         return
             new Title('Offene Posten').$Warning.$toggleCheckbox.$form;

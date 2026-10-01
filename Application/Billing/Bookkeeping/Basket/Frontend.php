@@ -267,7 +267,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'columnDefs' => array(
                     array('type' => 'natural', 'targets' => array(0)),
                     array('type' => 'de_date', 'targets' => array(2, 4)),
-                    array("orderable" => false, 'width' => '260px', "targets" => -1),
+                    array("orderable" => false, 'width' => '350px', "targets" => -1),
                 ),
                 'order'      => array(
 //                    array(1, 'desc'),
@@ -307,6 +307,17 @@ class Frontend extends Extension implements IFrontendInterface
                     $Buttons .= (new External('SEPA', '\Api\Billing\Sepa\Credit\Download', new Download(),
                         array('BasketId' => $tblBasket->getId()), 'SEPA Download', External::STYLE_BUTTON_PRIMARY));
                 }
+                // Kompatibilitätsmodus für Banken, die SEPA-Formatversion 3.7 (pain.001.001.09) noch nicht annehmen
+                $Buttons .= (new ToolTip((new External('SEPA (altes Format)', '\Api\Billing\Sepa\Credit\Download', new Download(),
+                    array('BasketId' => $tblBasket->getId(), 'Legacy' => '1'), false,
+                    External::STYLE_BUTTON_DEFAULT))
+                    , htmlspecialchars(
+                        'SEPA Download im Kompatibilitätsmodus <br/>(pain.001.002.03 < SEPA 3.7) - nur verwenden, wenn die Bank das aktuelle Format ablehnt'
+                    )))->enableHtml();
+//                $Buttons .= (new External('SEPA (altes Format)', '\Api\Billing\Sepa\Credit\Download', new Download(),
+//                    array('BasketId' => $tblBasket->getId(), 'Legacy' => '1'), 'SEPA Download im Kompatibilitätsmodus (pain.001.002.03 < SEPA 3.7) - nur verwenden, wenn
+//                     die Bank das aktuelle Format ablehnt',
+//                    External::STYLE_BUTTON_DEFAULT));
             }
             // Datev für diesen Vorgang erstmal verschoben
             if($IsDatev){
@@ -330,6 +341,15 @@ class Frontend extends Extension implements IFrontendInterface
                     $Buttons .= (new Primary('SEPA', ApiSepa::getEndpoint(), new Download(), array(), 'SEPA Download'))
                         ->ajaxPipelineOnClick(ApiSepa::pipelineOpenCauserModal($tblBasket->getId()));
                 }
+                // Kompatibilitätsmodus für Banken, die SEPA-Formatversion 3.7 (pain.008.001.08) noch nicht annehmen
+                $Buttons .= (new ToolTip((new Standard('SEPA (altes Format)', ApiSepa::getEndpoint(), new Download(), array()))
+                    ->ajaxPipelineOnClick(ApiSepa::pipelineOpenCauserModal($tblBasket->getId(), true))
+                    , htmlspecialchars(
+                        'SEPA Download im Kompatibilitätsmodus <br/>(pain.008.001.02 < SEPA 3.7) - nur verwenden, wenn die Bank das aktuelle Format ablehnt'
+                )))->enableHtml();
+//                $Buttons .= (new Standard('SEPA (altes Format)', ApiSepa::getEndpoint(), new Download(), array(),
+//                    'SEPA Download im Kompatibilitätsmodus (pain.008.001.02 < SEPA 3.7) - nur verwenden, wenn die Bank das aktuelle Format ablehnt'))
+//                    ->ajaxPipelineOnClick(ApiSepa::pipelineOpenCauserModal($tblBasket->getId(), true));
             }
             // Datev für diesen Vorgang erstmal verschoben
             if($IsDatev){

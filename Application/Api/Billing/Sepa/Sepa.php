@@ -54,7 +54,10 @@ class Sepa implements IModuleInterface
     }
 
     /**
-     * @param array $Invoice
+     * @param array $Invoice - BasketId, [CheckboxList], [Fee], [Legacy] Kompatibilitätsmodus
+     *                       für Banken, die das aktuelle Format (SEPA-Formatversion 3.7 /
+     *                       pain.008.001.08) noch nicht annehmen -> erzeugt stattdessen
+     *                       das alte Format pain.008.001.02.
      *
      * @return string
      */
@@ -69,11 +72,15 @@ class Sepa implements IModuleInterface
         if(isset($Invoice['Fee'])){
             $FeeList = $Invoice['Fee'];
         }
+        $IsLegacy = !empty($Invoice['Legacy']);
+        $painFormat = $IsLegacy ? 'pain.008.001.02' : 'pain.008.001.08';
+        $fileNameSuffix = $IsLegacy ? '_Kompatibilitaetsmodus' : '';
+
         $BasketId = $Invoice['BasketId'];
         $tblBasket = Basket::useService()->getBasketById($BasketId);
         $directDebit = false;
         if($tblBasket){
-            $directDebit = Balance::useService()->createSepaContent($tblBasket, $CheckboxList, $FeeList);
+            $directDebit = Balance::useService()->createSepaContent($tblBasket, $CheckboxList, $FeeList, $painFormat);
         }
 
         $name = $tblBasket->getName();
@@ -88,7 +95,7 @@ class Sepa implements IModuleInterface
         if($directDebit){
             // Retrieve the resulting XML
             header('Content-type: text/xml');
-            header('Content-Disposition: attachment; filename="Abrechnung_'.$name.'_'.$monthString.'_'.$year.'.xml"');
+            header('Content-Disposition: attachment; filename="Abrechnung_'.$name.'_'.$monthString.'_'.$year.$fileNameSuffix.'.xml"');
             return $directDebit->asXML();
         } else {
             return '<h1 style="color: red;">XML Datei enthält keine Sepa-Lastschrift</h1>'
@@ -104,16 +111,23 @@ class Sepa implements IModuleInterface
 
     /**
      * @param string $BasketId
+     * @param string $Legacy   Kompatibilitätsmodus für Banken, die das aktuelle Format
+     *                         (SEPA-Formatversion 3.7 / pain.001.001.09) noch nicht annehmen
+     *                         -> erzeugt stattdessen das alte Format pain.001.002.03.
      *
      * @return string
      */
-    public function downloadSepaCredit($BasketId = '')
+    public function downloadSepaCredit($BasketId = '', $Legacy = '')
     {
+
+        $IsLegacy = !empty($Legacy);
+        $painFormat = $IsLegacy ? 'pain.001.002.03' : 'pain.001.001.09';
+        $fileNameSuffix = $IsLegacy ? '_Kompatibilitaetsmodus' : '';
 
         $tblBasket = Basket::useService()->getBasketById($BasketId);
         $customerCredit = false;
         if($tblBasket){
-            $customerCredit = Balance::useService()->createSepaCreditContent($tblBasket);
+            $customerCredit = Balance::useService()->createSepaCreditContent($tblBasket, $painFormat);
         }
 
         $name = $tblBasket->getName();
@@ -128,7 +142,7 @@ class Sepa implements IModuleInterface
         if($customerCredit){
             // Retrieve the resulting XML
             header('Content-type: text/xml');
-            header('Content-Disposition: attachment; filename="Abrechnung_'.$name.'_'.$monthString.'_'.$year.'.xml"');
+            header('Content-Disposition: attachment; filename="Abrechnung_'.$name.'_'.$monthString.'_'.$year.$fileNameSuffix.'.xml"');
             return $customerCredit->asXML();
         } else {
             return new Warning('XML Datei enthält keine Sepa-Lastschrift');
