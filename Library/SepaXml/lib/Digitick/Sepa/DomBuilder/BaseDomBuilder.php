@@ -134,17 +134,28 @@ abstract class BaseDomBuilder implements DomBuilderInterface
     }
 
     /**
-     * Ab der ISO-20022-Generation 2019 (z.B. pain.008.001.08 / pain.001.001.09) wurde
-     * das Element BIC in BICFI umbenannt.
+     * Ab der ISO-20022-Generation 2019 (pain.008.001.08 / pain.001.001.09, "SEPA-Formatversion
+     * 3.7") wurde das Element BIC in BICFI umbenannt. Fuer die alten Formate (z.B.
+     * pain.008.001.02 / pain.001.002.03 im Kompatibilitätsmodus) muss weiterhin BIC
+     * verwendet werden - BICFI waere dort schema-ungueltig.
      *
+     * @return bool
+     */
+    protected function isNewGenerationPainFormat()
+    {
+        return in_array($this->painFormat, array('pain.008.001.08', 'pain.001.001.09'));
+    }
+
+    /**
      * Wichtig: Laut XSD ist FinInstnId innerhalb von CdtrAgt/DbtrAgt zwar immer vorhanden
      * (der CdtrAgt/DbtrAgt-Block selbst darf daher NICHT entfallen, wenn er an der
      * jeweiligen Stelle Pflicht ist - siehe Aufrufer: bei pain.008.001.08 sind sowohl
      * CdtrAgt als auch DbtrAgt Pflichtfelder, bei pain.001.001.09 ist nur DbtrAgt auf
      * PmtInf-Ebene Pflicht, CdtrAgt auf Transaktionsebene ist dort optional). Seine
      * Kindelemente (BICFI, ClrSysMmbId, LEI, Nm, PstlAdr, Othr) sind aber alle optional
-     * (minOccurs="0"). Ohne BIC bleibt FinInstnId deshalb einfach leer - kein
-     * "NOTPROVIDED"-Platzhalter mehr, da er syntaktisch keine gültige BIC ist.
+     * (minOccurs="0"). Ohne BIC bleibt FinInstnId deshalb bei den neuen Formaten einfach
+     * leer (kein "NOTPROVIDED"-Platzhalter, da syntaktisch keine gueltige BIC). Bei den
+     * alten Formaten bleibt der ursprüngliche Othr/NOTPROVIDED-Fallback erhalten.
      *
      * @param string|null $bic
      * @return \DOMElement
@@ -154,10 +165,15 @@ abstract class BaseDomBuilder implements DomBuilderInterface
         $finInstitution = $this->createElement('FinInstnId');
 
         // BIC-Spalten sind in der Datenbank NOT NULL, ein fehlender Wert kommt daher meist
-        // als Leerstring '' statt null an - beides muss als "keine BIC" behandelt werden,
-        // sonst entsteht ein ungueltiges leeres <BICFI></BICFI>.
+        // als Leerstring '' statt null an - beides muss als "keine BIC" behandelt werden.
         if ($bic !== null && $bic !== '') {
-            $finInstitution->appendChild($this->createElement('BICFI', $bic));
+            $finInstitution->appendChild(
+                $this->createElement($this->isNewGenerationPainFormat() ? 'BICFI' : 'BIC', $bic)
+            );
+        } elseif (!$this->isNewGenerationPainFormat()) {
+            $other = $this->createElement('Othr');
+            $other->appendChild($this->createElement('Id', 'NOTPROVIDED'));
+            $finInstitution->appendChild($other);
         }
 
         return $finInstitution;

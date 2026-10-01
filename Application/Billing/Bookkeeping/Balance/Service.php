@@ -1182,7 +1182,17 @@ class Service extends AbstractService
      *
      * @return bool|CustomerDirectDebitFacade
      */
-    public function createSepaContent(TblBasket $tblBasket, $CheckboxList = array(), $FeeList = array())
+    /**
+     * @param TblBasket $tblBasket
+     * @param array     $CheckboxList
+     * @param array     $FeeList
+     * @param string    $painFormat Format-Kompatibilitätsmodus fuer Banken, die das aktuelle
+     *                              Format (SEPA-Formatversion 3.7 / pain.008.001.08) noch
+     *                              nicht annehmen (z.B. 'pain.008.001.02').
+     *
+     * @return CustomerDirectDebitFacade|bool
+     */
+    public function createSepaContent(TblBasket $tblBasket, $CheckboxList = array(), $FeeList = array(), $painFormat = 'pain.008.001.08')
     {
 
         $tblInvoiceList = Invoice::useService()->getInvoiceByBasket($tblBasket);
@@ -1221,7 +1231,7 @@ class Service extends AbstractService
             $header = new GroupHeader($tblBasket->getId().' '.date('Y-m-d-H-i-s'), $tblInvoiceCreditor->getOwner());
             $header->setInitiatingPartyId($tblInvoiceCreditor->getIBAN());
 
-            $directDebit = TransferFileFacadeFactory::createDirectDebitWithGroupHeader($header, 'pain.008.001.08');
+            $directDebit = TransferFileFacadeFactory::createDirectDebitWithGroupHeader($header, $painFormat);
 
             $combinedItemDebtorList = array();
 
@@ -1627,7 +1637,15 @@ class Service extends AbstractService
      *
      * @return bool|CustomerCreditFacade
      */
-    public function createSepaCreditContent(TblBasket $tblBasket)
+    /**
+     * @param TblBasket $tblBasket
+     * @param string    $painFormat Format-Kompatibilitätsmodus fuer Banken, die das aktuelle
+     *                              Format (SEPA-Formatversion 3.7 / pain.001.001.09) noch
+     *                              nicht annehmen (z.B. 'pain.001.002.03').
+     *
+     * @return CustomerCreditFacade|bool
+     */
+    public function createSepaCreditContent(TblBasket $tblBasket, $painFormat = 'pain.001.001.09')
     {
 
         $tblInvoiceList = Invoice::useService()->getInvoiceByBasket($tblBasket);
@@ -1642,7 +1660,7 @@ class Service extends AbstractService
             $tblInvoiceCreditor = $currentTblInvoice->getTblInvoiceCreditor();
 
             //Set the initial information
-            $customerCredit = TransferFileFacadeFactory::createCustomerCredit($tblBasket->getId().' '.date('Y-m-d-H-i-s'), $tblInvoiceCreditor->getOwner(), 'pain.001.001.09');
+            $customerCredit = TransferFileFacadeFactory::createCustomerCredit($tblBasket->getId().' '.date('Y-m-d-H-i-s'), $tblInvoiceCreditor->getOwner(), $painFormat);
 
             // Bearbeitung der in der Abrechnung liegenden Posten
             foreach($tblInvoiceList as $tblInvoice){
