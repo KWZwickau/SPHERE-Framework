@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Reporting\Standard\Person\Person as PersonStandard;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -142,11 +143,21 @@ class Frontend extends Extension implements IFrontendInterface
 
         $content = '';
         if (($tblYear = Term::useService()->getYearById($YearId))) {
+            $headerList = Person::useService()->getExportHeaderList();
             $dataList = Person::useService()->createExportList($tblYear);
 
             $download = [];
             if (!empty($dataList)) {
-                $download[] = new Primary('Herunterladen', '/Api/Reporting/Custom/Annaberg/Common/Export/Download', new Download(), ['YearId' => $tblYear]);
+                $download[] = new Primary('Herunterladen als CSV', '/Api/Reporting/Custom/Annaberg/Common/Export/Download', new Download(), [
+                    'YearId' => $tblYear,
+                    'Report' => 'SchulAPP',
+                    'Type' => 'CSV'
+                ]);
+                $download[] = new Primary('Herunterladen als EXCEL', '/Api/Reporting/Custom/Annaberg/Common/Export/Download', new Download(), [
+                    'YearId' => $tblYear,
+                    'Report' => 'SchulAPP',
+                    'Type' => 'EXCEL'
+                ]);
                 $download[] = new Danger('Die dauerhafte Speicherung des CSV-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation());
             }
 
@@ -161,7 +172,7 @@ class Frontend extends Extension implements IFrontendInterface
                             : new LayoutColumn($download),
                         new LayoutColumn(
                             new TableData($dataList, null,
-                                Person::useService()->getExportHeaderList(),
+                                $headerList,
                                 array(
                                     "pageLength" => -1,
                                     "responsive" => false,
@@ -173,6 +184,206 @@ class Frontend extends Extension implements IFrontendInterface
                                     'order' => array(
                                         array(7, 'asc'),
                                         array(2, 'asc'),
+                                    ),
+                                )
+                            )
+                        )
+                    ))),
+                ));
+
+            return $content;
+        }
+
+        return new Danger("Schuljahr nicht gefunden.", new Exclamation());
+    }
+
+    /**
+     * @param null $YearId
+     *
+     * @return Stage
+     *
+     * @noinspection PhpUnused
+     */
+    public function frontendExportStudent($YearId = null): Stage
+    {
+        $Stage = new Stage('EGE Auswertung', 'SchulAPP - Schüler');
+
+        $tblYear = null;
+        if ($YearId) {
+            $tblYear = Term::useService()->getYearById($YearId) ?: null;
+        } elseif (($tblYearList = Term::useService()->getYearByNow())) {
+            $tblYear = current($tblYearList);
+        }
+
+        $Stage->setContent(
+            ApiStandard::receiverBlock(ApiStandard::pipelineLoad(['Content' => 'loadExportStudentContent', 'YearId' => $tblYear?->getId()]), 'Content')
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param $YearId
+     *
+     * @return string
+     */
+    public function loadExportStudentContent($YearId): string
+    {
+        $yearFilterList = [];
+        $buttonList = Digital::useService()->setYearGroupButtonList(
+            '/Reporting/Custom/Annaberg/Person/StudentExport', false, $YearId, false, false, $yearFilterList, false, true);
+
+        $content = '';
+        if (($tblYear = Term::useService()->getYearById($YearId))) {
+            $missingUsername = [
+                'StudentCount' => 0,
+                'CustodyCount' => 0
+            ];
+            $headerList = Person::useService()->getExportStudentHeaderList();
+            $dataList = Person::useService()->createExportStudentList($tblYear, $missingUsername, true);
+
+            $download = [];
+            if (!empty($dataList)) {
+                $download[] = new Primary('Herunterladen als CSV', '/Api/Reporting/Custom/Annaberg/Common/Export/Download', new Download(), [
+                    'YearId' => $tblYear,
+                    'Report' => 'SchulAPP - Schueler',
+                    'Type' => 'CSV'
+                ]);
+                $download[] = new Primary('Herunterladen als EXCEL', '/Api/Reporting/Custom/Annaberg/Common/Export/Download', new Download(), [
+                    'YearId' => $tblYear,
+                    'Report' => 'SchulAPP - Schueler',
+                    'Type' => 'EXCEL'
+                ]);
+                $download[] = new Danger('Die dauerhafte Speicherung des CSV-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation());
+                if ($missingUsername['StudentCount'] > 0 || $missingUsername['CustodyCount'] > 0) {
+                    $download[] = new Warning("Es fehlen {$missingUsername['StudentCount']} Schüler-Benutzerkonten (Benutzernamen) und 
+                        {$missingUsername['CustodyCount']} Sorgeberechtigten-Benutzerkonten (Benutzernamen)", new Ban());
+                }
+            }
+
+            $content .=
+                new Layout(array(
+                    new LayoutGroup(new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList),
+                        empty($download)
+                            ? null
+                            : new LayoutColumn($download),
+                        new LayoutColumn(
+                            new TableData($dataList, null,
+                                $headerList,
+                                array(
+                                    "pageLength" => -1,
+                                    "responsive" => false,
+                                    'columnDefs' => array(
+                                        array('type' => 'natural', 'targets' => 4),
+                                        // beides aktiv geht gerade aktuell nicht
+                                        // array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(1, 2, 3)),
+                                    ),
+                                    'order' => array(
+                                        array(4, 'asc'),
+                                        array(1, 'asc'),
+                                    ),
+                                )
+                            )
+                        )
+                    ))),
+                ));
+
+            return $content;
+        }
+
+        return new Danger("Schuljahr nicht gefunden.", new Exclamation());
+    }
+
+    /**
+     * @param null $YearId
+     *
+     * @return Stage
+     *
+     * @noinspection PhpUnused
+     */
+    public function frontendExportStudentCustody($YearId = null): Stage
+    {
+        $Stage = new Stage('EGE Auswertung', 'SchulAPP - Schüler und Sorgeberechtigte');
+
+        $tblYear = null;
+        if ($YearId) {
+            $tblYear = Term::useService()->getYearById($YearId) ?: null;
+        } elseif (($tblYearList = Term::useService()->getYearByNow())) {
+            $tblYear = current($tblYearList);
+        }
+
+        $Stage->setContent(
+            ApiStandard::receiverBlock(ApiStandard::pipelineLoad(['Content' => 'loadExportStudentCustodyContent', 'YearId' => $tblYear?->getId()]), 'Content')
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param $YearId
+     *
+     * @return string
+     */
+    public function loadExportStudentCustodyContent($YearId): string
+    {
+        $yearFilterList = [];
+        $buttonList = Digital::useService()->setYearGroupButtonList(
+            '/Reporting/Custom/Annaberg/Person/StudentCustodyExport', false, $YearId, false, false, $yearFilterList, false, true);
+
+        $content = '';
+        if (($tblYear = Term::useService()->getYearById($YearId))) {
+            $missingUsername = [
+                'StudentCount' => 0,
+                'CustodyCount' => 0
+            ];
+            $headerList = Person::useService()->getExportStudentCustodyHeaderList();
+            $dataList = Person::useService()->createExportStudentCustodyList($tblYear, $missingUsername, true);
+
+            $download = [];
+            if (!empty($dataList)) {
+                $download[] = new Primary('Herunterladen als CSV', '/Api/Reporting/Custom/Annaberg/Common/Export/Download', new Download(), [
+                    'YearId' => $tblYear,
+                    'Report' => 'SchulAPP - Schueler und Sorgeberechtigte',
+                    'Type' => 'CSV'
+                ]);
+                $download[] = new Primary('Herunterladen als EXCEL', '/Api/Reporting/Custom/Annaberg/Common/Export/Download', new Download(), [
+                    'YearId' => $tblYear,
+                    'Report' => 'SchulAPP - Schueler und Sorgeberechtigte',
+                    'Type' => 'EXCEL'
+                ]);
+                $download[] = new Danger('Die dauerhafte Speicherung des CSV-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation());
+                if ($missingUsername['StudentCount'] > 0 || $missingUsername['CustodyCount'] > 0) {
+                    $download[] = new Warning("Es fehlen {$missingUsername['StudentCount']} Schüler-Benutzerkonten (Benutzernamen) und 
+                        {$missingUsername['CustodyCount']} Sorgeberechtigten-Benutzerkonten (Benutzernamen)", new Ban());
+                }
+            }
+
+            $content .=
+                new Layout(array(
+                    new LayoutGroup(new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList),
+                        empty($download)
+                            ? null
+                            : new LayoutColumn($download),
+                        new LayoutColumn(
+                            new TableData($dataList, null,
+                                $headerList,
+                                array(
+                                    "pageLength" => -1,
+                                    "responsive" => false,
+                                    'columnDefs' => array(
+                                        array('type' => 'natural', 'targets' => 4),
+                                        // beides aktiv geht gerade aktuell nicht
+                                        // array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(1, 2, 3)),
+                                    ),
+                                    'order' => array(
+                                        array(4, 'asc'),
+                                        array(1, 'asc'),
                                     ),
                                 )
                             )

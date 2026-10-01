@@ -328,6 +328,10 @@ class ApiStandard extends Extension implements IApiInterface
     {
         if ($Content == 'loadExportContent') {
             return Person::useFrontend()->loadExportContent($YearId);
+        } elseif ($Content == 'loadExportStudentContent') {
+            return Person::useFrontend()->loadExportStudentContent($YearId);
+        } elseif ($Content == 'loadExportStudentCustodyContent') {
+            return Person::useFrontend()->loadExportStudentCustodyContent($YearId);
         } else {
             return new Danger('Inhalt wurde nicht gefunden.', new Exclamation());
         }
