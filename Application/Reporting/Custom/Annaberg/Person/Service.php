@@ -17,12 +17,15 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType as TblTypeRelationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Reporting\Standard\Person\Person;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
@@ -269,6 +272,11 @@ class Service extends Extension
         return $result;
     }
 
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return array
+     */
     public function createExportList(TblYear $tblYear): array
     {
         $resultList = [];
@@ -287,7 +295,7 @@ class Service extends Extension
                         'StudentMail' => '',
                         'StudentPhone' => '',
                         'StudentBirthday' => $tblPerson->getBirthday(),
-                        'Division' => $tblStudentEducation->getTblDivision() ? $tblStudentEducation->getTblDivision()->getName() : '',
+                        'Division' => $this->getDivisionString($tblStudentEducation),
                         'Groups' => $this->getGroupString($tblPerson, $tblYear),
                     ];
 
@@ -328,6 +336,25 @@ class Service extends Extension
         }
 
         return $resultList;
+    }
+
+    /**
+     * @param TblStudentEducation $tblStudentEducation
+     * @return string
+     */
+    private function getDivisionString(TblStudentEducation $tblStudentEducation): string
+    {
+        $divisionName = trim($tblStudentEducation->getTblDivision() ? $tblStudentEducation->getTblDivision()->getName() : '');
+
+        // 9alpha 1 9a/1
+        $divisionName = str_replace(' ', '/', $divisionName);
+
+        $divisionName = str_replace('alpha', 'a', $divisionName);
+        $divisionName = str_replace('beta', 'b', $divisionName);
+        $divisionName = str_replace('gamma', 'c', $divisionName);
+        $divisionName = str_replace('delta', 'd', $divisionName);
+
+        return $divisionName;
     }
 
     /**
@@ -412,6 +439,169 @@ class Service extends Extension
         }
 
         return $resulList;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     * @param array $missingUsername
+     * @param bool $isFrontend
+     *
+     * @return array
+     */
+    public function createExportStudentList(TblYear $tblYear, array &$missingUsername, bool $isFrontend): array
+    {
+        $resultList = [];
+        if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYear))) {
+            foreach ($tblStudentEducationList as $tblStudentEducation) {
+                if (($tblPerson = $tblStudentEducation->getServiceTblPerson())) {
+                    $resultList[$tblPerson->getId()] = array_merge(
+                        $this->getPersonExportData($tblPerson, 'Student', $missingUsername, $isFrontend),
+                        [
+                            'StudentNumber' => ($tblStudent = $tblPerson->getStudent()) ? $tblStudent->getIdentifierComplete() : '',
+                            'StudentDivision' => $this->getDivisionString($tblStudentEducation),
+                            'StudentBirthday' => $tblPerson->getBirthday()
+                        ]
+                    );
+                }
+            }
+        }
+
+        return $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $keyPrefix
+     * @param array $missingUsername
+     * @param bool $isFrontend
+     *
+     * @return array
+     */
+    public function getPersonExportData(TblPerson $tblPerson, string $keyPrefix, array &$missingUsername, bool $isFrontend): array
+    {
+        if (($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
+            $tblAccount = current($tblAccountList);
+            $userName = $tblAccount->getUsername();
+        } else {
+            $userName = $isFrontend ? new Warning('Kein Benutzername', new Exclamation()) : '';
+            if ($keyPrefix == 'Custody') {
+                $missingUsername['CustodyCount']++;
+            } else {
+                $missingUsername['StudentCount']++;
+            }
+        }
+
+        if (($tblAddress = $tblPerson->fetchMainAddress())) {
+            $streetName = $tblAddress->getStreetName();
+            $streetNumber = $tblAddress->getStreetNumber();
+            $code = $tblAddress->getCodeString();
+            $city = $tblAddress->getCityString();
+            $district = $tblAddress->getDistrictString();
+            $cityDistrict = $tblAddress->getTblCity()->getDisplayName();
+        } else {
+            $streetName = '';
+            $streetNumber = '';
+            $code = '';
+            $city = '';
+            $district = '';
+            $cityDistrict = '';
+        }
+
+        return [
+            "{$keyPrefix}FirstName" => $tblPerson->getFirstName(),
+            "{$keyPrefix}LastName" => $tblPerson->getLastName(),
+            "{$keyPrefix}UserName" => $userName,
+            "{$keyPrefix}StreetName" => $streetName,
+            "{$keyPrefix}StreetNumber" => $streetNumber,
+            "{$keyPrefix}Code" => $code,
+            "{$keyPrefix}City" => $city,
+            "{$keyPrefix}District" => $district,
+            "{$keyPrefix}CityDistrict" => $cityDistrict,
+        ];
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getExportStudentHeaderList(): array
+    {
+        return [
+            'StudentFirstName' => 'Vorname Schüler',
+            'StudentLastName' => 'Nachname Schüler',
+            'StudentUserName' => 'Schulsoftware-Benutzername',
+            'StudentNumber' => 'Schülernummer',
+            'StudentDivision' => 'Klasse',
+            'StudentBirthday' => 'Geburtsdatum',
+            'StudentStreetName' => 'Straße',
+            'StudentStreetNumber' => 'Hausnummer',
+            'StudentCode' => 'PLZ',
+            'StudentCity' => 'Ort',
+            'StudentDistrict' => 'Ortsteil',
+            'StudentCityDistrict' => 'OrtOrtsteil',
+        ];
+    }
+
+    /**
+     * @param TblYear $tblYear
+     * @param array $missingUsernameList
+     * @param bool $isFrontend
+     *
+     * @return array
+     */
+    public function createExportStudentCustodyList(TblYear $tblYear, array &$missingUsernameList, bool $isFrontend): array
+    {
+        $resultList = [];
+        if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYear))
+            && ($tblRelationshipType = Relationship::useService()->getTypeByName(TblTypeRelationship::IDENTIFIER_GUARDIAN))
+        ) {
+            foreach ($tblStudentEducationList as $tblStudentEducation) {
+                if (($tblPerson = $tblStudentEducation->getServiceTblPerson())) {
+                    $StudentData = array_merge(
+                        $this->getPersonExportData($tblPerson, 'Student', $missingUsernameList, $isFrontend),
+                        [
+                            'StudentNumber' => ($tblStudent = $tblPerson->getStudent()) ? $tblStudent->getIdentifierComplete() : '',
+                            'StudentDivision' => $this->getDivisionString($tblStudentEducation),
+                            'StudentBirthday' => $tblPerson->getBirthday()
+                        ]
+                    );
+
+                    if (($tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType))) {
+                        foreach ($tblToPersonList as $tblToPerson) {
+                            if (($tblPersonFrom = $tblToPerson->getServiceTblPersonFrom())) {
+                                $resultList[] = array_merge(
+                                    $StudentData,
+                                    ['CustodyRanking' => 'S' . $tblToPerson->getRanking()],
+                                    $this->getPersonExportData($tblPersonFrom, 'Custody', $missingUsernameList, $isFrontend)
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $resultList;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getExportStudentCustodyHeaderList(): array
+    {
+        $resultList = $this->getExportStudentHeaderList();
+
+        return array_merge($resultList, [
+            'CustodyRanking' => 'Sorgeberechtigter Reihenfolge',
+            'CustodyFirstName' => 'Sorgeberechtigter Vorname',
+            'CustodyLastName' => 'Sorgeberechtigter Nachname',
+            'CustodyUserName' => 'Sorgeberechtigter Schulsoftware-Benutzername',
+            'CustodyStreetName' => 'Sorgeberechtigter Straße',
+            'CustodyStreetNumber' => 'Sorgeberechtigter Hausnummer',
+            'CustodyCode' => 'Sorgeberechtigter PLZ',
+            'CustodyCity' => 'Sorgeberechtigter Ort',
+            'CustodyDistrict' => 'Sorgeberechtigter Ortsteil',
+            'CustodyCityDistrict' => 'Sorgeberechtigter OrtOrtsteil',
+        ]);
     }
 
     /**
