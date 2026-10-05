@@ -147,15 +147,12 @@ abstract class BaseDomBuilder implements DomBuilderInterface
     }
 
     /**
-     * Wichtig: Laut XSD ist FinInstnId innerhalb von CdtrAgt/DbtrAgt zwar immer vorhanden
-     * (der CdtrAgt/DbtrAgt-Block selbst darf daher NICHT entfallen, wenn er an der
-     * jeweiligen Stelle Pflicht ist - siehe Aufrufer: bei pain.008.001.08 sind sowohl
-     * CdtrAgt als auch DbtrAgt Pflichtfelder, bei pain.001.001.09 ist nur DbtrAgt auf
-     * PmtInf-Ebene Pflicht, CdtrAgt auf Transaktionsebene ist dort optional). Seine
-     * Kindelemente (BICFI, ClrSysMmbId, LEI, Nm, PstlAdr, Othr) sind aber alle optional
-     * (minOccurs="0"). Ohne BIC bleibt FinInstnId deshalb bei den neuen Formaten einfach
-     * leer (kein "NOTPROVIDED"-Platzhalter, da syntaktisch keine gueltige BIC). Bei den
-     * alten Formaten bleibt der ursprüngliche Othr/NOTPROVIDED-Fallback erhalten.
+     * Der CdtrAgt/DbtrAgt-Block darf an Pflichtstellen nicht entfallen (siehe Aufrufer:
+     * bei pain.008.001.08 sind CdtrAgt und DbtrAgt Pflicht, bei pain.001.001.09 nur
+     * DbtrAgt auf PmtInf-Ebene). Die generische ISO-XSD erlaubt zwar ein leeres FinInstnId,
+     * Bank-Software wie Profi cash validiert aber strenger gegen (BICFI|Othr), d.h. genau
+     * eines von beiden muss vorhanden sein. Ohne BIC daher immer Othr/Id = NOTPROVIDED
+     * (DK-Konvention), auch bei den neuen Formaten.
      *
      * @param string|null $bic
      * @return \DOMElement
@@ -170,7 +167,7 @@ abstract class BaseDomBuilder implements DomBuilderInterface
             $finInstitution->appendChild(
                 $this->createElement($this->isNewGenerationPainFormat() ? 'BICFI' : 'BIC', $bic)
             );
-        } elseif (!$this->isNewGenerationPainFormat()) {
+        } else {
             $other = $this->createElement('Othr');
             $other->appendChild($this->createElement('Id', 'NOTPROVIDED'));
             $finInstitution->appendChild($other);
