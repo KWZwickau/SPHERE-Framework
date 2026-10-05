@@ -31,7 +31,7 @@ class ClassRegister implements ModuleInterface
         $dispatcher = Main::getDispatcher();
         $route = $dispatcher::createRoute(__NAMESPACE__ . '/Digital/Load', __CLASS__ . '::getDigitalLoad');
         $dispatcher::registerRoute($route);
-        $route = $dispatcher::createRoute(__NAMESPACE__ . '/Digital/TimeTable', __CLASS__ . '::getTimeTableLoad');
+        $route = $dispatcher::createRoute(__NAMESPACE__ . '/Digital/TimeTable/Load', __CLASS__ . '::getTimeTableLoad');
         $dispatcher::registerRoute($route);
     }
 
