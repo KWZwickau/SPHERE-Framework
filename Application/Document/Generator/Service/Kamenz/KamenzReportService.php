@@ -2756,6 +2756,12 @@ class KamenzReportService
                                                 $hasMigrationBackground = true;
                                             }
 
+                                            // bei Klassenstufe 9 gibt es keine RS Zeugnis,
+                                            // aktuell kann bei Klassenstufe 9 im Zeugnisauftrag auch nicht das Zeugnis mehr herausgenommen werden bei Bildungsgang Realschule
+                                            if ($certificate == 'MsAbsRs' && $levelName == 9) {
+                                                continue;
+                                            }
+
                                             if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))
                                                 && (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates()))
                                                 && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
@@ -2773,7 +2779,7 @@ class KamenzReportService
 
                                                 self::setDiplomaB01($birthYear, $levelName, $gender, $Content, $countArray, $hasMigrationBackground, $certificate);
 
-                                                // für darunter auch haupt setzen
+                                                // für darunter auch hauptschule setzen
                                                 if ($certificate == 'MsAbsLernenEquatedHs') {
                                                     self::setDiplomaB01($birthYear, $levelName, $gender, $Content, $countArray, $hasMigrationBackground, 'MsAbsHs');
                                                 }
@@ -2826,6 +2832,9 @@ class KamenzReportService
 
     private static function setDiplomaB01($birthYear, $levelName, $gender, &$Content, &$countArray, $hasMigrationBackground, $certificate)
     {
+        // bei darunter nicht mit in die gesamt Zählung mit aufnehmen
+        $isTotalCount = $certificate !== 'MsAbsLernenEquatedHs' && $certificate !== 'MsAbsHsE';
+
         if (isset($Content['B01'][$certificate]['L' . $levelName][$gender])) {
             $Content['B01'][$certificate]['L' . $levelName][$gender]++;
         } else {
@@ -2836,16 +2845,18 @@ class KamenzReportService
         } else {
             $Content['B01'][$certificate]['TotalCount'][$gender] = 1;
         }
-        if (isset($Content['B01']['TotalCount']['L' . $levelName][$gender])) {
-            $Content['B01']['TotalCount']['L' . $levelName][$gender]++;
-        } else {
-            $Content['B01']['TotalCount']['L' . $levelName][$gender] = 1;
-        }
+        if ($isTotalCount) {
+            if (isset($Content['B01']['TotalCount']['L' . $levelName][$gender])) {
+                $Content['B01']['TotalCount']['L' . $levelName][$gender]++;
+            } else {
+                $Content['B01']['TotalCount']['L' . $levelName][$gender] = 1;
+            }
 
-        if (isset($Content['B01']['TotalCount'][$gender])) {
-            $Content['B01']['TotalCount'][$gender] += 1;
-        } else {
-            $Content['B01']['TotalCount'][$gender] = 1;
+            if (isset($Content['B01']['TotalCount'][$gender])) {
+                $Content['B01']['TotalCount'][$gender] += 1;
+            } else {
+                $Content['B01']['TotalCount'][$gender] = 1;
+            }
         }
 
         /**
@@ -2881,15 +2892,17 @@ class KamenzReportService
             } else {
                 $Content['B01_1'][$certificate]['TotalCount'][$gender] = 1;
             }
-            if (isset($Content['B01_1']['TotalCount']['L' . $levelName][$gender])) {
-                $Content['B01_1']['TotalCount']['L' . $levelName][$gender]++;
-            } else {
-                $Content['B01_1']['TotalCount']['L' . $levelName][$gender] = 1;
-            }
-            if (isset($Content['B01_1']['TotalCount'][$gender])) {
-                $Content['B01_1']['TotalCount'][$gender] += 1;
-            } else {
-                $Content['B01_1']['TotalCount'][$gender] = 1;
+            if ($isTotalCount) {
+                if (isset($Content['B01_1']['TotalCount']['L' . $levelName][$gender])) {
+                    $Content['B01_1']['TotalCount']['L' . $levelName][$gender]++;
+                } else {
+                    $Content['B01_1']['TotalCount']['L' . $levelName][$gender] = 1;
+                }
+                if (isset($Content['B01_1']['TotalCount'][$gender])) {
+                    $Content['B01_1']['TotalCount'][$gender] += 1;
+                } else {
+                    $Content['B01_1']['TotalCount'][$gender] = 1;
+                }
             }
         }
     }
@@ -3136,14 +3149,13 @@ class KamenzReportService
                 $identifier = 'GrammarSchool';
             } elseif ($tblSchoolTypeLastYear->getName() == TblType::IDENT_OBER_SCHULE) {
                 if ($tblSchoolTypeKamenz->getName() == TblType::IDENT_OBER_SCHULE) {
+                    $identifier = 'SecondarySchool';
                     if ($level > 6 && $tblCourse) {
                         if ($tblCourse->getName() == 'Hauptschule') {
                             $identifier = 'SecondarySchoolHs';
                         } elseif ($tblCourse->getName() == 'Realschule') {
                             $identifier = 'SecondarySchoolRs';
                         }
-                    } else {
-                        $identifier = 'SecondarySchool';
                     }
                 } else {
                     $identifier = 'SecondarySchool';
