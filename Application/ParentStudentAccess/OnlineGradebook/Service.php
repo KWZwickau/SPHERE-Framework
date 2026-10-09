@@ -95,18 +95,23 @@ class Service
         } else {
             // Mitarbeiter oder Eltern-Zugang
             $tblPersonList = $this->getPersonListFromCustodyLogin();
+
+            if ($tblPersonList) {
+                $tblPersonList = MyAccount::useService()->sortBlockedPersonListToEnd($tblPersonList);
+            }
         }
 
         return $tblPersonList;
     }
 
     /**
+     * Schuljahre und Schülerbildungsdaten der sichtbaren (nicht gesperrten) Schüler
+     *
      * @return array
      */
-    public function getOnlineGradeBookYearAndBlockedAndDataList(): array
+    public function getOnlineGradeBookYearAndDataList(): array
     {
         $tblDisplayYearList = array();
-        $BlockedList = array();
         $data = array();
 
         // Schuljahre Anzeigen ab:
@@ -125,7 +130,6 @@ class Service
             foreach ($tblPersonList as $tblPerson) {
                 // Schüler überspringen, wenn der Sorgeberechtigte durch den volljährigen Schüler gesperrt ist
                 if (MyAccount::useService()->isPersonBlockedForCustody($tblPerson)) {
-                    $BlockedList[$tblPerson->getId()] = $tblPerson;
                     continue;
                 }
                 if ($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson)) {
@@ -150,6 +154,6 @@ class Service
             }
         }
 
-        return array($tblDisplayYearList, $BlockedList, $data);
+        return array($tblDisplayYearList, $data);
     }
 }

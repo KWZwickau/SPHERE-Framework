@@ -6,9 +6,9 @@ use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineGradebook;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\MyAccount\MyAccount;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -49,7 +49,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $rowList = array();
 
-        list($tblDisplayYearList, $BlockedList, $data) = OnlineGradebook::useService()->getOnlineGradeBookYearAndBlockedAndDataList();
+        list($tblDisplayYearList, $data) = OnlineGradebook::useService()->getOnlineGradeBookYearAndDataList();
 
         if (!empty($tblDisplayYearList)) {
             $tblDisplayYearList = $this->getSorter($tblDisplayYearList)->sortObjectBy('DisplayName');
@@ -73,38 +73,18 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        if (($tblYear = Term::useService()->getYearById($YearId))) {
-            if (!empty($data)) {
-                if (isset($data[$tblYear->getId()])) {
-                    foreach ($data[$tblYear->getId()] as $personId => $tblStudentEducation) {
-                        if ($tblPerson = Person::useService()->getPersonById($personId)) {
-                            $courses = DivisionCourse::useService()->getCurrentMainCoursesByStudentEducation($tblStudentEducation);
-                            $button = new External(
-                                'Notenübersicht herunterladen',
-                                'SPHERE\Application\Api\Document\Standard\GradebookOverview\Create',
-                                new Download(),
-                                array('PersonId' => $personId, 'YearId' => $tblYear->getId(), 'View' => 'Parent'),
-                                'Notenübersicht herunterladen'
-                            );
-                            $rowList[] = new LayoutRow(new LayoutColumn(new Title(
-                                new PullClear($tblPerson->getLastFirstName() . ' ' . new Muted(new Small($courses)) . new PullRight($button)),
-                            )));
+        $tblYear = Term::useService()->getYearById($YearId);
 
-                            $rowList[] = new LayoutRow(new LayoutColumn(
-                                Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, true, false)
-                            ));
-                        }
-                    }
+        // gesperrte Schüler stehen am Ende der Liste und werden nur mit Hinweis angezeigt
+        if (($tblPersonList = OnlineGradebook::useService()->getPersonListFromAccountBySession())) {
+            foreach ($tblPersonList as $tblPerson) {
+                if (MyAccount::useService()->isPersonBlockedForCustody($tblPerson)) {
+                    $rowList = array_merge($rowList, $this->getPersonBlockedRowList($tblPerson));
+                } elseif ($tblYear && isset($data[$tblYear->getId()][$tblPerson->getId()])) {
+                    $rowList = array_merge($rowList,
+                        $this->getPersonGradebookRowList($tblPerson, $tblYear, $data[$tblYear->getId()][$tblPerson->getId()]));
                 }
             }
-        }
-
-        // Schüler, die den Zugriff für den angemeldeten Sorgeberechtigten gesperrt haben
-        $BlockedContent = '';
-        /** @var TblPerson $tblPersonStudent */
-        foreach ($BlockedList as $tblPersonStudent) {
-            $BlockedContent .= new Title($tblPersonStudent->getLastFirstName())
-                .MyAccount::useService()->getCustodyBlockedWarning($tblPersonStudent);
         }
 
         $Stage->setContent(
@@ -117,18 +97,52 @@ class Frontend extends Extension implements IFrontendInterface
                         . ApiOnlineGradebook::receiverModal()
                     )
                 ))),
-                ($tblYear ? new LayoutGroup($rowList) : null),
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            $BlockedContent
-                        )
-                    )
-                )
+                new LayoutGroup($rowList)
             ))
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblStudentEducation $tblStudentEducation
+     *
+     * @return LayoutRow[]
+     */
+    private function getPersonGradebookRowList(TblPerson $tblPerson, TblYear $tblYear, TblStudentEducation $tblStudentEducation): array
+    {
+        $courses = DivisionCourse::useService()->getCurrentMainCoursesByStudentEducation($tblStudentEducation);
+        $button = new External(
+            'Notenübersicht herunterladen',
+            'SPHERE\Application\Api\Document\Standard\GradebookOverview\Create',
+            new Download(),
+            array('PersonId' => $tblPerson->getId(), 'YearId' => $tblYear->getId(), 'View' => 'Parent'),
+            'Notenübersicht herunterladen'
+        );
+
+        return array(
+            new LayoutRow(new LayoutColumn(new Title(
+                new PullClear($tblPerson->getLastFirstName() . ' ' . new Muted(new Small($courses)) . new PullRight($button)),
+            ))),
+            new LayoutRow(new LayoutColumn(
+                Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, true, false)
+            ))
+        );
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return LayoutRow[]
+     */
+    private function getPersonBlockedRowList(TblPerson $tblPerson): array
+    {
+        return array(
+            new LayoutRow(new LayoutColumn(new Title($tblPerson->getLastFirstName()))),
+            new LayoutRow(new LayoutColumn(MyAccount::useService()->getCustodyBlockedWarning($tblPerson)))
+        );
     }
 
     /**
