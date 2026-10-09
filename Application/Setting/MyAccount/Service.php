@@ -1,13 +1,19 @@
 <?php
 namespace SPHERE\Application\Setting\MyAccount;
 
+use DateTime;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
+use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 
 /**
@@ -17,6 +23,11 @@ use SPHERE\Common\Window\Redirect;
  */
 class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service
 {
+
+    /**
+     * Personenbeziehungen, die ein volljähriger Schüler vom Zugriff auf seine Daten ausschließen kann
+     */
+    const CUSTODY_RELATIONSHIP_TYPE_LIST = array('Sorgeberechtigt', 'Bevollmächtigt', 'Vormund');
 
     /**
      * @param IFormInterface $Form
@@ -261,6 +272,184 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             return new Success('Die Einstellungen wurden erfolgreich gespeichert').new Redirect('/Setting/MyAccount',
                 Redirect::TIMEOUT_SUCCESS);
         }
+    }
+
+    /**
+     * Schüler-Account, dessen Person mindestens 18 Jahre alt ist
+     *
+     * @param TblAccount $tblAccount
+     *
+     * @return bool
+     */
+    public function isStudentOfAge(TblAccount $tblAccount): bool
+    {
+        if (($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))
+            && $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT
+            && ($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount))
+            && ($tblPerson = current($tblPersonList))
+            && ($birthday = $tblPerson->getBirthday())
+        ) {
+            return (new DateTime($birthday)) <= ((new DateTime('now'))->modify('-18 year'));
+        }
+
+        return false;
+    }
+
+    /**
+     * Accounts der Sorgeberechtigten, Bevollmächtigten und Vormünder des Schülers
+     *
+     * @param TblAccount $tblAccountStudent
+     *
+     * @return TblAccount[]
+     */
+    public function getCustodyAccountListForStudent(TblAccount $tblAccountStudent): array
+    {
+        $tblAccountList = array();
+        if (($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccountStudent))
+            && ($tblPersonStudent = current($tblPersonList))
+            && ($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonStudent))
+        ) {
+            foreach ($tblRelationshipList as $tblRelationship) {
+                if (($tblPersonCustody = $tblRelationship->getServiceTblPersonFrom())
+                    && ($tblPersonTo = $tblRelationship->getServiceTblPersonTo())
+                    && $tblPersonTo->getId() == $tblPersonStudent->getId()
+                    && $tblPersonCustody->getId() != $tblPersonStudent->getId()
+                    && in_array($tblRelationship->getTblType()->getName(), self::CUSTODY_RELATIONSHIP_TYPE_LIST)
+                    && ($tblAccountCustodyList = Account::useService()->getAccountAllByPerson($tblPersonCustody))
+                ) {
+                    foreach ($tblAccountCustodyList as $tblAccountCustody) {
+                        $tblAccountList[$tblAccountCustody->getId()] = $tblAccountCustody;
+                    }
+                }
+            }
+        }
+
+        return $tblAccountList;
+    }
+
+    /**
+     * @param TblAccount $tblAccountStudent
+     * @param TblAccount $tblAccountCustody
+     *
+     * @return bool
+     */
+    public function isCustodyBlocked(TblAccount $tblAccountStudent, TblAccount $tblAccountCustody): bool
+    {
+        return (bool) ConsumerSetting::useService()->getStudentCustodyByStudentAndCustody($tblAccountStudent, $tblAccountCustody);
+    }
+
+    /**
+     * Schüler-Accounts, die den Account des Sorgeberechtigten vom Zugriff ausgeschlossen haben
+     *
+     * @param TblAccount $tblAccountCustody
+     *
+     * @return TblAccount[]
+     */
+    public function getBlockedStudentAccountList(TblAccount $tblAccountCustody): array
+    {
+        $tblAccountList = array();
+        if (($tblStudentCustodyList = ConsumerSetting::useService()->getStudentCustodyByCustody($tblAccountCustody))) {
+            foreach ($tblStudentCustodyList as $tblStudentCustody) {
+                if (($tblAccountStudent = $tblStudentCustody->getServiceTblAccountStudent())) {
+                    $tblAccountList[$tblAccountStudent->getId()] = $tblAccountStudent;
+                }
+            }
+        }
+
+        return $tblAccountList;
+    }
+
+    /**
+     * Ist der Zugriff auf die Daten des Schülers für den aktiven Account gesperrt
+     *
+     * @param TblPerson $tblPersonStudent
+     *
+     * @return bool
+     */
+    public function isPersonBlockedForCustody(TblPerson $tblPersonStudent): bool
+    {
+        if (!($tblAccountCustody = Account::useService()->getAccountBySession())) {
+            // ohne Account keine Daten (geblockt)
+            return true;
+        }
+
+        // Eintrag in der Blockliste -> geblockt
+        if (($tblAccountBlockedList = $this->getBlockedStudentAccountList($tblAccountCustody))
+            && ($tblAccountStudentList = Account::useService()->getAccountAllByPerson($tblPersonStudent))
+        ) {
+            foreach ($tblAccountStudentList as $tblAccountStudent) {
+                if (isset($tblAccountBlockedList[$tblAccountStudent->getId()])) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Gesperrte Schüler ans Ende der Liste verschieben, Reihenfolge und Schlüssel bleiben sonst erhalten
+     *
+     * @param TblPerson[] $tblPersonList
+     *
+     * @return TblPerson[]
+     */
+    public function sortBlockedPersonListToEnd(array $tblPersonList): array
+    {
+        $allowedList = array();
+        $blockedList = array();
+        foreach ($tblPersonList as $key => $tblPerson) {
+            if ($this->isPersonBlockedForCustody($tblPerson)) {
+                $blockedList[$key] = $tblPerson;
+            } else {
+                $allowedList[$key] = $tblPerson;
+            }
+        }
+
+        return $allowedList + $blockedList;
+    }
+
+    /**
+     * Hinweis anstelle des Inhalts, wenn der volljährige Schüler den Zugriff gesperrt hat
+     *
+     * @param TblPerson $tblPersonStudent
+     *
+     * @return Warning
+     */
+    public function getCustodyBlockedWarning(TblPerson $tblPersonStudent): Warning
+    {
+        return new Warning('Der Zugriff auf die Daten von ' . $tblPersonStudent->getLastFirstName()
+            . ' wurde durch den volljährigen Schüler gesperrt');
+    }
+
+    /**
+     * Ersetzt die gesperrten Sorgeberechtigten des Schülers durch die übergebene Auswahl
+     *
+     * @param TblAccount $tblAccountStudent
+     * @param array $CustodyIds
+     *
+     * @return bool
+     */
+    public function saveBlockedCustody(TblAccount $tblAccountStudent, array $CustodyIds): bool
+    {
+        $isSuccess = true;
+        if (($tblStudentCustodyList = ConsumerSetting::useService()->getStudentCustodyByStudent($tblAccountStudent))) {
+            foreach ($tblStudentCustodyList as $tblStudentCustody) {
+                if (!ConsumerSetting::useService()->removeStudentCustody($tblStudentCustody)) {
+                    $isSuccess = false;
+                }
+            }
+        }
+
+        foreach ($CustodyIds as $CustodyId) {
+            if (($tblAccountCustody = Account::useService()->getAccountById($CustodyId))
+                && !ConsumerSetting::useService()->createStudentCustody($tblAccountStudent, $tblAccountCustody, $tblAccountStudent)
+            ) {
+                $isSuccess = false;
+            }
+        }
+
+        return $isSuccess;
     }
 
 }

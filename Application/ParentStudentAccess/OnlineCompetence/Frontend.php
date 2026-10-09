@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\MyAccount\MyAccount;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -73,6 +74,10 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function loadStudentContent(?TblPerson $tblPerson): string
     {
+        if ($tblPerson && MyAccount::useService()->isPersonBlockedForCustody($tblPerson)) {
+            return MyAccount::useService()->getCustodyBlockedWarning($tblPerson);
+        }
+
         if ($tblPerson) {
             $subjectList = [];
             if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))
@@ -108,6 +113,10 @@ class Frontend extends Extension implements IFrontendInterface
     public function loadSubjectContent(TblPerson $tblPerson, ?TblSubject $tblSubject, bool $isOldYears = false,
         bool $isInterdisciplinary = false, bool $isAllSubjects = false): string
     {
+        if (MyAccount::useService()->isPersonBlockedForCustody($tblPerson)) {
+            return MyAccount::useService()->getCustodyBlockedWarning($tblPerson);
+        }
+
         $tblStudentEducationList = [];
         if (($tblYearList = Term::useService()->getYearByNow())) {
             foreach ($tblYearList as $tblYearTemp) {

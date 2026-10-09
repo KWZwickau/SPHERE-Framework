@@ -15,6 +15,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\MyAccount\MyAccount;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -109,10 +110,31 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if (!empty($PersonIdList)) {
+            // Schüler, die den Zugriff gesperrt haben, werden weiterhin aufgeführt (am Ende), ihre Kontaktdaten aber weder angezeigt noch bearbeitet
+            $allowedPersonList = array();
+            $blockedPersonList = array();
             foreach ($PersonIdList as $PersonId) {
                 if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
-                    $layoutGroupList[] = $this->getPersonContactDetailsLayoutGroup($tblPerson, $PersonIdList, $hasEdit);
+                    if (MyAccount::useService()->isPersonBlockedForCustody($tblPerson)) {
+                        $blockedPersonList[$PersonId] = $tblPerson;
+                    } else {
+                        $allowedPersonList[$PersonId] = $tblPerson;
+                    }
                 }
+            }
+
+            $allowedPersonIdList = OnlineContactDetails::useService()->getPersonIdListFromPersonList($allowedPersonList);
+            foreach ($allowedPersonList as $tblPerson) {
+                $layoutGroupList[] = $this->getPersonContactDetailsLayoutGroup($tblPerson, $allowedPersonIdList, $hasEdit);
+            }
+            foreach ($blockedPersonList as $tblPerson) {
+                $layoutGroupList[] = new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(new Title(
+                        $tblPerson->getLastFirstName() . ' ' .
+                        new Small(new Muted(DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson)))
+                    ))),
+                    new LayoutRow(new LayoutColumn(MyAccount::useService()->getCustodyBlockedWarning($tblPerson)))
+                ));
             }
         }
 
