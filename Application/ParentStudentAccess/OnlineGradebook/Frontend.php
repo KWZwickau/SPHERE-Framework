@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\ParentStudentAccess\OnlineGradebook;
 
 use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineGradebook;
