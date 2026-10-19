@@ -104,6 +104,11 @@ class KamenzService
                                 $count['NoStudent'][] = $tblPerson->getLastFirstName();
                             }
 
+                            // Schüler muss in einer Klasse oder Stammgruppe sitzen
+                            if (!$tblStudentEducation->getTblDivision() && !$tblStudentEducation->getTblCoreGroup()) {
+                                continue;
+                            }
+
                             $gender = false;
                             $birthday = false;
                             $nationality = '';

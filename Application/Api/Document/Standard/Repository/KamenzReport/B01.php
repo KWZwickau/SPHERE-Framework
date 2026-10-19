@@ -163,12 +163,15 @@ class B01
                 )
             );
 
-        for ($i = 0; $i < 4; $i++) {
+        for ($i = 0; $i < 7; $i++) {
             switch ($i) {
                 case 0: $text = 'Abgangszeugnis'; $identifier = 'Leave'; break;
-                case 1: $text = 'HS - Abs.'; $identifier = 'MsAbsHs'; break;
-                case 2: $text = 'Qual. HS - Abs.'; $identifier = 'MsAbsHsQ'; break;
-                case 3: $text = 'RS - Abs.'; $identifier = 'MsAbsRs'; break;
+                case 1: $text = 'FSP Lernen'; $identifier = 'MsAbsLernen'; break;
+                case 2: $text = 'HS - Abs.'; $identifier = 'MsAbsHs'; break;
+                    case 3: $text = 'd. gl. A. i. FSP L'; $identifier = 'MsAbsLernenEquatedHs'; break;
+                    case 4: $text = 'd. HS gl. A.'; $identifier = 'MsAbsHsE'; break;
+                case 5: $text = 'Qual. HS - Abs.'; $identifier = 'MsAbsHsQ'; break;
+                case 6: $text = 'RS - Abs.'; $identifier = 'MsAbsRs'; break;
                 default: $text = ''; $identifier = 'Default';
             }
             $section = new Section();

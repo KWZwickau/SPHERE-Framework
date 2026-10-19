@@ -266,7 +266,9 @@ class Service extends Extension
                             }
                         }
                     }
-                    if (($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())) {
+                    if ($tblStudentEducation
+                        && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                    ) {
                         // Schulbesuchsjahr bei Förderschulen anzeigen
                         if ($tblSchoolType->getShortName() == 'FöS') {
                             $hasSchoolAttendanceYear = true;
