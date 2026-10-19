@@ -49,7 +49,7 @@ class ClassRegister implements ModuleInterface
      */
     public static function getDigitalLoad(?string $Date = null, string $Type = ''): ResponseInterface
     {
-        $route = '/RestApi/Education/ClassRegister/Digital/Content/Load';
+        $route = '/App/Education/ClassRegister/Digital/Content/Load';
 
         // todo remove AccountId after extern API
         $params = [];
@@ -127,7 +127,7 @@ class ClassRegister implements ModuleInterface
 
     public static function getTimeTableLoad(?string $Date = null): ResponseInterface
     {
-        // $route = '/RestApi/Education/ClassRegister/Digital/Content/Load'; // ToDO Welche Routen mitgeben?
+        // $route = '/App/Education/ClassRegister/Digital/Content/Load'; // ToDO Welche Routen mitgeben?
 
         $result = array();
 
