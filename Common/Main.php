@@ -250,6 +250,10 @@ class Main extends Extension
                         (new Response401('Token invalid'))->send();
                         exit(0);
                     }
+                    // Rebuild session dependent context (consumer, cache slot), initCloudCache() ran on the cookie session
+                    $this->getCache(new MemoryHandler())->clearCache();
+                    unset($_SESSION['Memcached-Slot']);
+                    self::initCloudCache();
                     // Replace dispatcher with new instance of app dispatcher
                     self::$Dispatcher = new AppDispatcher(new AppRouter());
                     // Register app cluster with app dispatcher (to use all routes guarded by session access)
