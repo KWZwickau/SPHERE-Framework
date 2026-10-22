@@ -1,17 +1,24 @@
 <?php
-
 namespace SPHERE\Application\Api\Setting\ApiMyAccount;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\MyAccount\MyAccount;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\AbstractReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
+use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
+use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
+use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
 
@@ -29,6 +36,8 @@ class ApiMyAccount extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('comparePassword');
+        $Dispatcher->registerMethod('openCustodyBlockModal');
+        $Dispatcher->registerMethod('saveCustodyBlockModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -141,5 +150,86 @@ class ApiMyAccount extends Extension implements IApiInterface
                 new Container($Compare)
             ),
             Panel::PANEL_TYPE_SUCCESS);
+    }
+
+    /**
+     * @return ModalReceiver
+     */
+    public static function receiverModal(): ModalReceiver
+    {
+        return (new ModalReceiver(null, new Close()))->setIdentifier('MyAccountModalReceiver');
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineClose(): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $Pipeline->appendEmitter((new CloseModal(self::receiverModal()))->getEmitter());
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineOpenCustodyBlockModal(): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openCustodyBlockModal',
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return string
+     */
+    public function openCustodyBlockModal(): string
+    {
+        if (!($tblAccount = Account::useService()->getAccountBySession())) {
+            return new Danger('Benutzerkonto nicht gefunden', new Exclamation());
+        }
+
+        return MyAccount::useFrontend()->getCustodyBlockModalContent($tblAccount);
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineSaveCustodyBlockModal(): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveCustodyBlockModal'
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param array|null $Data
+     *
+     * @return string
+     */
+    public function saveCustodyBlockModal($Data = null): string
+    {
+
+        $tblAccount = Account::useService()->getAccountBySession();
+        $CustodyIds = isset($Data['CustodyIds']) && is_array($Data['CustodyIds']) ? $Data['CustodyIds'] : array();
+        if ($tblAccount
+            && MyAccount::useService()->saveBlockedCustody($tblAccount, $CustodyIds)) {
+            return new Success('Die Einstellungen wurden erfolgreich gespeichert') . self::pipelineClose();
+        } else {
+            // Modal bleibt bei Fehlermeldung offen
+            return new Danger('Die Einstellungen konnten nicht gespeichert werden');
+        }
     }
 }
