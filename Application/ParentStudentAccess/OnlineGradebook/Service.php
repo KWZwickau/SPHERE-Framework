@@ -7,16 +7,10 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Setting\Consumer\Consumer;
-use SPHERE\Application\Setting\Consumer\Service\Entity\TblStudentCustody;
+use SPHERE\Application\Setting\MyAccount\MyAccount;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
-use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Extension\Extension;
 
 class Service
 {
@@ -101,18 +95,23 @@ class Service
         } else {
             // Mitarbeiter oder Eltern-Zugang
             $tblPersonList = $this->getPersonListFromCustodyLogin();
+
+            if ($tblPersonList) {
+                $tblPersonList = MyAccount::useService()->sortBlockedPersonListToEnd($tblPersonList);
+            }
         }
 
         return $tblPersonList;
     }
 
     /**
+     * Schuljahre und Schülerbildungsdaten der sichtbaren (nicht gesperrten) Schüler
+     *
      * @return array
      */
-    public function getOnlineGradeBookYearAndBlockedAndDataList(): array
+    public function getOnlineGradeBookYearAndDataList(): array
     {
         $tblDisplayYearList = array();
-        $BlockedList = array();
         $data = array();
 
         // Schuljahre Anzeigen ab:
@@ -126,20 +125,12 @@ class Service
         }
 
         // Jahre ermitteln, in denen Schüler in einer Klasse ist
-        if (($tblPersonList = OnlineGradebook::useService()->getPersonListFromAccountBySession())
-            && ($tblAccount = Account::useService()->getAccountBySession())
-        ) {
+        if (($tblPersonList = OnlineGradebook::useService()->getPersonListFromAccountBySession())) {
             $dateTimeNow = new DateTime('now');
             foreach ($tblPersonList as $tblPerson) {
-                $tblPersonAccountList = Account::useService()->getAccountAllByPerson($tblPerson);
-                if ($tblPersonAccountList && current($tblPersonAccountList)->getId() != $tblAccount->getId()) {
-                    // Schüler überspringen, wenn Sorgeberechtigter geblockt ist
-                    if (Consumer::useService()->getStudentCustodyByStudentAndCustody(current($tblPersonAccountList),
-                        $tblAccount)) {
-                        // Merken des geblockten Accounts
-                        $BlockedList[] = current($tblPersonAccountList);
-                        continue;
-                    }
+                // Schüler überspringen, wenn der Sorgeberechtigte durch den volljährigen Schüler gesperrt ist
+                if (MyAccount::useService()->isPersonBlockedForCustody($tblPerson)) {
+                    continue;
                 }
                 if ($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson)) {
                     foreach ($tblStudentEducationList as $tblStudentEducation) {
@@ -163,63 +154,6 @@ class Service
             }
         }
 
-        return array($tblDisplayYearList, $BlockedList, $data);
-    }
-
-    /**
-     * @param IFormInterface $Form
-     * @param                $ParentAccount
-     * @param TblAccount     $tblAccountStudent
-     *
-     * @return IFormInterface|string
-     */
-    public function setDisableParent(
-        IFormInterface $Form,
-        $ParentAccount,
-        TblAccount $tblAccountStudent
-    ) {
-        /**
-         * Skip to Frontend
-         */
-        if ($ParentAccount === null) {
-            return $Form;
-        }
-
-        if (isset($ParentAccount['IsSubmit'])) {
-            unset($ParentAccount['IsSubmit']);
-        }
-
-        $Error = false;
-
-        // Remove old Link
-        $tblStudentCustodyList = Consumer::useService()->getStudentCustodyByStudent($tblAccountStudent);
-        if ($tblStudentCustodyList) {
-            array_walk($tblStudentCustodyList, function (TblStudentCustody $tblStudentCustody) use (&$Error) {
-                if (!Consumer::useService()->removeStudentCustody($tblStudentCustody)) {
-                    $Error = false;
-                }
-            });
-        }
-
-        if ($ParentAccount) {
-            // Add new Link
-            array_walk($ParentAccount, function ($AccountId) use (&$Error, $tblAccountStudent) {
-                $tblAccountCustody = Account::useService()->getAccountById($AccountId);
-                if ($tblAccountCustody) {
-                    Consumer::useService()->createStudentCustody($tblAccountStudent, $tblAccountCustody,
-                        $tblAccountStudent);
-                } else {
-                    $Error = false;
-                }
-            });
-        }
-
-        if (!$Error) {
-            return new Success('Einstellungen wurden erfolgreich gespeichert')
-                .new Redirect(Extension::getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
-        } else {
-            return new Danger('Einstellungen konnten nicht gespeichert werden')
-                .new Redirect(Extension::getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
-        }
+        return array($tblDisplayYearList, $data);
     }
 }

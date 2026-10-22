@@ -157,6 +157,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblAccount $tblAccountCustody
+     *
+     * @return false|TblStudentCustody[]
+     */
+    public function getStudentCustodyByCustody(TblAccount $tblAccountCustody)
+    {
+
+        return (new Data($this->getBinding()))->getStudentCustodyByCustody($tblAccountCustody);
+    }
+
+    /**
      * @param TblAccount $tblAccountStudent
      * @param TblAccount $tblAccountCustody
      *
@@ -165,8 +176,7 @@ class Service extends AbstractService
     public function getStudentCustodyByStudentAndCustody(TblAccount $tblAccountStudent, TblAccount $tblAccountCustody)
     {
 
-        return (new Data($this->getBinding()))->getStudentCustodyByStudentAndCustody($tblAccountStudent,
-            $tblAccountCustody);
+        return (new Data($this->getBinding()))->getStudentCustodyByStudentAndCustody($tblAccountStudent, $tblAccountCustody);
     }
 
     /**

@@ -42,7 +42,7 @@ class ApiGrade implements IApiInterface
     {
         $result = [];
 
-        list($tblYearList) = OnlineGradebook::useService()->getOnlineGradeBookYearAndBlockedAndDataList();
+        list($tblYearList) = OnlineGradebook::useService()->getOnlineGradeBookYearAndDataList();
 
         if (!empty($tblYearList)) {
             $tblYearList = (new Extension())->getSorter($tblYearList)->sortObjectBy('DisplayName', null, Sorter::ORDER_DESC);
@@ -85,7 +85,7 @@ class ApiGrade implements IApiInterface
         $result = [];
 
         // prüfen ob schuljahr zulässig
-        list($tblYearList) = OnlineGradebook::useService()->getOnlineGradeBookYearAndBlockedAndDataList();
+        list($tblYearList) = OnlineGradebook::useService()->getOnlineGradeBookYearAndDataList();
         if (isset($tblYearList[$YearId])
             && ($tblYear = Term::useService()->getYearById($YearId))
             && ($tblPersonList = OnlineGradebook::useService()->getPersonListFromAccountBySession())
@@ -115,7 +115,7 @@ class ApiGrade implements IApiInterface
         $result = [];
 
         // prüfen ob schuljahr zulässig
-        list($tblYearList) = OnlineGradebook::useService()->getOnlineGradeBookYearAndBlockedAndDataList();
+        list($tblYearList) = OnlineGradebook::useService()->getOnlineGradeBookYearAndDataList();
         if (isset($tblYearList[$YearId])
             && ($tblYear = Term::useService()->getYearById($YearId))
             && ($tblPersonList = OnlineGradebook::useService()->getPersonListFromAccountBySession())

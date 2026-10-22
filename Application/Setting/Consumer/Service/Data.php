@@ -476,6 +476,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblAccount $tblAccountCustody
+     *
+     * @return false|TblStudentCustody[]
+     */
+    public function getStudentCustodyByCustody(TblAccount $tblAccountCustody)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudentCustody',
+            array(
+                TblStudentCustody::ATTR_SERVICE_TBL_ACCOUNT_CUSTODY => $tblAccountCustody->getId()
+            ));
+    }
+
+    /**
      * @param TblAccount $tblAccountStudent
      * @param TblAccount $tblAccountCustody
      *

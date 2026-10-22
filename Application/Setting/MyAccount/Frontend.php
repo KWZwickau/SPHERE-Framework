@@ -9,6 +9,7 @@ use SPHERE\Application\Contact\Phone\Service\Entity\TblToCompany as TblToCompany
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -21,6 +22,7 @@ use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
 use SPHERE\Application\Setting\Consumer\SponsorAssociation\Service\Entity\TblSponsorAssociation;
 use SPHERE\Application\Setting\Consumer\SponsorAssociation\SponsorAssociation;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\PasswordField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -29,6 +31,8 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeMinus;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
@@ -44,12 +48,18 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
+use SPHERE\Common\Frontend\Message\Repository\Info as InfoMessage;
+use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -305,12 +315,18 @@ class Frontend extends Extension implements IFrontendInterface
             $colWidth = 4;
             $LayoutColumnArray[] = new LayoutColumn($form, $colWidth);
         }
+        $ButtonList = new Standard('Mein Passwort ändern', new Route(__NAMESPACE__.'/Password'), new Key());
+        if (MyAccount::useService()->isStudentOfAge($tblAccount)) {
+            $ButtonList .= (new Standard('Zugriff für Sorgeberechtigte', ApiMyAccount::getEndpoint(), new EyeMinus()))
+                ->ajaxPipelineOnClick(ApiMyAccount::pipelineOpenCustodyBlockModal());
+        }
+
         $LayoutColumnArray[] = new LayoutColumn(array(
             new Title('Profil', 'Informationen'),
             new Panel(
                 'Benutzerkonto: '.new Bold($tblAccount->getUsername()), $Account
                 , Panel::PANEL_TYPE_INFO,
-                new Standard('Mein Passwort ändern', new Route(__NAMESPACE__.'/Password'), new Key())
+                $ButtonList
             )
         ), $colWidth);
         $LayoutColumnArray[] = new LayoutColumn(array(
@@ -327,9 +343,79 @@ class Frontend extends Extension implements IFrontendInterface
             )
         ), $colWidth);
 
-        $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow($LayoutColumnArray))));
+        $Stage->setContent(ApiMyAccount::receiverModal().new Layout(new LayoutGroup(new LayoutRow($LayoutColumnArray))));
 
         return $Stage;
+    }
+
+    /**
+     * Auswahl der Sorgeberechtigten, die keinen Zugriff auf die Daten des volljährigen Schülers erhalten
+     *
+     * @param TblAccount $tblAccountStudent
+     *
+     * @return string
+     */
+    public function getCustodyBlockModalContent(TblAccount $tblAccountStudent): string
+    {
+        $TableContent = array();
+        if(($tblAccountCustodyList = MyAccount::useService()->getCustodyAccountListForStudent($tblAccountStudent))){
+            foreach ($tblAccountCustodyList as $tblAccountCustody) {
+                if (($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccountCustody))
+                    && ($tblPersonCustody = current($tblPersonList))
+                ) {
+                    $CheckBox = new CheckBox('Data[CustodyIds]['.$tblAccountCustody->getId().']', ' ', $tblAccountCustody->getId());
+                    if (($isBlocked = MyAccount::useService()->isCustodyBlocked($tblAccountStudent, $tblAccountCustody))) {
+                        $CheckBox->setChecked();
+                    }
+                    $TableContent[] = array(
+                        'Check'     => $CheckBox,
+                        'FirstName' => $tblPersonCustody->getFirstName(),
+                        'LastName'  => $tblPersonCustody->getLastName(),
+                        'Status'    => $isBlocked
+                            ? new ToolTip(new Danger(new EyeMinus()), 'Zugriff&nbsp;gesperrt')
+                            : new ToolTip(new SuccessText(new EyeOpen()), 'Zugriff&nbsp;erlaubt'),
+                    );
+                }
+            }
+        }
+
+
+        if (empty($TableContent)) {
+            return new Title(new EyeMinus().' Zugriff für Sorgeberechtigte')
+                .new WarningMessage('Es sind keine Sorgeberechtigten mit Benutzerkonto vorhanden');
+        }
+
+        $form = (new Form(new FormGroup(new FormRow(array(
+            new FormColumn(
+                new TableData($TableContent, null,
+                    array(
+                        'Check'     => '&nbsp;',
+                        'FirstName' => 'Vorname',
+                        'LastName'  => 'Nachname',
+                        'Status'    => 'Status'
+                    ),
+                    array(
+                        'paging'     => false,
+                        'searching'  => false,
+                        'info'       => false,
+                        'ordering'   => false,
+                        'columnDefs' => array(
+                            array('width' => '1%', 'targets' => array(0, -1))
+                        ),
+                    )
+                )
+            ),
+            new FormColumn(
+                (new PrimaryLink('Speichern', ApiMyAccount::getEndpoint(), new Save()))
+                    ->ajaxPipelineOnClick(ApiMyAccount::pipelineSaveCustodyBlockModal())
+            ),
+        )))))->disableSubmitAction();
+
+        return new Title(new EyeMinus().' Zugriff für Sorgeberechtigte')
+            .new InfoMessage('Ausgewählte Sorgeberechtigte erhalten keinen Zugriff mehr auf '
+                .'Ihre Daten im Eltern-Schüler-Zugang')
+//            .new ToggleCheckbox('Alle auswählen/abwählen', $form)
+            .new Well($form);
     }
 
     /**

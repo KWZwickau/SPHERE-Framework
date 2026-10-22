@@ -8,6 +8,7 @@ use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineAbsence;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\MyAccount\MyAccount;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -44,7 +45,6 @@ class Frontend extends Extension implements IFrontendInterface
         $layoutGroupList = array();
 
         list($tblPersonList, $source) = OnlineAbsence::useService()->getPersonListAndSourceFromAccountBySession();
-
         if ($tblPersonList) {
             foreach ($tblPersonList as $tblPerson) {
                 $layoutGroupList[] = $this->getPersonOnlineAbsenceLayoutGroup($tblPerson, $source);
@@ -64,13 +64,22 @@ class Frontend extends Extension implements IFrontendInterface
      */
     private function getPersonOnlineAbsenceLayoutGroup(TblPerson $tblPerson, int $Source): ?LayoutGroup
     {
+        $titleRow = new LayoutRow(new LayoutColumn(
+            new Title(
+                $tblPerson->getLastFirstName() . ' ' .
+                new Small(new Muted(DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson)))
+            )
+        ));
+
+        if (MyAccount::useService()->isPersonBlockedForCustody($tblPerson)) {
+            return new LayoutGroup(array(
+                $titleRow,
+                new LayoutRow(new LayoutColumn(MyAccount::useService()->getCustodyBlockedWarning($tblPerson)))
+            ));
+        }
+
         return new LayoutGroup(array(
-            new LayoutRow(new LayoutColumn(
-                new Title(
-                    $tblPerson->getLastFirstName() . ' ' .
-                    new Small(new Muted(DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson)))
-                )
-            )),
+            $titleRow,
             new LayoutRow(new LayoutColumn(
                 (new PrimaryLink(
                     new Plus() . ' Fehlzeit hinzufügen',

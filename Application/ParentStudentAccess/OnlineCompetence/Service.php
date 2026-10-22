@@ -8,6 +8,7 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\MyAccount\MyAccount;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 
@@ -126,6 +127,10 @@ class Service
         } else {
             // Mitarbeiter oder Eltern-Zugang
             $tblPersonList = $this->getPersonListFromCustodyLogin();
+
+            if($tblPersonList) {
+                $tblPersonList = MyAccount::useService()->sortBlockedPersonListToEnd($tblPersonList);
+            }
         }
 
         return $tblPersonList ?: [];
