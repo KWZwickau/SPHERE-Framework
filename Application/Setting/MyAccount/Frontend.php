@@ -282,7 +282,6 @@ class Frontend extends Extension implements IFrontendInterface
             $colorChoice[3] = '(Experimantal) Webseite Dunkel';
         }
 
-
         $isSystem = Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_SYSTEM);
 
         $form = array(
@@ -319,6 +318,9 @@ class Frontend extends Extension implements IFrontendInterface
         if (MyAccount::useService()->isStudentOfAge($tblAccount)) {
             $ButtonList .= (new Standard('Zugriff für Sorgeberechtigte', ApiMyAccount::getEndpoint(), new EyeMinus()))
                 ->ajaxPipelineOnClick(ApiMyAccount::pipelineOpenCustodyBlockModal());
+        } elseif($isSystem) {
+            $ButtonList .= (new ToolTip((new Standard('Zugriff für Sorgeberechtigte', ApiMyAccount::getEndpoint(), new EyeMinus()))->setDisabled()
+                , htmlspecialchars('Sichtbarkeit System-Admin<br/>Button steht nur volljährigen Schülern zur Verfügung')))->enableHtml();
         }
 
         $LayoutColumnArray[] = new LayoutColumn(array(
