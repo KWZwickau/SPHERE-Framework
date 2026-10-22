@@ -346,17 +346,16 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $PriceSum
      * @param TblItem[] $tblItemList
-     * @param string $Year
-     * @param int $From
-     * @param int $To
-     * @param bool $isMonthly
-     *
-     * @return false|FilePointer
      */
-    public function createBalanceListExcel($PriceSum, $tblItemList = array(), $Year = '', $From = 1, $To = 12, $isMonthly = false)
-    {
+    public function createBalanceListExcel(
+        array $PriceSum = array(),
+        array $tblItemList = array(),
+        string $Year = '',
+        int $From = 1,
+        int $To = 12,
+        bool $isMonthly = false
+    ): false|FilePointer {
 
         $PersonList = array();
         if(!empty($PriceSum)){
@@ -475,15 +474,15 @@ class Service extends AbstractService
 //                                            $Month = (int)(new \DateTime($Key))->format('m');
                                             $Item['PaymentList']['Id'.$tblItem->getId()][$Month] = $Price;
                                         }
-                                        if(isset($value['PriceSub'])){
-                                            foreach($value['PriceSub'] as $BillTime2 => $PriceSub){
-                                                $Month = substr($BillTime2, 5,2);
-                                                if(isset($Item['PaymentList']['Id'.$tblItem->getId()][$Month])) {
-                                                    $Item['PaymentList']['Id'.$tblItem->getId()][$Month] =
-                                                        $Item['PaymentList']['Id'.$tblItem->getId()][$Month] - $PriceSub;
-                                                } else {
-                                                    $Item['PaymentList']['Id'.$tblItem->getId()][$Month] = $PriceSub * -1;
-                                                }
+                                    }
+                                    if(isset($value['PriceSub'])){
+                                        foreach($value['PriceSub'] as $BillTime2 => $PriceSub){
+                                            $Month = substr($BillTime2, 5,2);
+                                            if(isset($Item['PaymentList']['Id'.$tblItem->getId()][$Month])) {
+                                                $Item['PaymentList']['Id'.$tblItem->getId()][$Month] =
+                                                    $Item['PaymentList']['Id'.$tblItem->getId()][$Month] - $PriceSub;
+                                            } else {
+                                                $Item['PaymentList']['Id'.$tblItem->getId()][$Month] = $PriceSub * -1;
                                             }
                                         }
                                     }
@@ -538,7 +537,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "Stadt");
             $export->setValue($export->getCell($column++, $row), "Ortsteil");
             foreach($tblItemList as $tblItem){
-                if(!empty(current($PersonList)['PaymentList'])){
+                if($isMonthly){
                     for($i = $From; $i <= $To; $i++){
                         $export->setValue($export->getCell($column++, $row), $tblItem->getName().'_'.$i);
                     }
