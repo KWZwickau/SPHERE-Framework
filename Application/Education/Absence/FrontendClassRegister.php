@@ -184,11 +184,11 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
 
             foreach ($tblAbsenceList as $tblAbsence) {
                 $status = $tblAbsence->getStatusDisplayName();
-                $isOnlineAbsence = $tblAbsence->getIsOnlineAbsence();
+//                $isOnlineAbsence = $tblAbsence->getIsOnlineAbsence();
 
                 $item = array(
-                    'FromDate' => $isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getFromDate() . '</span>' : $tblAbsence->getFromDate(),
-                    'ToDate' => $isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getToDate() . '</span>' : $tblAbsence->getToDate(),
+                    'FromDate' => $tblAbsence->getFromDate(),// $isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getFromDate() . '</span>' : $tblAbsence->getFromDate(),
+                    'ToDate' => $tblAbsence->getToDate(),// $isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getToDate() . '</span>' : $tblAbsence->getToDate(),
                     'Days' => ($days = $tblAbsence->getDays($tblYear, null, $tblCompany ?: null, $tblSchoolType ?: null)) == 1
                         ? $days . ' ' . new Small(new Muted($tblAbsence->getWeekDay()))
                         : $days,
