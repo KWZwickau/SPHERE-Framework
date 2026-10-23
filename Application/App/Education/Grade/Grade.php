@@ -45,7 +45,7 @@ class Grade implements ModuleInterface
     {
         $result = [];
 
-        list($tblYearList) = OnlineGradebook::useService()->getOnlineGradeBookYearAndBlockedAndDataList();
+        list($tblYearList) = OnlineGradebook::useService()->getOnlineGradeBookYearAndDataList();
 
         if (!empty($tblYearList)) {
             $tblYearList = (new Extension())->getSorter($tblYearList)->sortObjectBy('DisplayName', null, Sorter::ORDER_DESC);
@@ -93,7 +93,7 @@ class Grade implements ModuleInterface
         $result = [];
 
         // prüfen ob schuljahr zulässig
-        list($tblYearList) = OnlineGradebook::useService()->getOnlineGradeBookYearAndBlockedAndDataList();
+        list($tblYearList) = OnlineGradebook::useService()->getOnlineGradeBookYearAndDataList();
         if (isset($tblYearList[$YearId])
             && ($tblYear = Term::useService()->getYearById($YearId))
             && ($tblPersonList = OnlineGradebook::useService()->getPersonListFromAccountBySession())
@@ -124,7 +124,7 @@ class Grade implements ModuleInterface
         $result = [];
 
         // prüfen ob schuljahr zulässig
-        list($tblYearList) = OnlineGradebook::useService()->getOnlineGradeBookYearAndBlockedAndDataList();
+        list($tblYearList) = OnlineGradebook::useService()->getOnlineGradeBookYearAndDataList();
         if (isset($tblYearList[$YearId])
             && ($tblYear = Term::useService()->getYearById($YearId))
             && ($tblPersonList = OnlineGradebook::useService()->getPersonListFromAccountBySession())
